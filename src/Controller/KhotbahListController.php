@@ -11,31 +11,37 @@ final class KhotbahListController extends AbstractController
 {
     public function insert(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+        $this->assertActivated($request);
         $body = $this->body($request);
         $moon = (string) ($body['moon'] ?? '');
         $date = (string) ($body['date'] ?? '');
         $identity = (string) ($body['identity'] ?? '');
 
-        $stmt = $this->db->pdo()->prepare(
+        $stmt = $this->pdo()->prepare(
             'INSERT INTO data_list (moon, `date`, identity) VALUES (?, ?, ?)'
         );
         $stmt->execute([$moon, $date, $identity]);
+
+        $this->flash('success', 'Jadwal khotbah Jum\'at berhasil ditambahkan.');
 
         return $this->redirect($response, '/');
     }
 
     public function update(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+        $this->assertActivated($request);
         $body = $this->body($request);
         $id = (int) ($body['id'] ?? 0);
         $moon = (string) ($body['moon'] ?? '');
         $date = (string) ($body['date'] ?? '');
         $identity = (string) ($body['identity'] ?? '');
 
-        $stmt = $this->db->pdo()->prepare(
+        $stmt = $this->pdo()->prepare(
             'UPDATE data_list SET moon = ?, `date` = ?, identity = ? WHERE id = ?'
         );
         $stmt->execute([$moon, $date, $identity, $id]);
+
+        $this->flash('success', 'Jadwal khotbah Jum\'at berhasil diperbarui.');
 
         return $this->redirect($response, '/');
     }
@@ -45,12 +51,14 @@ final class KhotbahListController extends AbstractController
      */
     public function delete(ServerRequestInterface $request, ResponseInterface $response, array $args = []): ResponseInterface
     {
+        $this->assertActivated($request);
         $query = $request->getQueryParams();
         $id = (int) ($args['id'] ?? $query['id'] ?? 0);
 
         if ($id > 0) {
-            $stmt = $this->db->pdo()->prepare('DELETE FROM data_list WHERE id = ?');
+            $stmt = $this->pdo()->prepare('DELETE FROM data_list WHERE id = ?');
             $stmt->execute([$id]);
+            $this->flash('success', 'Jadwal khotbah Jum\'at berhasil dihapus.');
         }
 
         return $this->redirect($response, '/');

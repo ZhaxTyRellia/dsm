@@ -11,6 +11,7 @@ final class MoneyController extends AbstractController
 {
     public function update(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+        $this->assertActivated($request);
         $body = $this->body($request);
 
         $nullableValue = static function (mixed $value): ?string {
@@ -57,10 +58,11 @@ final class MoneyController extends AbstractController
             income_umat = ?, income_masjid = ?, income_total = ?,
             position_date = ?, position_umat = ?, position_masjid = ?, position_total = ?,
             expense_date = ?, expense_umat = ?, expense_masjid = ?, expense_total = ?,
-            closing_date = ?, closing_umat = ?, closing_masjid = ?, closing_total = ?
+            closing_date = ?, closing_umat = ?, closing_masjid = ?, closing_total = ?,
+            updated_at = CURRENT_TIMESTAMP
             WHERE id = 1';
 
-        $stmt = $this->db->pdo()->prepare($sql);
+        $stmt = $this->pdo()->prepare($sql);
         $stmt->execute([
             $nullableValue($body['opening_date'] ?? null),
             $nullableValue($body['period_start'] ?? null),
@@ -85,6 +87,8 @@ final class MoneyController extends AbstractController
             $closingTotal,
         ]);
 
+        $this->flash('success', 'Laporan kas masjid berhasil disimpan.');
+
         return $this->redirect($response, '/');
     }
 
@@ -93,11 +97,13 @@ final class MoneyController extends AbstractController
      */
     public function delete(ServerRequestInterface $request, ResponseInterface $response, array $args = []): ResponseInterface
     {
+        $this->assertActivated($request);
         $query = $request->getQueryParams();
         $id = (int) ($args['id'] ?? $query['id'] ?? 0);
         if ($id > 0) {
-            $stmt = $this->db->pdo()->prepare('DELETE FROM data_money WHERE id = ?');
+            $stmt = $this->pdo()->prepare('DELETE FROM data_money WHERE id = ?');
             $stmt->execute([$id]);
+            $this->flash('success', 'Data kas berhasil dihapus.');
         }
 
         return $this->redirect($response, '/');

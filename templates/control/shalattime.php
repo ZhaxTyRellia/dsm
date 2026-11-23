@@ -1,52 +1,51 @@
-<!DOCTYPE html>
-<html lang="id">
+<div class="control-wrap">
+    <div class="section-card">
+        <div class="card-header">
+            <div class="card-header-left">
+                <div class="card-badge-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div>
+                    <h2 class="card-title">Pengaturan Waktu Shalat</h2>
+                    <p class="card-subtitle">Atur jadwal masuk waktu shalat harian dan Jum'at untuk modal pengingat</p>
+                </div>
+            </div>
+            <a href="" class="btn btn-outline btn-sm">Kembali ke Dashboard</a>
+        </div>
+        <div class="card-body">
+            <form action="control/shalat-time" method="POST">
+                <div class="shalat-grid">
+                    <div class="shalat-item">
+                        <label class="form-label">Subuh</label>
+                        <input type="time" class="form-control" name="shalat[subuh]" step="1" value="<?= $e($data['subuh'] ?? '') ?>" required>
+                    </div>
+                    <div class="shalat-item">
+                        <label class="form-label">Dzuhur</label>
+                        <input type="time" class="form-control" name="shalat[dzuhur]" step="1" value="<?= $e($data['dzuhur'] ?? '') ?>" required>
+                    </div>
+                    <div class="shalat-item">
+                        <label class="form-label">Jum'at</label>
+                        <input type="time" class="form-control" name="shalat[jumat]" step="1" value="<?= $e($data['jumat'] ?? '') ?>" required>
+                    </div>
+                    <div class="shalat-item">
+                        <label class="form-label">Ashar</label>
+                        <input type="time" class="form-control" name="shalat[ashar]" step="1" value="<?= $e($data['ashar'] ?? '') ?>" required>
+                    </div>
+                    <div class="shalat-item">
+                        <label class="form-label">Maghrib</label>
+                        <input type="time" class="form-control" name="shalat[maghrib]" step="1" value="<?= $e($data['maghrib'] ?? '') ?>" required>
+                    </div>
+                    <div class="shalat-item">
+                        <label class="form-label">Isya</label>
+                        <input type="time" class="form-control" name="shalat[isya]" step="1" value="<?= $e($data['isya'] ?? '') ?>" required>
+                    </div>
+                </div>
 
-<head>
-    <meta charset="UTF-8">
-    <title>Change Shalat Time</title>
-    <link rel="shortcut icon" type="image/png" href="<?= $e($basePath) ?>/assets/img/favicon.png">
-    <meta name="description" content="The small framework with powerful features">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="<?= $e($basePath) ?>/assets/css/shalattime.css">
-</head>
-
-<body>
-
-    <div class="container">
-        <header class="page-header">
-            <h3>Update Waktu Shalat</h3>
-            <p>Atur jadwal waktu ibadah harian</p>
-            <div class="header-divider"></div>
-        </header>
-        <form action="<?= $e($basePath) ?>/control/shalat-time" method="POST">
-            <div class="form-group">
-                <label>Subuh</label>
-                <input type="time" name="shalat[subuh]" step="1" value="<?= $e($data['subuh'] ?? '') ?>" required>
-            </div>
-            <div class="form-group">
-                <label>Dzuhur</label>
-                <input type="time" name="shalat[dzuhur]" step="1" value="<?= $e($data['dzuhur'] ?? '') ?>" required>
-            </div>
-            <div class="form-group">
-                <label>Jum'at</label>
-                <input type="time" name="shalat[jumat]" step="1" value="<?= $e($data['jumat'] ?? '') ?>" required>
-            </div>
-            <div class="form-group">
-                <label>Ashar</label>
-                <input type="time" name="shalat[ashar]" step="1" value="<?= $e($data['ashar'] ?? '') ?>" required>
-            </div>
-            <div class="form-group">
-                <label>Maghrib</label>
-                <input type="time" name="shalat[maghrib]" step="1" value="<?= $e($data['maghrib'] ?? '') ?>" required>
-            </div>
-            <div class="form-group">
-                <label>Isya</label>
-                <input type="time" name="shalat[isya]" step="1" value="<?= $e($data['isya'] ?? '') ?>" required>
-            </div>
-            <button type="submit" class="btn-submit">Save</button>
-        </form>
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <a href="" class="btn btn-outline">Batal</a>
+                    <button type="submit" class="btn btn-primary">Simpan Jadwal Shalat</button>
+                </div>
+            </form>
+        </div>
     </div>
-
-</body>
-
-</html>
+</div>

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Database\Connection;
+use App\Core\Kernel;
+use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UploadedFileInterface;
@@ -13,10 +14,20 @@ use Slim\Views\PhpRenderer;
 abstract class AbstractController
 {
     public function __construct(
-        protected readonly Connection $db,
+        protected readonly Kernel $kernel,
         protected readonly PhpRenderer $view,
         protected readonly string $basePath
     ) {
+    }
+
+    protected function pdo(): PDO
+    {
+        return $this->kernel->pdo();
+    }
+
+    protected function assertActivated(ServerRequestInterface $request): void
+    {
+        $this->kernel->assertActivated($request);
     }
 
     /**
@@ -30,6 +41,66 @@ abstract class AbstractController
     ): ResponseInterface {
         $rendered = $this->view->render($response, $template, $data);
         return $rendered->withStatus($status);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    protected function renderAdmin(
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+        string $template,
+        array $data = [],
+        string $pageTitle = 'Dashboard',
+        string $activeNav = 'dashboard',
+        int $status = 200
+    ): ResponseInterface {
+        $this->assertActivated($request);
+
+        $brandIdentity = $this->pdo()
+            ->query('SELECT logo, tittle, name FROM identity WHERE id = 1 LIMIT 1')
+            ->fetch() ?: [
+                'logo' => 'default.png',
+                'tittle' => 'Masjid Digital Signage',
+                'name' => 'Panel Manajemen',
+            ];
+
+        $flash = $this->pullFlash();
+        $content = $this->view->fetch($template, $data);
+
+        return $this->render($response, 'layouts/admin.php', [
+            'pageTitle' => $pageTitle,
+            'activeNav' => $activeNav,
+            'brandIdentity' => $brandIdentity,
+            'flash' => $flash,
+            'content' => $content,
+        ], $status);
+    }
+
+    protected function flash(string $type, string $message): void
+    {
+        $_SESSION['flash'] = [
+            'type' => $type,
+            'message' => $message,
+        ];
+    }
+
+    /**
+     * @return array{type: string, message: string}|null
+     */
+    protected function pullFlash(): ?array
+    {
+        if (!isset($_SESSION['flash']) || !is_array($_SESSION['flash'])) {
+            return null;
+        }
+
+        $flash = [
+            'type' => (string) ($_SESSION['flash']['type'] ?? 'info'),
+            'message' => (string) ($_SESSION['flash']['message'] ?? ''),
+        ];
+        unset($_SESSION['flash']);
+
+        return $flash['message'] !== '' ? $flash : null;
     }
 
     protected function redirect(ResponseInterface $response, string $path, int $status = 302): ResponseInterface
@@ -68,21 +139,6 @@ abstract class AbstractController
         return $response
             ->withHeader('Content-Type', 'text/html; charset=utf-8')
             ->withStatus($status);
-    }
-
-    protected function alertAndRedirect(
-        ResponseInterface $response,
-        string $message,
-        string $path
-    ): ResponseInterface {
-        $prefix = $this->basePath !== '' ? $this->basePath : '';
-        $target = str_starts_with($path, '/') ? $prefix . $path : $prefix . '/' . $path;
-        $jsMessage = json_encode($message, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
-        $jsTarget = json_encode($target, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
-
-        $script = "<script>alert({$jsMessage}); window.location.href = {$jsTarget};</script>";
-
-        return $this->html($response, $script);
     }
 
     /**

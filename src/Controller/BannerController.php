@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Database\Connection;
+use App\Core\Kernel;
 use App\Service\FileUploadService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -25,21 +25,22 @@ final class BannerController extends AbstractController
     ];
 
     public function __construct(
-        Connection $db,
+        Kernel $kernel,
         PhpRenderer $view,
         string $basePath,
         private readonly FileUploadService $fileUploadService
     ) {
-        parent::__construct($db, $view, $basePath);
+        parent::__construct($kernel, $view, $basePath);
     }
 
     public function updateSlides(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+        $this->assertActivated($request);
         $body = $this->body($request);
         $val = (int) ($body['active_slides'] ?? 0);
 
         if ($val >= 1 && $val <= 9) {
-            $pdo = $this->db->pdo();
+            $pdo = $this->pdo();
             $current = $pdo->query('SELECT * FROM banner WHERE id = 1 LIMIT 1')->fetch();
             $oldLimit = (int) ($current['active_slides'] ?? 0);
 
@@ -58,6 +59,7 @@ final class BannerController extends AbstractController
 
             $stmt = $pdo->prepare('UPDATE banner SET active_slides = ? WHERE id = 1');
             $stmt->execute([$val]);
+            $this->flash('success', "Jumlah slide banner aktif diatur ke {$val} slide.");
         }
 
         return $this->redirect($response, '/');
@@ -65,8 +67,9 @@ final class BannerController extends AbstractController
 
     public function upload(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+        $this->assertActivated($request);
         $files = $this->files($request);
-        $pdo = $this->db->pdo();
+        $pdo = $this->pdo();
 
         foreach (self::SLIDE_COLUMNS as $target) {
             if (!isset($files[$target]) || $files[$target]->getError() !== UPLOAD_ERR_OK) {
@@ -85,6 +88,8 @@ final class BannerController extends AbstractController
             if ($oldFile !== '' && strtolower($oldFile) !== 'default.png') {
                 $this->fileUploadService->deletePicture($oldFile);
             }
+
+            $this->flash('success', 'Gambar banner berhasil diunggah.');
 
             return $this->redirect($response, '/');
         }

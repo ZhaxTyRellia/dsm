@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use App\Core\Kernel;
 use App\Service\DateTimeService;
 use App\Service\FileUploadService;
-use App\Service\LicenseService;
 use App\Service\YoutubeEmbedService;
 use App\Support\BasePathDetector;
 use DateTimeImmutable;
@@ -81,35 +81,57 @@ final class ServicesTest extends TestCase
         ], $fridays);
     }
 
-    public function testLicenseServiceActivationAndVerification(): void
+    public function testKernelEcdsaP256VerificationAndSqliteBootstrap(): void
     {
-        $tempDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'dsm_lic_test_' . uniqid('', true);
-        mkdir($tempDir, 0777, true);
-        $licenseFile = $tempDir . DIRECTORY_SEPARATOR . 'license.key';
-
-        try {
-            $uuid = '12345678-1234-1234-1234-1234567890AB';
-            $service = new LicenseService($licenseFile, 'MTP-Production!!!', static fn (): string => $uuid);
-
-            $this->assertSame($uuid, $service->getDeviceUuid());
-            $this->assertFalse($service->isLicensed());
-
-            $badResult = $service->activate('invalid-serial');
-            $this->assertFalse($badResult['success']);
-            $this->assertSame('The serial number you entered is not valid for this PC!', $badResult['error']);
-            $this->assertFalse($service->isLicensed());
-
-            $validKey = $service->generateValidKey($uuid);
-            $this->assertNotNull($validKey);
-
-            $okResult = $service->activate($validKey);
-            $this->assertTrue($okResult['success']);
-            $this->assertNull($okResult['error']);
-            $this->assertTrue($service->isLicensed());
-        } finally {
-            @unlink($licenseFile);
-            @rmdir($tempDir);
+        $cnf = 'C:/WampDock/apache/conf/openssl.cnf';
+        $opts = ['private_key_type' => OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1'];
+        if (is_file($cnf)) {
+            $opts['config'] = $cnf;
         }
+        $key = openssl_pkey_new($opts);
+        $this->assertNotFalse($key);
+
+        $privatePem = '';
+        openssl_pkey_export($key, $privatePem, null, $opts);
+        $details = openssl_pkey_get_details($key);
+        $publicPem = (string) $details['key'];
+
+        $kernel = new Kernel(
+            ':memory:',
+            '/dsm',
+            dirname(__DIR__) . '/public/assets/img/pictures',
+            false,
+            null,
+            $publicPem,
+            static fn (): string => '  ab12-cd34-ef56  '
+        );
+
+        $this->assertSame('AB12-CD34-EF56', $kernel->getDeviceId());
+        $this->assertFalse($kernel->isActivated());
+
+        // Sign normalized device ID using ECDSA SHA-256 (DER format) -> unpadded Base64URL
+        $derSig = '';
+        $this->assertTrue(openssl_sign('AB12-CD34-EF56', $derSig, $privatePem, OPENSSL_ALGO_SHA256));
+        $activateKey = rtrim(strtr(base64_encode($derSig), '+/', '-_'), '=');
+
+        $this->assertTrue($kernel->verifyActivateKey('  ab12-cd34-ef56 ', $activateKey));
+        $this->assertFalse($kernel->verifyActivateKey('OTHER-DEVICE-ID', $activateKey));
+        $this->assertFalse($kernel->verifyActivateKey('AB12-CD34-EF56', $activateKey . '='));
+        $this->assertFalse($kernel->verifyActivateKey('AB12-CD34-EF56', 'tampered-key'));
+
+        $bad = $kernel->activate('invalid');
+        $this->assertFalse($bad['success']);
+        $this->assertFalse($kernel->isActivated());
+
+        $ok = $kernel->activate($activateKey);
+        $this->assertTrue($ok['success']);
+        $this->assertTrue($kernel->isActivated());
+
+        // Verify SQLite auto-schema and default seed rows
+        $pdo = $kernel->pdo();
+        $this->assertSame('admin', $pdo->query("SELECT username FROM user LIMIT 1")->fetchColumn());
+        $this->assertSame(1, (int) $pdo->query("SELECT COUNT(*) FROM banner")->fetchColumn());
+        $this->assertSame(1, (int) $pdo->query("SELECT COUNT(*) FROM data_money")->fetchColumn());
     }
 
     public function testFileUploadService(): void
@@ -122,10 +144,8 @@ final class ServicesTest extends TestCase
 
         $srcImg = $baseDir . DIRECTORY_SEPARATOR . 'source.png';
         $srcBad = $baseDir . DIRECTORY_SEPARATOR . 'source.exe';
-        $srcAudio = $baseDir . DIRECTORY_SEPARATOR . 'source.mp3';
         file_put_contents($srcImg, 'png-bytes');
         file_put_contents($srcBad, 'exe-bytes');
-        file_put_contents($srcAudio, 'mp3-bytes');
         file_put_contents($picDir . DIRECTORY_SEPARATOR . 'default.png', 'keep-me');
 
         try {

@@ -8,42 +8,20 @@ use App\Controller\BannerController;
 use App\Controller\ControlController;
 use App\Controller\DashboardController;
 use App\Controller\DisplayController;
-use App\Controller\ErrorController;
 use App\Controller\KhotbahListController;
-use App\Controller\LicenseController;
 use App\Controller\MoneyController;
 use App\Controller\RawatibController;
 use App\Controller\StaffController;
 use App\Controller\YoutubeController;
 use App\Middleware\AuthMiddleware;
-use App\Middleware\LicenseMiddleware;
 use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
 
 return static function (App $app): void {
     $container = $app->getContainer();
     $authMiddleware = $container->get(AuthMiddleware::class);
-    $licenseMiddleware = $container->get(LicenseMiddleware::class);
 
-    // Public Auth & License routes
-    $app->get('/login', [AuthController::class, 'showLogin']);
-    $app->post('/login', [AuthController::class, 'login']);
-    $app->map(['GET', 'POST'], '/logout', [AuthController::class, 'logout']);
-
-    // Legacy auth routes
-    $app->get('/app', [AuthController::class, 'showLogin']);
-    $app->get('/app/', [AuthController::class, 'showLogin']);
-    $app->get('/app/index.php', [AuthController::class, 'showLogin']);
-    $app->post('/app', [AuthController::class, 'login']);
-    $app->post('/app/', [AuthController::class, 'login']);
-    $app->post('/app/index.php', [AuthController::class, 'login']);
-    $app->map(['GET', 'POST'], '/app/action/logout', [AuthController::class, 'logout']);
-    $app->map(['GET', 'POST'], '/app/action/logout.php', [AuthController::class, 'logout']);
-
-    $app->get('/license', [LicenseController::class, 'show']);
-    $app->post('/license', [LicenseController::class, 'activate']);
-
-    // Public Signage Display & Live Polling APIs
+    // Public Signage Display & Live Polling APIs (accessible without license activation)
     $app->get('/potrait', [DisplayController::class, 'portrait']);
     $app->get('/portrait', [DisplayController::class, 'portrait']);
     $app->get('/potrait.php', [DisplayController::class, 'portrait']);
@@ -68,21 +46,25 @@ return static function (App $app): void {
     $app->get('/app/control/get_time', [DisplayController::class, 'currentTime']);
     $app->get('/app/control/get_time.php', [DisplayController::class, 'currentTime']);
 
-    // Custom Error Pages
-    $app->get('/403', [ErrorController::class, 'forbidden']);
-    $app->get('/403.php', [ErrorController::class, 'forbidden']);
-    $app->get('/404', [ErrorController::class, 'notFound']);
-    $app->get('/404.php', [ErrorController::class, 'notFound']);
+    // Auth routes (locked by global Kernel license gate when unactivated)
+    $app->get('/login', [AuthController::class, 'showLogin']);
+    $app->post('/login', [AuthController::class, 'login']);
+    $app->map(['GET', 'POST'], '/logout', [AuthController::class, 'logout']);
 
-    // Dashboard (LIFO: Auth added first, License added second -> License runs before Auth)
-    $app->get('/', [DashboardController::class, 'index'])
-        ->add($authMiddleware)
-        ->add($licenseMiddleware);
-    $app->get('/index.php', [DashboardController::class, 'index'])
-        ->add($authMiddleware)
-        ->add($licenseMiddleware);
+    $app->get('/app', [AuthController::class, 'showLogin']);
+    $app->get('/app/', [AuthController::class, 'showLogin']);
+    $app->get('/app/index.php', [AuthController::class, 'showLogin']);
+    $app->post('/app', [AuthController::class, 'login']);
+    $app->post('/app/', [AuthController::class, 'login']);
+    $app->post('/app/index.php', [AuthController::class, 'login']);
+    $app->map(['GET', 'POST'], '/app/action/logout', [AuthController::class, 'logout']);
+    $app->map(['GET', 'POST'], '/app/action/logout.php', [AuthController::class, 'logout']);
 
-    // Protected Admin & Control Routes
+    // Dashboard (protected by Kernel license gate + AuthMiddleware)
+    $app->get('/', [DashboardController::class, 'index'])->add($authMiddleware);
+    $app->get('/index.php', [DashboardController::class, 'index'])->add($authMiddleware);
+
+    // Protected Admin & Control Routes (protected by Kernel license gate + AuthMiddleware)
     $app->group('', function (RouteCollectorProxy $group): void {
         // YouTube
         $group->post('/youtube', [YoutubeController::class, 'update']);

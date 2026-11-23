@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use App\Core\Kernel;
 use App\Service\FileUploadService;
-use App\Service\LicenseService;
 use PDO;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -19,7 +19,9 @@ final class ApplicationTest extends TestCase
     private string $tempDir;
     private string $picDir;
     private string $audioDir;
-    private string $licenseFile;
+    private string $privateKeyPem;
+    private string $publicKeyPem;
+    private string $deviceUuid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
     private bool $shutdownCalled = false;
 
     protected function setUp(): void
@@ -34,13 +36,23 @@ final class ApplicationTest extends TestCase
         mkdir($this->picDir, 0777, true);
         mkdir($this->audioDir, 0777, true);
         file_put_contents($this->picDir . DIRECTORY_SEPARATOR . 'default.png', 'default-img');
-        $this->licenseFile = $this->tempDir . DIRECTORY_SEPARATOR . 'license.key';
 
-        $this->pdo = new PDO('sqlite::memory:');
-        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        $cnf = 'C:/WampDock/apache/conf/openssl.cnf';
+        $opts = ['private_key_type' => OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1'];
+        if (is_file($cnf)) {
+            $opts['config'] = $cnf;
+        }
+        $key = openssl_pkey_new($opts);
+        $priv = '';
+        openssl_pkey_export($key, $priv, null, $opts);
+        $details = openssl_pkey_get_details($key);
+        $this->privateKeyPem = $priv;
+        $this->publicKeyPem = (string) $details['key'];
 
-        $this->seedDatabase();
+        $this->pdo = new PDO('sqlite::memory:', null, null, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]);
     }
 
     protected function tearDown(): void
@@ -62,69 +74,39 @@ final class ApplicationTest extends TestCase
         parent::tearDown();
     }
 
-    private function seedDatabase(): void
+    private function signDeviceId(string $deviceId): string
     {
-        $statements = [
-            'CREATE TABLE user (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, password TEXT)',
-            'CREATE TABLE identity (id INTEGER PRIMARY KEY AUTOINCREMENT, logo TEXT, tittle TEXT, name TEXT, background TEXT, audio TEXT, marquee TEXT)',
-            'CREATE TABLE youtube (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT)',
-            'CREATE TABLE data_money (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                opening_date TEXT, period_start TEXT, report_date TEXT,
-                opening_umat REAL, opening_masjid REAL, opening_total REAL,
-                income_umat REAL, income_masjid REAL, income_total REAL,
-                position_date TEXT, position_umat REAL, position_masjid REAL, position_total REAL,
-                expense_date TEXT, expense_umat REAL, expense_masjid REAL, expense_total REAL,
-                closing_date TEXT, closing_umat REAL, closing_masjid REAL, closing_total REAL,
-                updated_at TEXT
-            )',
-            'CREATE TABLE data_rawatib (id INTEGER PRIMARY KEY AUTOINCREMENT, data_shalat TEXT, hari TEXT, name TEXT, profile TEXT)',
-            'CREATE TABLE monthly_planner (id INTEGER PRIMARY KEY AUTOINCREMENT, id_desc INTEGER, `desc` TEXT, `time` TEXT, speaker TEXT)',
-            'CREATE TABLE data_list (id INTEGER PRIMARY KEY AUTOINCREMENT, moon TEXT, `date` TEXT, identity TEXT)',
-            'CREATE TABLE staff (id INTEGER PRIMARY KEY AUTOINCREMENT, tier TEXT, id_no INTEGER, identity TEXT)',
-            'CREATE TABLE banner (
-                id INTEGER PRIMARY KEY AUTOINCREMENT, active_slides INTEGER,
-                pict1 TEXT, pict2 TEXT, pict3 TEXT, pict4 TEXT, pict5 TEXT,
-                pict6 TEXT, pict7 TEXT, pict8 TEXT, pict9 TEXT
-            )',
-            'CREATE TABLE shalattime (id INTEGER PRIMARY KEY AUTOINCREMENT, subuh TEXT, dzuhur TEXT, ashar TEXT, maghrib TEXT, isya TEXT, jumat TEXT)',
-            'CREATE TABLE khotbah_view (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, avatar TEXT, name TEXT)',
-        ];
+        $normalized = strtoupper(trim($deviceId));
+        $der = '';
+        openssl_sign($normalized, $der, $this->privateKeyPem, OPENSSL_ALGO_SHA256);
 
-        foreach ($statements as $sql) {
-            $this->pdo->exec($sql);
-        }
-
-        $this->pdo->exec("INSERT INTO user (username, password) VALUES ('admin', 'secret123')");
-        $this->pdo->exec("INSERT INTO identity (id, logo, tittle, name, background, audio, marquee) VALUES (1, 'default.png', 'Masjid Al-Ikhlas', 'Jl. Merdeka No. 1', 'bg1.png', '/dsm/assets/audio/audio.mp3', 'Selamat Datang')");
-        $this->pdo->exec("INSERT INTO youtube (id, url) VALUES (1, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')");
-        $this->pdo->exec("INSERT INTO data_money (id, opening_date, opening_umat, opening_masjid, closing_date, closing_umat, closing_masjid, closing_total, updated_at) VALUES (1, '01.11.2026', 100000, 200000, '08.11.2026', 150000, 250000, 400000, '2026-11-08 10:00:00')");
-        $this->pdo->exec("INSERT INTO data_rawatib (data_shalat, hari, name, profile) VALUES ('SUBUH', 'SENIN', 'Ustadz Ahmad', 'default.png')");
-        $this->pdo->exec("INSERT INTO monthly_planner (id_desc, `desc`, `time`, speaker) VALUES (1, 'KAJIAN HADITS', 'Ba''da Maghrib', 'Ustadz Ali')");
-        $this->pdo->exec("INSERT INTO data_list (moon, `date`, identity) VALUES ('November', '20', 'Ustadz Hasan')");
-        $this->pdo->exec("INSERT INTO staff (tier, id_no, identity) VALUES ('KETUA', 2, 'H. Budi')");
-        $this->pdo->exec("INSERT INTO banner (id, active_slides, pict1, pict2, pict3, pict4, pict5, pict6, pict7, pict8, pict9) VALUES (1, 2, 'default.png', 'default.png', 'default.png', 'default.png', 'default.png', 'default.png', 'default.png', 'default.png', 'default.png')");
-        $this->pdo->exec("INSERT INTO shalattime (id, subuh, dzuhur, ashar, maghrib, isya, jumat) VALUES (1, '04:30:00', '12:00:00', '15:15:00', '18:00:00', '19:15:00', '12:00:00')");
-        $this->pdo->exec("INSERT INTO khotbah_view (id, title, avatar, name) VALUES (1, 'Jumat, 27 November 2026', 'default.png', 'Ustadz Hasan')");
+        return rtrim(strtr(base64_encode($der), '+/', '-_'), '=');
     }
 
     private function createTestApp(bool $licensed = true, string $basePath = '/dsm'): App
     {
-        $uuid = 'AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE';
-        $licenseService = new LicenseService($this->licenseFile, 'MTP-Production!!!', static fn (): string => $uuid);
+        $kernel = new Kernel(
+            ':memory:',
+            $basePath,
+            $this->picDir,
+            false,
+            $this->pdo,
+            $this->publicKeyPem,
+            fn (): string => $this->deviceUuid
+        );
+
+        // Initialize schema & default seed data via Kernel::pdo()
+        $kernel->pdo();
+
         if ($licensed) {
-            $validKey = $licenseService->generateValidKey($uuid);
-            file_put_contents($this->licenseFile, (string) $validKey);
-        } elseif (is_file($this->licenseFile)) {
-            unlink($this->licenseFile);
+            $kernel->activate($this->signDeviceId($this->deviceUuid));
         }
 
         $factory = require dirname(__DIR__) . '/config/bootstrap.php';
 
         return $factory([
             'basePath' => $basePath,
-            PDO::class => $this->pdo,
-            LicenseService::class => $licenseService,
+            Kernel::class => $kernel,
             FileUploadService::class => new FileUploadService($this->picDir, $this->audioDir),
             'shutdownRunner' => function (): void {
                 $this->shutdownCalled = true;
@@ -154,69 +136,89 @@ final class ApplicationTest extends TestCase
         return $app->handle($request);
     }
 
-    public function testLicenseMiddlewareAndActivationFlow(): void
+    public function testEmbeddedEcdsaLicenseLockAndOfflineActivation(): void
     {
         $app = $this->createTestApp(false);
 
-        // Unlicensed access to dashboard redirects to /dsm/license
-        $res = $this->dispatch($app, 'GET', '/dsm/');
-        $this->assertSame(302, $res->getStatusCode());
-        $this->assertSame('/dsm/license', $res->getHeaderLine('Location'));
+        // Dashboard, Login, Control Panel, and Admin POST actions are locked while unlicensed
+        $resDash = $this->dispatch($app, 'GET', '/dsm/');
+        $this->assertSame(200, $resDash->getStatusCode());
+        $dashBody = (string) $resDash->getBody();
+        $this->assertStringContainsString('<base href="/dsm/">', $dashBody);
+        $this->assertStringContainsString('AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE', $dashBody);
+        $this->assertStringContainsString('ECDSA P-256', $dashBody);
 
-        // License page renders device ID
-        $resPage = $this->dispatch($app, 'GET', '/dsm/license');
-        $this->assertSame(200, $resPage->getStatusCode());
-        $this->assertStringContainsString('AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE', (string) $resPage->getBody());
+        $resLogin = $this->dispatch($app, 'GET', '/dsm/login');
+        $this->assertSame(200, $resLogin->getStatusCode());
+        $this->assertStringContainsString('Aktivasi Lisensi Aplikasi', (string) $resLogin->getBody());
 
-        // Invalid serial stays on license page with error
-        $resInvalid = $this->dispatch($app, 'POST', '/dsm/license', ['serial_number' => 'WRONG']);
-        $this->assertSame(200, $resInvalid->getStatusCode());
-        $this->assertStringContainsString('not valid for this PC', (string) $resInvalid->getBody());
+        $resControl = $this->dispatch($app, 'GET', '/dsm/control/identity');
+        $this->assertSame(200, $resControl->getStatusCode());
+        $this->assertStringContainsString('Aktivasi Lisensi Aplikasi', (string) $resControl->getBody());
 
-        // Valid serial activates license and redirects to dashboard
-        $uuid = 'AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE';
-        $validKey = hash_hmac('sha256', $uuid, 'MTP-Production!!!');
-        $resValid = $this->dispatch($app, 'POST', '/dsm/license', ['serial_number' => $validKey]);
-        $this->assertSame(302, $resValid->getStatusCode());
-        $this->assertSame('/dsm/', $resValid->getHeaderLine('Location'));
+        $this->dispatch($app, 'POST', '/dsm/youtube', ['youtube_url' => 'https://youtu.be/hacked']);
+        $this->assertSame('', $this->pdo->query('SELECT url FROM youtube WHERE id = 1')->fetchColumn());
+
+        // Public Display & APIs remain accessible without license activation
+        $resPortrait = $this->dispatch($app, 'GET', '/dsm/potrait');
+        $this->assertSame(200, $resPortrait->getStatusCode());
+        $this->assertStringContainsString('<base href="/dsm/">', (string) $resPortrait->getBody());
+        $this->assertStringContainsString("fetch('api/money", (string) $resPortrait->getBody());
+
+        $this->assertSame(200, $this->dispatch($app, 'GET', '/dsm/api/money')->getStatusCode());
+        $this->assertSame(200, $this->dispatch($app, 'GET', '/dsm/api/shalat-time')->getStatusCode());
+        $this->assertSame(200, $this->dispatch($app, 'GET', '/dsm/api/khotbah')->getStatusCode());
+        $this->assertSame(200, $this->dispatch($app, 'GET', '/dsm/api/scene-plus')->getStatusCode());
+        $this->assertSame(200, $this->dispatch($app, 'GET', '/dsm/api/time')->getStatusCode());
+
+        // Invalid Activate Key fails gracefully
+        $resBad = $this->dispatch($app, 'POST', '/dsm/', ['activate_key' => 'invalid-key']);
+        $this->assertSame(200, $resBad->getStatusCode());
+        $this->assertStringContainsString('Activate Key tidak valid', (string) $resBad->getBody());
+
+        // Valid Activate Key unlocks application offline and persists in SQLite system_meta
+        $validActivateKey = $this->signDeviceId($this->deviceUuid);
+        $resOk = $this->dispatch($app, 'POST', '/dsm/', ['activate_key' => $validActivateKey]);
+        $this->assertSame(302, $resOk->getStatusCode());
+        $this->assertSame('/dsm/', $resOk->getHeaderLine('Location'));
+
+        $stored = $this->pdo->query("SELECT meta_value FROM system_meta WHERE meta_key = 'activate_key'")->fetchColumn();
+        $this->assertSame($validActivateKey, $stored);
+
+        // Now /dsm/ enforces AuthMiddleware -> redirects to /dsm/login
+        $resNow = $this->dispatch($app, 'GET', '/dsm/');
+        $this->assertSame(302, $resNow->getStatusCode());
+        $this->assertSame('/dsm/login', $resNow->getHeaderLine('Location'));
     }
 
-    public function testAuthAndDashboardFlow(): void
+    public function testAuthAndLuxurySidebarDashboardFlow(): void
     {
         $app = $this->createTestApp(true);
 
-        // Unauthenticated dashboard redirects to /dsm/login
-        $res = $this->dispatch($app, 'GET', '/dsm/');
-        $this->assertSame(302, $res->getStatusCode());
-        $this->assertSame('/dsm/login', $res->getHeaderLine('Location'));
-
-        // Unknown username error
         $badUser = $this->dispatch($app, 'POST', '/dsm/login', ['username' => 'nobody', 'password' => 'x']);
         $this->assertSame(200, $badUser->getStatusCode());
         $this->assertStringContainsString('Username tidak ditemukan!', (string) $badUser->getBody());
 
-        // Wrong password error
         $badPass = $this->dispatch($app, 'POST', '/dsm/login', ['username' => 'admin', 'password' => 'wrong']);
         $this->assertSame(200, $badPass->getStatusCode());
         $this->assertStringContainsString('Password salah!', (string) $badPass->getBody());
 
-        // Valid login redirects to /dsm/
-        $okLogin = $this->dispatch($app, 'POST', '/dsm/login', ['username' => 'admin', 'password' => 'secret123']);
+        // Default seeded SQLite account: admin / admin123
+        $okLogin = $this->dispatch($app, 'POST', '/dsm/login', ['username' => 'admin', 'password' => 'admin123']);
         $this->assertSame(302, $okLogin->getStatusCode());
         $this->assertSame('/dsm/', $okLogin->getHeaderLine('Location'));
         $this->assertTrue($_SESSION['logged_in']);
 
-        // Authenticated dashboard renders sections
         $dash = $this->dispatch($app, 'GET', '/dsm/');
         $this->assertSame(200, $dash->getStatusCode());
         $html = (string) $dash->getBody();
-        $this->assertStringContainsString('Video Banner', $html);
-        $this->assertStringContainsString('Data Keuangan', $html);
+        $this->assertStringContainsString('<base href="/dsm/">', $html);
+        $this->assertStringContainsString('assets/css/admin.css', $html);
+        $this->assertStringContainsString('assets/js/admin.js', $html);
+        $this->assertStringContainsString('id="appSidebar"', $html);
+        $this->assertStringContainsString('Laporan Kas Masjid', $html);
         $this->assertStringContainsString('Daftar Imam Rawatib', $html);
-        $this->assertStringContainsString('Ustadz Ahmad', $html);
-        $this->assertStringContainsString('H. Budi', $html);
 
-        // Logout clears session
         $logout = $this->dispatch($app, 'GET', '/dsm/logout');
         $this->assertSame(302, $logout->getStatusCode());
         $this->assertSame('/dsm/login', $logout->getHeaderLine('Location'));
@@ -228,13 +230,13 @@ final class ApplicationTest extends TestCase
         $app = $this->createTestApp(true);
         $_SESSION['logged_in'] = true;
 
-        // 1. YouTube update
+        // 1. YouTube
         $resYt = $this->dispatch($app, 'POST', '/dsm/youtube', ['youtube_url' => 'https://youtu.be/newVid01']);
         $this->assertSame(302, $resYt->getStatusCode());
         $this->assertSame('/dsm/', $resYt->getHeaderLine('Location'));
         $this->assertSame('https://youtu.be/newVid01', $this->pdo->query('SELECT url FROM youtube WHERE id = 1')->fetchColumn());
 
-        // 2. Money update (invalid vs valid)
+        // 2. Money
         $resMoneyBad = $this->dispatch($app, 'POST', '/dsm/money', ['closing_umat' => 'not-a-number']);
         $this->assertSame(422, $resMoneyBad->getStatusCode());
         $resMoneyOk = $this->dispatch($app, 'POST', '/dsm/money', [
@@ -248,7 +250,7 @@ final class ApplicationTest extends TestCase
         $this->assertSame(302, $resMoneyOk->getStatusCode());
         $this->assertSame(750.0, (float) $this->pdo->query('SELECT closing_total FROM data_money WHERE id = 1')->fetchColumn());
 
-        // 3. Rawatib insert, duplicate check, update, delete
+        // 3. Rawatib
         $tmpImg = $this->tempDir . DIRECTORY_SEPARATOR . 'imam.png';
         file_put_contents($tmpImg, 'fake-png');
         $uploadedImam = new UploadedFile($tmpImg, 'imam.png', 'image/png', filesize($tmpImg), UPLOAD_ERR_OK, false);
@@ -263,7 +265,6 @@ final class ApplicationTest extends TestCase
         $newId = (int) $this->pdo->query("SELECT id FROM data_rawatib WHERE name = 'Ustadz Zaid'")->fetchColumn();
         $this->assertGreaterThan(0, $newId);
 
-        // Duplicate reject
         $resRawDup = $this->dispatch($app, 'POST', '/dsm/rawatib', [
             'data_shalat' => 'ISYA',
             'hari' => 'SELASA',
@@ -271,7 +272,6 @@ final class ApplicationTest extends TestCase
         ]);
         $this->assertSame(409, $resRawDup->getStatusCode());
 
-        // Update with invalid extension -> 422
         $tmpExe = $this->tempDir . DIRECTORY_SEPARATOR . 'bad.exe';
         file_put_contents($tmpExe, 'bad');
         $resRawBadExt = $this->dispatch($app, 'POST', '/dsm/rawatib/update', [
@@ -282,7 +282,6 @@ final class ApplicationTest extends TestCase
         ], ['profile' => new UploadedFile($tmpExe, 'bad.exe', 'application/octet-stream', 3, UPLOAD_ERR_OK, false)]);
         $this->assertSame(422, $resRawBadExt->getStatusCode());
 
-        // Update valid
         $resRawUpd = $this->dispatch($app, 'POST', '/dsm/rawatib/update', [
             'id' => (string) $newId,
             'data_shalat' => 'MAGHRIB',
@@ -292,12 +291,11 @@ final class ApplicationTest extends TestCase
         $this->assertSame(302, $resRawUpd->getStatusCode());
         $this->assertSame('Ustadz Zaid Updated', $this->pdo->query("SELECT name FROM data_rawatib WHERE id = {$newId}")->fetchColumn());
 
-        // Delete
         $resRawDel = $this->dispatch($app, 'GET', "/dsm/rawatib/{$newId}/delete");
         $this->assertSame(302, $resRawDel->getStatusCode());
         $this->assertFalse($this->pdo->query("SELECT id FROM data_rawatib WHERE id = {$newId}")->fetch());
 
-        // 4. Activity insert & delete
+        // 4. Activity
         $this->dispatch($app, 'POST', '/dsm/activity', [
             'id_desc' => '2',
             'desc' => 'KAJIAN UMUM',
@@ -309,7 +307,7 @@ final class ApplicationTest extends TestCase
         $this->dispatch($app, 'GET', "/dsm/activity/{$actId}/delete");
         $this->assertFalse($this->pdo->query("SELECT id FROM monthly_planner WHERE id = {$actId}")->fetch());
 
-        // 5. Khotbah list insert, update, delete
+        // 5. Khotbah List
         $this->dispatch($app, 'POST', '/dsm/khotbah-list', [
             'moon' => 'Desember',
             'date' => '04',
@@ -326,13 +324,14 @@ final class ApplicationTest extends TestCase
         $this->dispatch($app, 'GET', "/dsm/khotbah-list/{$kId}/delete");
         $this->assertFalse($this->pdo->query("SELECT id FROM data_list WHERE id = {$kId}")->fetch());
 
-        // 6. Staff insert maps id_no & delete
+        // 6. Staff
         $this->dispatch($app, 'POST', '/dsm/staff', ['tier' => 'BENDAHARA', 'identity' => 'H. Salim']);
         $staffRow = $this->pdo->query("SELECT * FROM staff WHERE identity = 'H. Salim'")->fetch();
         $this->assertSame(5, (int) $staffRow['id_no']);
         $this->dispatch($app, 'GET', '/dsm/staff/' . (int) $staffRow['id'] . '/delete');
 
-        // 7. Banner upload & slide count reduction
+        // 7. Banner
+        $this->dispatch($app, 'POST', '/dsm/banner/slides', ['active_slides' => '2']);
         $tmpBanner = $this->tempDir . DIRECTORY_SEPARATOR . 'slide2.jpg';
         file_put_contents($tmpBanner, 'jpg-bytes');
         $this->dispatch($app, 'POST', '/dsm/banner/upload', ['pict2' => 'save'], [
@@ -348,12 +347,15 @@ final class ApplicationTest extends TestCase
         $this->assertFileDoesNotExist($this->picDir . DIRECTORY_SEPARATOR . $uploadedPict2);
     }
 
-    public function testControlPanelAndShutdown(): void
+    public function testControlPanelRelativePathsAndShutdown(): void
     {
         $app = $this->createTestApp(true);
         $_SESSION['logged_in'] = true;
 
-        $this->assertSame(200, $this->dispatch($app, 'GET', '/dsm/control/identity')->getStatusCode());
+        $resIdPage = $this->dispatch($app, 'GET', '/dsm/control/identity');
+        $this->assertSame(200, $resIdPage->getStatusCode());
+        $this->assertStringContainsString('id="appSidebar"', (string) $resIdPage->getBody());
+
         $this->dispatch($app, 'POST', '/dsm/control/identity', [
             'tittle' => 'Masjid Baru',
             'name' => 'Jl. Baru No. 2',
@@ -372,7 +374,7 @@ final class ApplicationTest extends TestCase
             'audio_file' => new UploadedFile($tmpMp3, 'sound.mp3', 'audio/mpeg', 8, UPLOAD_ERR_OK, false),
         ]);
         $audioPath = (string) $this->pdo->query('SELECT audio FROM identity WHERE id = 1')->fetchColumn();
-        $this->assertStringStartsWith('/dsm/assets/audio/audio_', $audioPath);
+        $this->assertStringStartsWith('assets/audio/audio_', $audioPath);
 
         $this->assertSame(200, $this->dispatch($app, 'GET', '/dsm/control/shalat-time')->getStatusCode());
         $resShalat = $this->dispatch($app, 'POST', '/dsm/control/shalat-time', [
@@ -385,7 +387,8 @@ final class ApplicationTest extends TestCase
                 'jumat' => '11:55:00',
             ],
         ]);
-        $this->assertStringContainsString('Jadwal shalat berhasil diperbarui!', (string) $resShalat->getBody());
+        $this->assertSame(302, $resShalat->getStatusCode());
+        $this->assertSame('/dsm/', $resShalat->getHeaderLine('Location'));
         $this->assertSame('04:15:00', $this->pdo->query('SELECT subuh FROM shalattime WHERE id = 1')->fetchColumn());
 
         $this->assertSame(200, $this->dispatch($app, 'GET', '/dsm/control/khotbah-day')->getStatusCode());
@@ -394,7 +397,7 @@ final class ApplicationTest extends TestCase
             'speaker' => 'Ustadz Fulan',
             'title' => 'Jumat, 4 Desember 2026',
         ]);
-        $this->assertStringContainsString('Data berhasil diupdate', (string) $resKhotbah->getBody());
+        $this->assertSame(302, $resKhotbah->getStatusCode());
         $this->assertSame('Ustadz Fulan', $this->pdo->query('SELECT name FROM khotbah_view WHERE id = 1')->fetchColumn());
 
         $resShutdown = $this->dispatch($app, 'GET', '/dsm/control/shutdown');
@@ -402,55 +405,26 @@ final class ApplicationTest extends TestCase
         $this->assertTrue($this->shutdownCalled);
     }
 
-    public function testPublicDisplayAndApisAndErrors(): void
+    public function testErrorsRedirectDirectlyToBaseUrl(): void
     {
-        $app = $this->createTestApp(false); // Display & APIs work publicly regardless of login/license
+        $appSub = $this->createTestApp(true, '/dsm');
 
-        $portrait = $this->dispatch($app, 'GET', '/dsm/potrait');
-        $this->assertSame(200, $portrait->getStatusCode());
-        $portraitHtml = (string) $portrait->getBody();
-        $this->assertStringContainsString('Masjid Al-Ikhlas', $portraitHtml);
-        $this->assertStringContainsString('/dsm/api/money', $portraitHtml);
+        $resNotFound = $this->dispatch($appSub, 'GET', '/dsm/does-not-exist');
+        $this->assertSame(302, $resNotFound->getStatusCode());
+        $this->assertSame('/dsm/', $resNotFound->getHeaderLine('Location'));
 
-        $money = $this->dispatch($app, 'GET', '/dsm/api/money');
-        $this->assertSame(200, $money->getStatusCode());
-        $this->assertStringContainsString('TOTAL KAS MASJID', (string) $money->getBody());
+        $resEnv = $this->dispatch($appSub, 'GET', '/dsm/.env');
+        $this->assertSame(302, $resEnv->getStatusCode());
+        $this->assertSame('/dsm/', $resEnv->getHeaderLine('Location'));
 
-        $shalat = $this->dispatch($app, 'GET', '/dsm/api/shalat-time');
-        $this->assertSame(200, $shalat->getStatusCode());
-        $shalatJson = json_decode((string) $shalat->getBody(), true);
-        $this->assertSame('04:30:00', $shalatJson['subuh']);
+        $res404Legacy = $this->dispatch($appSub, 'GET', '/dsm/404.php');
+        $this->assertSame(302, $res404Legacy->getStatusCode());
+        $this->assertSame('/dsm/', $res404Legacy->getHeaderLine('Location'));
 
-        $khotbah = $this->dispatch($app, 'GET', '/dsm/api/khotbah');
-        $this->assertSame(200, $khotbah->getStatusCode());
-        $khotbahJson = json_decode((string) $khotbah->getBody(), true);
-        $this->assertSame('Ustadz Hasan', $khotbahJson['name']);
-
-        $scenePlus = $this->dispatch($app, 'GET', '/dsm/api/scene-plus');
-        $this->assertSame(200, $scenePlus->getStatusCode());
-        $scenePlusJson = json_decode((string) $scenePlus->getBody(), true);
-        $this->assertSame(2, $scenePlusJson['active_slides']);
-        $this->assertSame(['default.png', 'default.png'], $scenePlusJson['images']);
-
-        $time = $this->dispatch($app, 'GET', '/dsm/api/time');
-        $this->assertSame(200, $time->getStatusCode());
-        $this->assertStringContainsString('<b>', (string) $time->getBody());
-
-        // Legacy endpoint aliases
-        $this->assertSame(200, $this->dispatch($app, 'GET', '/dsm/potrait.php')->getStatusCode());
-        $this->assertSame(200, $this->dispatch($app, 'GET', '/dsm/money_update.php')->getStatusCode());
-        $this->assertSame(200, $this->dispatch($app, 'GET', '/dsm/potrait_update.php')->getStatusCode());
-        $this->assertSame(200, $this->dispatch($app, 'GET', '/dsm/special_update.php')->getStatusCode());
-        $this->assertSame(200, $this->dispatch($app, 'GET', '/dsm/scene_plus_update.php')->getStatusCode());
-        $this->assertSame(200, $this->dispatch($app, 'GET', '/dsm/app/control/get_time.php')->getStatusCode());
-
-        // Custom error pages & 404 handler
-        $res403 = $this->dispatch($app, 'GET', '/dsm/403');
-        $this->assertSame(403, $res403->getStatusCode());
-        $this->assertStringContainsString('ACCESS DENIED', (string) $res403->getBody());
-
-        $res404 = $this->dispatch($app, 'GET', '/dsm/does-not-exist');
-        $this->assertSame(404, $res404->getStatusCode());
-        $this->assertStringContainsString('PAGE NOT FOUND', (string) $res404->getBody());
+        // Root-hosted relative base URL redirects to '/'
+        $appRoot = $this->createTestApp(true, '');
+        $resRootNotFound = $this->dispatch($appRoot, 'GET', '/does-not-exist');
+        $this->assertSame(302, $resRootNotFound->getStatusCode());
+        $this->assertSame('/', $resRootNotFound->getHeaderLine('Location'));
     }
 }

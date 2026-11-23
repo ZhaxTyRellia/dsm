@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Database\Connection;
+use App\Core\Kernel;
 use App\Service\DateTimeService;
 use App\Service\FileUploadService;
 use App\Service\YoutubeEmbedService;
@@ -30,19 +30,19 @@ final class DisplayController extends AbstractController
     ];
 
     public function __construct(
-        Connection $db,
+        Kernel $kernel,
         PhpRenderer $view,
         string $basePath,
         private readonly FileUploadService $fileUploadService,
         private readonly YoutubeEmbedService $youtubeEmbedService,
         private readonly DateTimeService $dateTimeService
     ) {
-        parent::__construct($db, $view, $basePath);
+        parent::__construct($kernel, $view, $basePath);
     }
 
     public function portrait(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $pdo = $this->db->pdo();
+        $pdo = $this->pdo();
 
         $identity = $pdo->query('SELECT * FROM identity WHERE id = 1 LIMIT 1')->fetch();
         if ($identity === false) {
@@ -50,7 +50,7 @@ final class DisplayController extends AbstractController
                 'logo' => 'default.png',
                 'tittle' => 'Title',
                 'name' => 'Name',
-                'background' => 'bg1.jpg',
+                'background' => 'bg1.png',
                 'audio' => 'assets/audio/audio.mp3',
                 'marquee' => '',
             ];
@@ -113,8 +113,8 @@ final class DisplayController extends AbstractController
         return $this->render($response, 'display/portrait.php', [
             'identity' => $identity,
             'profil' => $identity,
-            'bgImage' => (string) ($identity['background'] ?? 'bg1.jpg'),
-            'audioPath' => (string) ($identity['audio'] ?? 'assets/audio/audio.mp3'),
+            'bgImage' => (string) ($identity['background'] ?? 'bg1.png'),
+            'audioPath' => ltrim((string) ($identity['audio'] ?? 'assets/audio/audio.mp3'), '/'),
             'shalatTimes' => $shalatTimes,
             'view' => $khotbahView,
             'embedSrc' => $videoData['embed_src'],
@@ -132,7 +132,7 @@ final class DisplayController extends AbstractController
 
     public function moneyRows(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $row = $this->db->pdo()->query('SELECT * FROM data_money WHERE id = 1 LIMIT 1')->fetch();
+        $row = $this->pdo()->query('SELECT * FROM data_money WHERE id = 1 LIMIT 1')->fetch();
 
         return $this->render($response, 'display/partials/money_rows.php', [
             'row' => $row !== false ? $row : null,
@@ -141,14 +141,14 @@ final class DisplayController extends AbstractController
 
     public function shalatTimeJson(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $data = $this->db->pdo()->query('SELECT * FROM shalattime WHERE id = 1 LIMIT 1')->fetch();
+        $data = $this->pdo()->query('SELECT * FROM shalattime WHERE id = 1 LIMIT 1')->fetch();
 
         return $this->json($response, $data !== false ? $data : null);
     }
 
     public function khotbahJson(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $pdo = $this->db->pdo();
+        $pdo = $this->pdo();
         $view = $pdo->query('SELECT * FROM khotbah_view WHERE id = 1 LIMIT 1')->fetch() ?: [];
         $profil = $pdo->query('SELECT * FROM identity WHERE id = 1 LIMIT 1')->fetch() ?: [];
 
@@ -166,7 +166,7 @@ final class DisplayController extends AbstractController
 
     public function scenePlusJson(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $banner = $this->db->pdo()->query('SELECT * FROM banner WHERE id = 1 LIMIT 1')->fetch();
+        $banner = $this->pdo()->query('SELECT * FROM banner WHERE id = 1 LIMIT 1')->fetch();
         $limit = $banner !== false ? (int) ($banner['active_slides'] ?? 0) : 0;
         $images = [];
 

@@ -27,15 +27,18 @@ final class StaffController extends AbstractController
 
     public function insert(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+        $this->assertActivated($request);
         $body = $this->body($request);
         $tier = (string) ($body['tier'] ?? '');
         $identity = (string) ($body['identity'] ?? '');
         $idNo = self::TIER_MAP[$tier] ?? 99;
 
-        $stmt = $this->db->pdo()->prepare(
+        $stmt = $this->pdo()->prepare(
             'INSERT INTO staff (tier, id_no, identity) VALUES (?, ?, ?)'
         );
         $stmt->execute([$tier, $idNo, $identity]);
+
+        $this->flash('success', 'Data pengurus berhasil ditambahkan.');
 
         return $this->redirect($response, '/');
     }
@@ -45,12 +48,14 @@ final class StaffController extends AbstractController
      */
     public function delete(ServerRequestInterface $request, ResponseInterface $response, array $args = []): ResponseInterface
     {
+        $this->assertActivated($request);
         $query = $request->getQueryParams();
         $id = (int) ($args['id'] ?? $query['id'] ?? 0);
 
         if ($id > 0) {
-            $stmt = $this->db->pdo()->prepare('DELETE FROM staff WHERE id = ?');
+            $stmt = $this->pdo()->prepare('DELETE FROM staff WHERE id = ?');
             $stmt->execute([$id]);
+            $this->flash('success', 'Data pengurus berhasil dihapus.');
         }
 
         return $this->redirect($response, '/');

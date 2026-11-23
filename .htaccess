@@ -1,18 +1,15 @@
 Options -Indexes
 
-ErrorDocument 403 /dsm/403
-ErrorDocument 404 /dsm/404
-
 RewriteEngine On
 
-# Block direct HTTP access to sensitive configuration and source directories
-RewriteRule ^(\.env(\.example)?|\.gitignore|composer\.(json|lock)|phpunit\.xml)$ - [F,L]
-RewriteRule ^(config|src|templates|tests|vendor)(/.*)?$ - [F,L]
+# Route sensitive files and directories through Slim so requests redirect to base URL
+RewriteRule ^(\.env(\.example)?|\.gitignore|composer\.(json|lock)|phpunit\.xml)$ public/index.php [L]
+RewriteRule ^(config|src|storage|templates|tests|vendor)(/.*)?$ public/index.php [L]
 
 # Allow already-rewritten requests inside public/
 RewriteRule ^public/ - [L]
 
-# Preserve legacy /app/{css,js,img,audio}/... URLs
+# Preserve legacy /app/{css,js,img,audio}/... URLs relatively
 RewriteRule ^app/(css|js|img|audio)/(.*)$ public/assets/$1/$2 [L]
 
 # Serve /assets/... directly from public/assets/...

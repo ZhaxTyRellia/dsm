@@ -1,10 +1,12 @@
 {
     "name": "dsm/digital-signage-masjid",
-    "description": "Digital Signage Masjid built with Slim Framework v4",
+    "description": "Digital Signage Masjid built with Slim Framework v4 and PDO SQLite",
     "type": "project",
     "require": {
         "php": "^8.1",
+        "ext-openssl": "*",
         "ext-pdo": "*",
+        "ext-pdo_sqlite": "*",
         "php-di/php-di": "^7.0",
         "slim/php-view": "^3.4",
         "slim/psr7": "^1.7",

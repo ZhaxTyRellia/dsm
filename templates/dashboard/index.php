@@ -1,609 +1,426 @@
-<!DOCTYPE HTML>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard</title>
-    <meta name="description" content="The small framework with powerful features">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" type="image/png" href="<?= $e($basePath) ?>/assets/img/favicon.png">
-    <link rel="stylesheet" type="text/css" href="<?= $e($basePath) ?>/assets/css/dashboard.css">
-</head>
-
-<body>
-
-    <div id="loader" class="center">
-    </div>
-    <!--- HEADER --->
-    <div class="header_btn">
-        <div class="menu" onclick="openNav()" title="Setting">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>
+<!-- KPI Summary Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card kpi-featured">
+        <div>
+            <div class="kpi-label">Total Saldo Kas</div>
+            <div class="kpi-value">Rp <?= number_format((float) ($kpi['closingTotal'] ?? 0), 0, ',', '.') ?></div>
+            <div class="kpi-sub">Posisi: <?= $e($kpi['closingDate'] ?? '-') ?></div>
         </div>
-        <div id="myNav" class="overlay">
-            <div class="overlay-content">
-                <div class="block-navbar">
-                    <a href="javascript:void(0)" onclick="closeNav()">&times;</a>
-                    <a href="<?= $e($basePath) ?>/control/identity" title="Change Your Company">IDENTITY</a>
-                    <a href="<?= $e($basePath) ?>/control/background" title="Change Background">BACKGROUND</a>
-                    <!--<a href="<?= $e($basePath) ?>/control/audio" title="Change Audio">AUDIO</a>-->
-                    <a href="<?= $e($basePath) ?>/control/shalat-time" title="Change Shalat Time">SHALAT TIME</a>
-                    <a href="<?= $e($basePath) ?>/control/khotbah-day" title="Change Banner Khotbah">BANNER KHOTBAH</a>
-                    <a href="<?= $e($basePath) ?>/logout">LOGOUT</a>
-                    <a href="<?= $e($basePath) ?>/control/shutdown">SHUTDOWN PC</a>
-                </div>
+        <div class="kpi-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div>
+            <div class="kpi-label">Imam Rawatib</div>
+            <div class="kpi-value"><?= (int) ($kpi['rawatibCount'] ?? 0) ?></div>
+            <div class="kpi-sub">Jadwal Imam 5 Waktu &amp; Badal</div>
+        </div>
+        <div class="kpi-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div>
+            <div class="kpi-label">Agenda &amp; Khotbah</div>
+            <div class="kpi-value"><?= (int) ($kpi['activityCount'] ?? 0) ?> / <?= (int) ($kpi['khotbahCount'] ?? 0) ?></div>
+            <div class="kpi-sub">Rutinitas Bulanan &amp; Khotbah Jum'at</div>
+        </div>
+        <div class="kpi-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div>
+            <div class="kpi-label">Pengurus &amp; Slide</div>
+            <div class="kpi-value"><?= (int) ($kpi['staffCount'] ?? 0) ?> / <?= (int) ($kpi['activeSlides'] ?? 1) ?></div>
+            <div class="kpi-sub">Personel DKM &amp; Banner Aktif</div>
+        </div>
+        <div class="kpi-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+    </div>
+</div>
+
+<!-- VIDEO BANNER -->
+<section class="section-card" id="sec-video">
+    <div class="card-header">
+        <div class="card-header-left">
+            <div class="card-badge-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            </div>
+            <div>
+                <h2 class="card-title">Video Banner (YouTube)</h2>
+                <p class="card-subtitle">Atur tautan video atau live stream YouTube pada layar utama</p>
             </div>
         </div>
-
-        <div class="dropdown">
-            <button>
-                <a href="<?= $e($basePath) ?>/potrait" class="dropbtn display" title="View Potrait">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="7" y="3" width="10" height="18" rx="2" ry="2"></rect>
-                    </svg>
-                </a>
-            </button>
-        </div>
     </div>
-
-    <hr>
-
-    <!--- VIDEO BANNER --->
-    <div class="section-card" style="margin-top: 50px;">
-        <div class="section-title">Video Banner</div>
-        <div class="container-all card-modern">
+    <div class="card-body">
+        <form action="youtube" method="POST" class="inline-form-row">
             <div class="form-group">
-                <label for="youtube_url" class="form-label">YouTube URL:</label>
-                <form action="<?= $e($basePath) ?>/youtube" method="POST" class="youtube-form">
-                    <input type="text" id="youtube_url" name="youtube_url"
-                        value="<?= $e($currentUrl) ?>"
-                        placeholder="https://youtube.com/..."
-                        required autocomplete="url"
-                        style="width: 100%;">
-                </form>
+                <label for="youtube_url" class="form-label">URL YouTube</label>
+                <input type="text" id="youtube_url" name="youtube_url" class="form-control"
+                    value="<?= $e($currentUrl) ?>" placeholder="https://www.youtube.com/watch?v=..." autocomplete="url">
             </div>
-            <br />
-            <div class="card-modern">
-                <div class="tbl-header">
-                    <table cellpadding="0" cellspacing="0" border="0">
-                        <thead>
-                            <tr>
-                                <th style="width:50px;">No</th>
-                                <th>Video</th>
-                                <th>URL</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-                <div class="tbl-content">
-                    <table cellpadding="0" cellspacing="0" border="0">
-                        <tbody>
-                            <?php if (!empty($currentUrl)): ?>
-                                <tr>
-                                    <td style="width:50px">1</td>
-                                    <td>
-                                        <iframe width="200" height="113" src="https://www.youtube.com/embed/<?= $e($currentVideoId) ?>" frameborder="0" allowfullscreen></iframe>
-                                    </td>
-                                    <td><?= $e($currentUrl) ?></td>
-                                    <td>Aktif</td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <button type="submit" class="btn btn-primary">Simpan Video</button>
+        </form>
+
+        <div class="video-preview-row table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:60px;">No</th>
+                        <th style="width:240px;">Pratinjau</th>
+                        <th>URL Terpasang</th>
+                        <th style="width:120px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($currentUrl) && !empty($currentVideoId)): ?>
+                        <tr>
+                            <td>1</td>
+                            <td>
+                                <iframe class="video-thumb" src="https://www.youtube.com/embed/<?= $e($currentVideoId) ?>" frameborder="0" allowfullscreen></iframe>
+                            </td>
+                            <td><?= $e($currentUrl) ?></td>
+                            <td><span class="badge">Aktif</span></td>
+                        </tr>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="4" class="empty-cell">Belum ada URL video YouTube yang dikonfigurasi.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </div>
     </div>
+</section>
 
-    <hr class="gradient-hr">
-
-    <!--- DATA KEUANGAN --->
-    <div class="section-card">
-        <div class="section-title">Data Keuangan</div>
-        <form action="<?= $e($basePath) ?>/money" method="POST" style="width: 100%;">
+<!-- DATA KEUANGAN -->
+<section class="section-card" id="sec-keuangan">
+    <div class="card-header">
+        <div class="card-header-left">
+            <div class="card-badge-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            </div>
+            <div>
+                <h2 class="card-title">Laporan Kas Masjid</h2>
+                <p class="card-subtitle">Kelola saldo awal, pemasukan, posisi kas, pengeluaran, dan saldo akhir</p>
+            </div>
+        </div>
+        <span class="badge badge-gold" id="cashTotalFormatted">Rp <?= number_format((float) $latestClosingTotal, 0, ',', '.') ?></span>
+    </div>
+    <div class="card-body">
+        <form action="money" method="POST" class="cash-report-form">
             <input type="hidden" name="action" value="update">
-            <div class="cash-report-form">
-                <table>
+            <div class="table-wrap" style="margin-bottom: 16px;">
+                <table class="data-table" style="min-width: 820px;">
                     <thead>
                         <tr>
                             <th>Keterangan</th>
-                            <th>Tanggal</th>
+                            <th>Tanggal / Periode</th>
                             <th>Kemaslahatan Umat</th>
                             <th>Kemakmuran Masjid</th>
-                            <th>Total</th>
+                            <th>Total Saldo</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Saldo Awal</td>
-                            <td><input type="text" name="opening_date" placeholder="Contoh: 10.09.2026" value="<?= $e($latestCashReport['opening_date'] ?? '') ?>"></td>
-                            <td><input class="cash-input" type="number" name="opening_umat" step="0.01" value="<?= $e($latestCashReport['opening_umat'] ?? '') ?>"></td>
-                            <td><input class="cash-input" type="number" name="opening_masjid" step="0.01" value="<?= $e($latestCashReport['opening_masjid'] ?? '') ?>"></td>
-                            <td></td>
+                            <td><strong>Saldo Awal</strong></td>
+                            <td><input type="text" class="form-control" name="opening_date" placeholder="Contoh: 10.09.2026" value="<?= $e($latestCashReport['opening_date'] ?? '') ?>"></td>
+                            <td><input type="number" class="form-control" name="opening_umat" step="0.01" value="<?= $e($latestCashReport['opening_umat'] ?? '') ?>"></td>
+                            <td><input type="number" class="form-control" name="opening_masjid" step="0.01" value="<?= $e($latestCashReport['opening_masjid'] ?? '') ?>"></td>
+                            <td>-</td>
                         </tr>
                         <tr>
-                            <td>Pemasukan</td>
-                            <td><input type="text" name="period_start" placeholder="Contoh: 11.09.2026 s/d 17.09.2026" value="<?= $e($latestCashReport['period_start'] ?? '') ?>"></td>
-                            <td><input class="cash-input" type="number" name="income_umat" step="0.01" value="<?= $e($latestCashReport['income_umat'] ?? '') ?>"></td>
-                            <td><input class="cash-input" type="number" name="income_masjid" step="0.01" value="<?= $e($latestCashReport['income_masjid'] ?? '') ?>"></td>
-                            <td></td>
+                            <td><strong>Pemasukan</strong></td>
+                            <td><input type="text" class="form-control" name="period_start" placeholder="Contoh: 11.09.2026 s/d 17.09.2026" value="<?= $e($latestCashReport['period_start'] ?? '') ?>"></td>
+                            <td><input type="number" class="form-control" name="income_umat" step="0.01" value="<?= $e($latestCashReport['income_umat'] ?? '') ?>"></td>
+                            <td><input type="number" class="form-control" name="income_masjid" step="0.01" value="<?= $e($latestCashReport['income_masjid'] ?? '') ?>"></td>
+                            <td>-</td>
                         </tr>
                         <tr>
-                            <td>Posisi kas</td>
-                            <td><input type="text" name="position_date" placeholder="Contoh: 17.09.2026" value="<?= $e($latestCashReport['position_date'] ?? '') ?>"></td>
-                            <td><input class="cash-input" type="number" name="position_umat" step="0.01" value="<?= $e($latestCashReport['position_umat'] ?? '') ?>"></td>
-                            <td><input class="cash-input" type="number" name="position_masjid" step="0.01" value="<?= $e($latestCashReport['position_masjid'] ?? '') ?>"></td>
-                            <td></td>
+                            <td><strong>Posisi Kas</strong></td>
+                            <td><input type="text" class="form-control" name="position_date" placeholder="Contoh: 17.09.2026" value="<?= $e($latestCashReport['position_date'] ?? '') ?>"></td>
+                            <td><input type="number" class="form-control" name="position_umat" step="0.01" value="<?= $e($latestCashReport['position_umat'] ?? '') ?>"></td>
+                            <td><input type="number" class="form-control" name="position_masjid" step="0.01" value="<?= $e($latestCashReport['position_masjid'] ?? '') ?>"></td>
+                            <td>-</td>
                         </tr>
                         <tr>
-                            <td>Pengeluaran</td>
-                            <td><input type="text" name="expense_date" placeholder="Contoh: 11.09.2026 s/d 17.09.2026" value="<?= $e($latestCashReport['expense_date'] ?? '') ?>"></td>
-                            <td><input class="cash-input" type="number" name="expense_umat" step="0.01" value="<?= $e($latestCashReport['expense_umat'] ?? '') ?>"></td>
-                            <td><input class="cash-input" type="number" name="expense_masjid" step="0.01" value="<?= $e($latestCashReport['expense_masjid'] ?? '') ?>"></td>
-                            <td></td>
+                            <td><strong>Pengeluaran</strong></td>
+                            <td><input type="text" class="form-control" name="expense_date" placeholder="Contoh: 11.09.2026 s/d 17.09.2026" value="<?= $e($latestCashReport['expense_date'] ?? '') ?>"></td>
+                            <td><input type="number" class="form-control" name="expense_umat" step="0.01" value="<?= $e($latestCashReport['expense_umat'] ?? '') ?>"></td>
+                            <td><input type="number" class="form-control" name="expense_masjid" step="0.01" value="<?= $e($latestCashReport['expense_masjid'] ?? '') ?>"></td>
+                            <td>-</td>
                         </tr>
-                        <tr class="cash-calculated-row">
-                            <td>Saldo akhir</td>
-                            <td><input type="text" name="closing_date" placeholder="Contoh: 17.09.2026" value="<?= $e($latestCashReport['closing_date'] ?? '') ?>"></td>
-                            <td><input class="cash-input" type="number" name="closing_umat" step="0.01" value="<?= $e($latestCashReport['closing_umat'] ?? '') ?>"></td>
-                            <td><input class="cash-input" type="number" name="closing_masjid" step="0.01" value="<?= $e($latestCashReport['closing_masjid'] ?? '') ?>"></td>
-                            <td><input class="cash-total-input" type="number" name="closing_total" step="0.01" value="<?= $e(number_format($latestClosingTotal, 2, '.', '')) ?>" readonly></td>
+                        <tr class="row-highlight">
+                            <td><strong>Saldo Akhir</strong></td>
+                            <td><input type="text" class="form-control" name="closing_date" placeholder="Contoh: 17.09.2026" value="<?= $e($latestCashReport['closing_date'] ?? '') ?>"></td>
+                            <td><input type="number" class="form-control" name="closing_umat" step="0.01" value="<?= $e($latestCashReport['closing_umat'] ?? '') ?>"></td>
+                            <td><input type="number" class="form-control" name="closing_masjid" step="0.01" value="<?= $e($latestCashReport['closing_masjid'] ?? '') ?>"></td>
+                            <td><input type="number" class="form-control" name="closing_total" step="0.01" value="<?= $e(number_format((float) $latestClosingTotal, 2, '.', '')) ?>" readonly></td>
                         </tr>
                     </tbody>
                 </table>
-                <button type="submit" class="btn">Simpan Laporan Kas</button>
+            </div>
+            <div style="display:flex; justify-content:flex-end;">
+                <button type="submit" class="btn btn-primary">Simpan Laporan Kas</button>
             </div>
         </form>
     </div>
+</section>
 
-    <hr class="gradient-hr">
-
-    <!--- DATA IMAM RAWATIB --->
-    <div class="section-card">
-        <div class="section-title">Daftar Imam Rawatib</div>
-        <button type="button" class="btn-modern" onclick="openModal('dataRawatib')">
-            + Tambah Data
-        </button>
-
-        <!-- Modal Form Tambah Data -->
-        <div id="dataRawatib" class="modal">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Input Data Imam Rawatib</h4>
-                        <button type="button" class="close" onclick="closeModal('dataRawatib')">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <form action="<?= $e($basePath) ?>/rawatib" method="POST" enctype="multipart/form-data" style="width: 100%;">
-                            <input type="hidden" name="action" value="insert">
-                            <div class="input-group">
-                                <select name="data_shalat" required>
-                                    <option value="" disabled selected>-- Pilih Kategori --</option>
-                                    <option value="ISYA">ISYA</option>
-                                    <option value="SUBUH">SUBUH</option>
-                                    <option value="DZUHUR">DZUHUR</option>
-                                    <option value="ASHAR">ASHAR</option>
-                                    <option value="MAGHRIB">MAGHRIB</option>
-                                    <option value="BADAL">BADAL IMAM</option>
-                                </select>
-
-                                <input type="text" name="hari" placeholder="Hari (Contoh: SENIN - RABU / -)" required style="margin-top: 10px;">
-
-                                <input type="text" name="name" placeholder="Nama Imam" required style="margin-top: 10px;">
-
-                                <div style="margin-top: 10px; margin-bottom: 10px; width: 100%;">
-                                    <label for="profile" style="display: block; font-size: 14px; margin-bottom: 5px;">Foto Profile:</label>
-                                    <input type="file" name="profile" id="profile" accept="image/*" required>
-                                </div>
-
-                                <button type="submit" class="btn" style="margin-top: 10px;">Simpan Data</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+<!-- DATA IMAM RAWATIB -->
+<section class="section-card" id="sec-rawatib">
+    <div class="card-header">
+        <div class="card-header-left">
+            <div class="card-badge-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
+            <div>
+                <h2 class="card-title">Daftar Imam Rawatib</h2>
+                <p class="card-subtitle">Atur jadwal imam shalat wajib dan badal imam beserta foto profil</p>
             </div>
         </div>
-
-        <div id="editRawatib" class="modal">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Edit Data Imam Rawatib</h4>
-                        <button type="button" class="close" onclick="closeModal('editRawatib')">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <form action="<?= $e($basePath) ?>/rawatib/update" method="POST" enctype="multipart/form-data" style="width: 100%;">
-                            <input type="hidden" name="action" value="update">
-                            <input type="hidden" name="id" id="edit-rawatib-id">
-                            <div class="input-group">
-                                <select name="data_shalat" id="edit-rawatib-shalat" required>
-                                    <option value="ISYA">ISYA</option>
-                                    <option value="SUBUH">SUBUH</option>
-                                    <option value="DZUHUR">DZUHUR</option>
-                                    <option value="ASHAR">ASHAR</option>
-                                    <option value="MAGHRIB">MAGHRIB</option>
-                                    <option value="BADAL">BADAL IMAM</option>
-                                </select>
-                                <input type="text" name="hari" id="edit-rawatib-hari" placeholder="Hari" required style="margin-top: 10px;">
-                                <input type="text" name="name" id="edit-rawatib-name" placeholder="Nama Imam" required style="margin-top: 10px;">
-                                <div style="margin-top: 10px; margin-bottom: 10px; width: 100%;">
-                                    <label for="edit-rawatib-profile" style="display: block; font-size: 14px; margin-bottom: 5px;">Ganti Foto Profile:</label>
-                                    <img id="edit-rawatib-preview" alt="Foto Profil" style="display: block; width: 80px; height: 80px; object-fit: cover; border-radius: 50%; margin-bottom: 10px;">
-                                    <input type="file" name="profile" id="edit-rawatib-profile" accept="image/png, image/jpeg" data-preview-id="edit-rawatib-preview">
-                                </div>
-                                <button type="submit" class="btn" style="margin-top: 10px;">Simpan Perubahan</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <br>
-
-        <!-- Tabel Data Imam -->
-        <div class="card-modern">
-            <div class="tbl-header">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width:50px;">No</th>
-                            <th style="width:120px;">Sholat</th>
-                            <th style="width:140px;">Hari</th>
-                            <th style="width:100px;">Foto</th>
-                            <th>Nama Imam</th>
-                            <th style="width:80px;">Aksi</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
-            <div class="tbl-content">
-                <table>
-                    <tbody>
+        <button type="button" class="btn btn-primary" onclick="openModal('dataRawatib')">+ Tambah Imam</button>
+    </div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:60px;">No</th>
+                        <th style="width:130px;">Sholat</th>
+                        <th style="width:160px;">Hari</th>
+                        <th style="width:80px;">Foto</th>
+                        <th>Nama Imam</th>
+                        <th style="width:150px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($rawatibList)): ?>
+                        <tr><td colspan="6" class="empty-cell">Belum ada data imam rawatib.</td></tr>
+                    <?php else: ?>
                         <?php $no = 1; ?>
                         <?php foreach ($rawatibList as $row): ?>
                             <?php $profileFile = !empty($row['profile']) ? $row['profile'] : 'default.png'; ?>
                             <tr>
-                                <td style="width:50px;"><?= $no++ ?></td>
-                                <td style="width:120px;"><strong><?= $e($row['data_shalat']) ?></strong></td>
-                                <td style="width:140px;"><?= $e(!empty($row['hari']) ? $row['hari'] : '-') ?></td>
-                                <td style="width:100px;">
-                                    <img src="<?= $e($basePath) ?>/assets/img/pictures/<?= $e($profileFile) ?>" alt="Foto Profil" style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%;">
+                                <td><?= $no++ ?></td>
+                                <td><span class="badge"><?= $e($row['data_shalat']) ?></span></td>
+                                <td><?= $e(!empty($row['hari']) ? $row['hari'] : '-') ?></td>
+                                <td>
+                                    <img src="assets/img/pictures/<?= $e($profileFile) ?>" alt="Foto Profil" class="table-avatar">
                                 </td>
-                                <td><?= $e($row['name']) ?></td>
-                                <td style="width:80px;">
-                                    <button type="button"
-                                        onclick="editRawatib(this)"
-                                        data-id="<?= (int) $row['id'] ?>"
-                                        data-shalat="<?= $e($row['data_shalat']) ?>"
-                                        data-hari="<?= $e($row['hari']) ?>"
-                                        data-name="<?= $e($row['name']) ?>"
-                                        data-profile="<?= $e($basePath) ?>/assets/img/pictures/<?= $e($profileFile) ?>"
-                                        style="color: blue; cursor: pointer;">Edit</button>
-                                    |
-                                    <a href="<?= $e($basePath) ?>/rawatib/<?= (int) $row['id'] ?>/delete"
-                                        onclick="return confirm('Yakin ingin menghapus data ini?')"
-                                        style="color: red; text-decoration: none; font-weight: bold;">Hapus</a>
+                                <td><strong><?= $e($row['name']) ?></strong></td>
+                                <td>
+                                    <div class="action-group">
+                                        <button type="button"
+                                            class="btn btn-sm btn-action-edit"
+                                            onclick="editRawatib(this)"
+                                            data-id="<?= (int) $row['id'] ?>"
+                                            data-shalat="<?= $e($row['data_shalat']) ?>"
+                                            data-hari="<?= $e($row['hari']) ?>"
+                                            data-name="<?= $e($row['name']) ?>"
+                                            data-profile="assets/img/pictures/<?= $e($profileFile) ?>">Edit</button>
+                                        <a href="rawatib/<?= (int) $row['id'] ?>/delete"
+                                            onclick="return confirm('Yakin ingin menghapus data ini?')"
+                                            class="btn btn-sm btn-action-delete">Hapus</a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </div>
     </div>
+</section>
 
-    <hr class="gradient-hr">
-
-    <!--- DATA RUTINITAS BULANAN --->
-    <div class="section-card">
-        <div class="section-title">Aktivitas Rutinitas Bulanan</div>
-        <button type="button" class="btn-modern" onclick="openModal('dataRutinitas')">
-            + Tambah Data
-        </button>
-
-        <div id="dataRutinitas" class="modal">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Input Data Rutinitas Bulanan</h4>
-                        <button type="button" class="close" onclick="closeModal('dataRutinitas')">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <form action="<?= $e($basePath) ?>/activity" method="POST" style="width: 100%;">
-                            <input type="hidden" name="action" value="insert">
-                            <div class="input-group">
-                                <select name="id_desc" id="keterangan" onchange="autoFillDesc()" required>
-                                    <option value="">-- Pilih Kategori --</option>
-                                    <option value="1">KAJIAN HADITS "BULUGHUL MAROM"</option>
-                                    <option value="2">KAJIAN UMUM "TASAWUF"</option>
-                                    <option value="3">KHOTMIL QUR'AN</option>
-                                    <option value="4">KAJIAN HADITS "AHKAM"</option>
-                                    <option value="5">KAJIAN FIQIH "SAFINATUN NAJAH"</option>
-                                    <option value="6">BACA SOROGAN KITAB KUNING</option>
-                                    <option value="7">SHOLAT HAJAT, TASBIH &amp; ISTIGHOSAH</option>
-                                    <option value="8">TARTIL QUR'AN</option>
-                                    <option value="9">SHOLAWAT DIBA'</option>
-                                    <option value="10">KAJIAN UMUM "IBADAH"</option>
-                                    <option value="11">KAJIAN HADITS "AHKAM"</option>
-                                    <option value="12">KAJIAN IBADAH "IRSYADUL IBAD"</option>
-                                    <option value="13">KAJIAN FIQIH KONTEMPORER</option>
-                                    <option value="14">KAJIAN AL QUR'AN</option>
-                                    <option value="15">KEGIATAN BANSOS</option>
-                                    <option value="16">PENGAJIAN MAJLIS TA'LIM AN-NISA</option>
-                                    <option value="17">KHITANAN MASSAL</option>
-                                </select>
-                                <input type="hidden" name="desc" id="desc_input">
-                                <input type="text" name="time" placeholder="Waktu" required>
-                                <input type="text" name="speaker" placeholder="Nama Pengisi" required>
-                                <button type="submit" class="btn">Simpan Data</button>
-                            </div>
-                            <script>
-                                function autoFillDesc() {
-                                    const select = document.getElementById('keterangan');
-                                    const hiddenDesc = document.getElementById('desc_input');
-                                    const selectedText = select.options[select.selectedIndex].text;
-                                    hiddenDesc.value = select.value !== "" ? selectedText : "";
-                                }
-                            </script>
-                        </form>
-                    </div>
-                </div>
+<!-- DATA RUTINITAS BULANAN -->
+<section class="section-card" id="sec-rutinitas">
+    <div class="card-header">
+        <div class="card-header-left">
+            <div class="card-badge-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div>
+                <h2 class="card-title">Aktivitas Rutinitas Bulanan</h2>
+                <p class="card-subtitle">Jadwal kajian rutin, pengajian, dan kegiatan masjid bulanan</p>
             </div>
         </div>
-
-        <br>
-
-        <div class="card-modern">
-            <div class="tbl-header">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width:50px;">No</th>
-                            <th>Keterangan</th>
-                            <th>Waktu</th>
-                            <th>Pengisi</th>
-                            <th style="width:80px;">Aksi</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
-            <div class="tbl-content">
-                <table>
-                    <tbody>
+        <button type="button" class="btn btn-primary" onclick="openModal('dataRutinitas')">+ Tambah Agenda</button>
+    </div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:60px;">No</th>
+                        <th>Keterangan Kegiatan</th>
+                        <th>Waktu</th>
+                        <th>Pengisi / Ustadz</th>
+                        <th style="width:100px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($activityList)): ?>
+                        <tr><td colspan="5" class="empty-cell">Belum ada data aktivitas rutinitas bulanan.</td></tr>
+                    <?php else: ?>
                         <?php $no = 1; ?>
                         <?php foreach ($activityList as $row): ?>
                             <tr>
-                                <td style="width:50px;"><?= $no++ ?></td>
-                                <td><?= $e($row['desc']) ?></td>
-                                <td><?= $e($row['time']) ?></td>
+                                <td><?= $no++ ?></td>
+                                <td><strong><?= $e($row['desc']) ?></strong></td>
+                                <td><span class="badge badge-gold"><?= $e($row['time']) ?></span></td>
                                 <td><?= $e($row['speaker']) ?></td>
-                                <td style="width:80px;">
-                                    <a href="<?= $e($basePath) ?>/activity/<?= (int) $row['id'] ?>/delete"
+                                <td>
+                                    <a href="activity/<?= (int) $row['id'] ?>/delete"
                                         onclick="return confirm('Yakin ingin menghapus data ini?')"
-                                        style="color: red; text-decoration: none; font-weight: bold;">Hapus</a>
+                                        class="btn btn-sm btn-action-delete">Hapus</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </div>
     </div>
+</section>
 
-    <hr class="gradient-hr">
-
-    <!--- DAFTAR KHOTBAH JUM'AT --->
-    <div class="section-card">
-        <div class="section-title">Daftar Khotbah Ju'mat</div>
-        <button type="button" class="btn-modern" onclick="openModal('khotbahJumat')">
-            + Tambah Data
-        </button>
-
-        <div id="khotbahJumat" class="modal">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Input Data Khotbah Jum'at</h4>
-                        <button type="button" class="close" onclick="closeModal('khotbahJumat')">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <form action="<?= $e($basePath) ?>/khotbah-list" method="POST" style="width: 100%;">
-                            <input type="hidden" name="action" value="insert">
-                            <div class="input-group">
-                                <select name="moon" required>
-                                    <option value="">-- Pilih Bulan --</option>
-                                    <option value="Januari">Januari</option>
-                                    <option value="Februari">Februari</option>
-                                    <option value="Maret">Maret</option>
-                                    <option value="April">April</option>
-                                    <option value="Mei">Mei</option>
-                                    <option value="Juni">Juni</option>
-                                    <option value="Juli">Juli</option>
-                                    <option value="Agustus">Agustus</option>
-                                    <option value="September">September</option>
-                                    <option value="Oktober">Oktober</option>
-                                    <option value="November">November</option>
-                                    <option value="Desember">Desember</option>
-                                </select>
-                                <input type="text" name="date" placeholder="Waktu" required>
-                                <input type="text" name="identity" placeholder="Nama Imam/Khotib" required>
-                                <button type="submit" class="btn">Simpan Data</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+<!-- DAFTAR KHOTBAH JUM'AT -->
+<section class="section-card" id="sec-khotbah">
+    <div class="card-header">
+        <div class="card-header-left">
+            <div class="card-badge-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            </div>
+            <div>
+                <h2 class="card-title">Daftar Khotbah Jum'at</h2>
+                <p class="card-subtitle">Jadwal khatib dan imam shalat Jum'at sepanjang tahun</p>
             </div>
         </div>
-
-        <br>
-
-        <div class="card-modern">
-            <div class="tbl-header">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width:50px;">No</th>
-                            <th>Bulan</th>
-                            <th>Waktu</th>
-                            <th>Nama Imam/Khotib</th>
-                            <th style="width:80px;">Aksi</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
-            <div class="tbl-content">
-                <table>
-                    <tbody>
+        <button type="button" class="btn btn-primary" onclick="openModal('khotbahJumat')">+ Tambah Jadwal</button>
+    </div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:60px;">No</th>
+                        <th style="width:140px;">Bulan</th>
+                        <th style="width:140px;">Tanggal</th>
+                        <th>Nama Imam / Khatib</th>
+                        <th style="width:150px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($khotbahList)): ?>
+                        <tr><td colspan="5" class="empty-cell">Belum ada jadwal khotbah Jum'at.</td></tr>
+                    <?php else: ?>
                         <?php $no = 1; ?>
                         <?php foreach ($khotbahList as $row): ?>
                             <tr>
-                                <td style="width:50px;"><?= $no++ ?></td>
-                                <td><?= $e($row['moon']) ?></td>
+                                <td><?= $no++ ?></td>
+                                <td><span class="badge"><?= $e($row['moon']) ?></span></td>
                                 <td><?= $e($row['date']) ?></td>
-                                <td><?= $e($row['identity']) ?></td>
-                                <td style="width:150px;">
-                                    <button type="button"
-                                        onclick="editData(this)"
-                                        data-id="<?= (int) $row['id'] ?>"
-                                        data-moon="<?= $e($row['moon']) ?>"
-                                        data-date="<?= $e($row['date']) ?>"
-                                        data-identity="<?= $e($row['identity']) ?>"
-                                        style="color: blue; cursor: pointer;">Edit</button>
-                                    |
-                                    <a href="<?= $e($basePath) ?>/khotbah-list/<?= (int) $row['id'] ?>/delete"
-                                        onclick="return confirm('Yakin ingin menghapus data ini?')"
-                                        style="color: red; text-decoration: none; font-weight: bold;">Hapus</a>
+                                <td><strong><?= $e($row['identity']) ?></strong></td>
+                                <td>
+                                    <div class="action-group">
+                                        <button type="button"
+                                            class="btn btn-sm btn-action-edit"
+                                            onclick="editKhotbah(this)"
+                                            data-id="<?= (int) $row['id'] ?>"
+                                            data-moon="<?= $e($row['moon']) ?>"
+                                            data-date="<?= $e($row['date']) ?>"
+                                            data-identity="<?= $e($row['identity']) ?>">Edit</button>
+                                        <a href="khotbah-list/<?= (int) $row['id'] ?>/delete"
+                                            onclick="return confirm('Yakin ingin menghapus data ini?')"
+                                            class="btn btn-sm btn-action-delete">Hapus</a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
-                    </tbody>
-                </table>
-                <form id="editForm" action="<?= $e($basePath) ?>/khotbah-list/update" method="POST" style="display:none;">
-                    <input type="hidden" name="action" value="update">
-                    <input type="hidden" name="id" id="editId">
-                    <input type="hidden" name="moon" id="editMoon">
-                    <input type="hidden" name="date" id="editDate">
-                    <input type="hidden" name="identity" id="editIdentity">
-                </form>
-
-                <script>
-                    function editData(button) {
-                        let newMoon = prompt("Edit Bulan:", button.dataset.moon);
-                        let newDate = prompt("Edit Tanggal:", button.dataset.date);
-                        let newIdentity = prompt("Edit Nama/Identitas:", button.dataset.identity);
-
-                        if (newMoon && newDate && newIdentity) {
-                            document.getElementById('editId').value = button.dataset.id;
-                            document.getElementById('editMoon').value = newMoon;
-                            document.getElementById('editDate').value = newDate;
-                            document.getElementById('editIdentity').value = newIdentity;
-                            document.getElementById('editForm').submit();
-                        }
-                    }
-                </script>
-            </div>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </div>
     </div>
+</section>
 
-    <hr class="gradient-hr">
-
-    <!--- SUSUNAN PENGURUS --->
-    <div class="section-card">
-        <div class="section-title">Data Susunan Pengurus</div>
-        <button type="button" class="btn-modern" onclick="openModal('staff')">
-            + Tambah Data
-        </button>
-
-        <div id="staff" class="modal">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Input Data Susunan Pengurus</h4>
-                        <button type="button" class="close" onclick="closeModal('staff')">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <form action="<?= $e($basePath) ?>/staff" method="POST">
-                            <input type="hidden" name="action" value="insert">
-
-                            <div class="input-group">
-                                <select name="tier" required>
-                                    <option value="">-- Pilih Jabatan --</option>
-                                    <option value="PENASEHAT">PENASEHAT</option>
-                                    <option value="KETUA">KETUA</option>
-                                    <option value="WAKIL KETUA">WAKIL KETUA</option>
-                                    <option value="SEKRETARIS">SEKRETARIS</option>
-                                    <option value="BENDAHARA">BENDAHARA</option>
-                                    <option value="HUMAS, SOSIAL &amp; PHBI">HUMAS, SOSIAL &amp; PHBI</option>
-                                    <option value="PERIBADATAN/DAKWAH">PERIBADATAN/DAKWAH</option>
-                                    <option value="PENDIDIKAN">PENDIDIKAN</option>
-                                    <option value="REMAJA MASJID">REMAJA MASJID</option>
-                                    <option value="PEMBANGUNAN &amp; PEMELIHARAAN KEBERSIHAN">PEMBANGUNAN &amp; PEMELIHARAAN KEBERSIHAN</option>
-                                    <option value="KELISTRIKAN DAN TEKNIS">KELISTRIKAN DAN TEKNIS</option>
-                                    <option value="KEAMANAN">KEAMANAN</option>
-                                    <option value="PERGUDANGAN">PERGUDANGAN</option>
-                                </select>
-
-                                <input type="text" name="identity" placeholder="Nama Lengkap" required>
-
-                                <button type="submit" class="btn">Simpan Data</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+<!-- SUSUNAN PENGURUS -->
+<section class="section-card" id="sec-pengurus">
+    <div class="card-header">
+        <div class="card-header-left">
+            <div class="card-badge-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.2L18.5 20 12 15.8 5.5 20l2-6.8L2 9h7z"/></svg>
+            </div>
+            <div>
+                <h2 class="card-title">Data Susunan Pengurus DKM</h2>
+                <p class="card-subtitle">Struktur jabatan dan anggota kepengurusan masjid</p>
             </div>
         </div>
-
-        <br>
-
-        <div class="card-modern">
-            <div class="tbl-header">
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width:50px;">No</th>
-                            <th>Jabatan</th>
-                            <th>Nama</th>
-                            <th style="width:80px;">Aksi</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
-            <div class="tbl-content">
-                <table>
-                    <tbody>
+        <button type="button" class="btn btn-primary" onclick="openModal('staff')">+ Tambah Pengurus</button>
+    </div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:60px;">No</th>
+                        <th>Jabatan</th>
+                        <th>Nama Lengkap</th>
+                        <th style="width:100px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($staffList)): ?>
+                        <tr><td colspan="4" class="empty-cell">Belum ada data susunan pengurus.</td></tr>
+                    <?php else: ?>
                         <?php $no = 1; ?>
                         <?php foreach ($staffList as $row): ?>
                             <tr>
-                                <td style="width:50px;"><?= $no++ ?></td>
-                                <td><?= $e($row['tier']) ?></td>
-                                <td><?= $e($row['identity']) ?></td>
-                                <td style="width:80px;">
-                                    <a href="<?= $e($basePath) ?>/staff/<?= (int) $row['id'] ?>/delete"
+                                <td><?= $no++ ?></td>
+                                <td><span class="badge"><?= $e($row['tier']) ?></span></td>
+                                <td><strong><?= $e($row['identity']) ?></strong></td>
+                                <td>
+                                    <a href="staff/<?= (int) $row['id'] ?>/delete"
                                         onclick="return confirm('Yakin ingin menghapus data ini?')"
-                                        style="color: red; text-decoration: none; font-weight: bold;">Hapus</a>
+                                        class="btn btn-sm btn-action-delete">Hapus</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
-                    </tbody>
-                </table>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- IMAGE BANNER -->
+<section class="section-card" id="sec-banner">
+    <div class="card-header">
+        <div class="card-header-left">
+            <div class="card-badge-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <div>
+                <h2 class="card-title">Image Banner Slideshow</h2>
+                <p class="card-subtitle">Kelola jumlah slide dan gambar pengumuman layar penuh</p>
             </div>
         </div>
     </div>
-
-    <hr class="gradient-hr">
-
-    <!--- BANNER IMAGE FADE --->
-    <div class="section-card">
-        <div class="section-title">Image Banner</div>
-        <div class="form-group">
-            <label class="form-label">Banner Active: </label>
-            <form action="<?= $e($basePath) ?>/banner/slides" method="POST">
+    <div class="card-body">
+        <div class="banner-toolbar">
+            <div>
+                <strong style="font-size:14px; color:var(--emerald-900);">Jumlah Slide Aktif</strong>
+                <p style="font-size:12px; color:var(--text-muted);">Pilih 1 sampai 9 slide yang ditampilkan bergantian pada layar signage</p>
+            </div>
+            <form action="banner/slides" method="POST">
                 <input type="hidden" name="action" value="update_slides">
-                <select name="active_slides" onchange="this.form.submit()">
+                <select name="active_slides" class="form-control" style="min-width:160px;" onchange="this.form.submit()">
                     <?php for ($n = 1; $n <= 9; $n++): ?>
                         <option value="<?= $n ?>" <?= ($n === (int) $limit) ? 'selected' : '' ?>>
                             Slide <?= $n ?>
@@ -613,127 +430,286 @@
             </form>
         </div>
 
-        <div class="container">
+        <div class="banner-grid">
             <?php for ($i = 1; $i <= (int) $limit; $i++): ?>
                 <?php
                 $pictKey = 'pict' . $i;
                 $previewId = $pictKey . '_preview';
                 $currentImage = !empty($bannerData[$pictKey]) ? $bannerData[$pictKey] : 'default.png';
                 ?>
-                <div class="hero">
-                    <p class="text">Slider : <?= $i ?></p>
-                    <form action="<?= $e($basePath) ?>/banner/upload" method="post" enctype="multipart/form-data">
-                        <center>
-                            <label for="<?= $e($pictKey) ?>">
-                                <img src="<?= $e($basePath) ?>/assets/img/pictures/<?= $e($currentImage) ?>"
-                                    class="pictures" id="<?= $e($previewId) ?>" alt="NO IMAGE">
-                            </label>
-                        </center>
-                        <div class="image-upload">
-                            <input id="<?= $e($pictKey) ?>" type="file" name="<?= $e($pictKey) ?>" accept="image/*" data-preview-id="<?= $e($previewId) ?>">
-                        </div>
-                        <div class="input-group">
-                            <button type="submit" value="save" name="<?= $e($pictKey) ?>" class="btn">Upload</button>
-                        </div>
+                <div class="banner-card">
+                    <div class="banner-card-title">
+                        <span>Slider #<?= $i ?></span>
+                        <span class="badge">Klik gambar</span>
+                    </div>
+                    <form action="banner/upload" method="post" enctype="multipart/form-data">
+                        <label for="<?= $e($pictKey) ?>" class="banner-preview-label">
+                            <img src="assets/img/pictures/<?= $e($currentImage) ?>" id="<?= $e($previewId) ?>" alt="Banner Slide <?= $i ?>">
+                        </label>
+                        <input id="<?= $e($pictKey) ?>" type="file" name="<?= $e($pictKey) ?>" accept="image/*" class="banner-file-input" data-preview-id="<?= $e($previewId) ?>">
+                        <button type="submit" value="save" name="<?= $e($pictKey) ?>" class="btn btn-primary" style="width:100%; margin-top:12px;">Upload Slide <?= $i ?></button>
                     </form>
                 </div>
             <?php endfor; ?>
         </div>
     </div>
+</section>
 
-    <!--- SCRIPTS --->
-    <script type="text/javascript" src="<?= $e($basePath) ?>/assets/js/jquery.min.js"></script>
-    <script type="text/javascript" src="<?= $e($basePath) ?>/assets/js/bootstrap.min.js"></script>
-    <!--- Modal -->
-    <script>
-        function openModal(id) {
-            var modal = document.getElementById(id);
-            if (modal) {
-                modal.style.display = "block";
-                modal.classList.add("in");
-            }
-        }
+<!-- MODALS -->
+<div id="dataRawatib" class="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Tambah Imam Rawatib</h4>
+                <button type="button" class="modal-close" onclick="closeModal('dataRawatib')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form action="rawatib" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="insert">
+                    <div class="form-group">
+                        <label class="form-label">Kategori Shalat</label>
+                        <select name="data_shalat" class="form-control" required>
+                            <option value="" disabled selected>-- Pilih Kategori --</option>
+                            <option value="ISYA">ISYA</option>
+                            <option value="SUBUH">SUBUH</option>
+                            <option value="DZUHUR">DZUHUR</option>
+                            <option value="ASHAR">ASHAR</option>
+                            <option value="MAGHRIB">MAGHRIB</option>
+                            <option value="BADAL">BADAL IMAM</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Hari</label>
+                        <input type="text" name="hari" class="form-control" placeholder="Contoh: SENIN - RABU / -" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nama Imam</label>
+                        <input type="text" name="name" class="form-control" placeholder="Nama lengkap imam" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="profile" class="form-label">Foto Profil</label>
+                        <input type="file" name="profile" id="profile" class="form-control" accept="image/*" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%;">Simpan Data Imam</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-        function closeModal(id) {
-            var modal = document.getElementById(id);
-            if (modal) {
-                modal.style.display = "none";
-                modal.classList.remove("in");
-            }
-        }
+<div id="editRawatib" class="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Edit Imam Rawatib</h4>
+                <button type="button" class="modal-close" onclick="closeModal('editRawatib')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form action="rawatib/update" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="id" id="edit-rawatib-id">
+                    <img id="edit-rawatib-preview" src="assets/img/pictures/default.png" alt="Foto Profil" class="preview-circle">
+                    <div class="form-group">
+                        <label class="form-label">Kategori Shalat</label>
+                        <select name="data_shalat" id="edit-rawatib-shalat" class="form-control" required>
+                            <option value="ISYA">ISYA</option>
+                            <option value="SUBUH">SUBUH</option>
+                            <option value="DZUHUR">DZUHUR</option>
+                            <option value="ASHAR">ASHAR</option>
+                            <option value="MAGHRIB">MAGHRIB</option>
+                            <option value="BADAL">BADAL IMAM</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Hari</label>
+                        <input type="text" name="hari" id="edit-rawatib-hari" class="form-control" placeholder="Hari" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nama Imam</label>
+                        <input type="text" name="name" id="edit-rawatib-name" class="form-control" placeholder="Nama Imam" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-rawatib-profile" class="form-label">Ganti Foto Profil (Opsional)</label>
+                        <input type="file" name="profile" id="edit-rawatib-profile" class="form-control" accept="image/png, image/jpeg" data-preview-id="edit-rawatib-preview">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%;">Simpan Perubahan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                closeModal(event.target.id);
-            }
-        }
-    </script>
-    <!-- Modal Preloader -->
-    <script>
-        document.onreadystatechange = function() {
-            if (document.readyState !== "complete") {
-                document.querySelector("body").style.visibility = "hidden";
-                document.querySelector("#loader").style.visibility = "visible";
-            } else {
-                document.querySelector("#loader").style.display = "none";
-                document.querySelector("body").style.visibility = "visible";
-            }
-        };
-    </script>
-    <script>
-        function openNav() {
-            document.getElementById("myNav").style.height = "100%";
-        }
+<div id="dataRutinitas" class="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Tambah Rutinitas Bulanan</h4>
+                <button type="button" class="modal-close" onclick="closeModal('dataRutinitas')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form action="activity" method="POST">
+                    <input type="hidden" name="action" value="insert">
+                    <div class="form-group">
+                        <label class="form-label">Kategori Kajian / Kegiatan</label>
+                        <select name="id_desc" id="keterangan" class="form-control" onchange="autoFillDesc()" required>
+                            <option value="">-- Pilih Kategori --</option>
+                            <option value="1">KAJIAN HADITS "BULUGHUL MAROM"</option>
+                            <option value="2">KAJIAN UMUM "TASAWUF"</option>
+                            <option value="3">KHOTMIL QUR'AN</option>
+                            <option value="4">KAJIAN HADITS "AHKAM"</option>
+                            <option value="5">KAJIAN FIQIH "SAFINATUN NAJAH"</option>
+                            <option value="6">BACA SOROGAN KITAB KUNING</option>
+                            <option value="7">SHOLAT HAJAT, TASBIH &amp; ISTIGHOSAH</option>
+                            <option value="8">TARTIL QUR'AN</option>
+                            <option value="9">SHOLAWAT DIBA'</option>
+                            <option value="10">KAJIAN UMUM "IBADAH"</option>
+                            <option value="11">KAJIAN HADITS "AHKAM"</option>
+                            <option value="12">KAJIAN IBADAH "IRSYADUL IBAD"</option>
+                            <option value="13">KAJIAN FIQIH KONTEMPORER</option>
+                            <option value="14">KAJIAN AL QUR'AN</option>
+                            <option value="15">KEGIATAN BANSOS</option>
+                            <option value="16">PENGAJIAN MAJLIS TA'LIM AN-NISA</option>
+                            <option value="17">KHITANAN MASSAL</option>
+                        </select>
+                        <input type="hidden" name="desc" id="desc_input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Waktu Pelaksanaan</label>
+                        <input type="text" name="time" class="form-control" placeholder="Contoh: Setiap Malam Ahad Ba'da Maghrib" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nama Pengisi</label>
+                        <input type="text" name="speaker" class="form-control" placeholder="Nama Ustadz / Pembicara" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%;">Simpan Agenda</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-        function closeNav() {
-            document.getElementById("myNav").style.height = "0%";
-        }
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const reportForm = document.querySelector('.cash-report-form');
-            if (!reportForm) {
-                return;
-            }
+<div id="khotbahJumat" class="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Tambah Jadwal Khotbah Jum'at</h4>
+                <button type="button" class="modal-close" onclick="closeModal('khotbahJumat')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form action="khotbah-list" method="POST">
+                    <input type="hidden" name="action" value="insert">
+                    <div class="form-group">
+                        <label class="form-label">Bulan</label>
+                        <select name="moon" class="form-control" required>
+                            <option value="">-- Pilih Bulan --</option>
+                            <option value="Januari">Januari</option>
+                            <option value="Februari">Februari</option>
+                            <option value="Maret">Maret</option>
+                            <option value="April">April</option>
+                            <option value="Mei">Mei</option>
+                            <option value="Juni">Juni</option>
+                            <option value="Juli">Juli</option>
+                            <option value="Agustus">Agustus</option>
+                            <option value="September">September</option>
+                            <option value="Oktober">Oktober</option>
+                            <option value="November">November</option>
+                            <option value="Desember">Desember</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tanggal</label>
+                        <input type="text" name="date" class="form-control" placeholder="Contoh: 04" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nama Imam / Khatib</label>
+                        <input type="text" name="identity" class="form-control" placeholder="Nama Khatib" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%;">Simpan Jadwal</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-            const closingUmat = reportForm.querySelector('[name="closing_umat"]');
-            const closingMasjid = reportForm.querySelector('[name="closing_masjid"]');
-            const closingTotal = reportForm.querySelector('[name="closing_total"]');
+<div id="editKhotbahModal" class="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Edit Jadwal Khotbah Jum'at</h4>
+                <button type="button" class="modal-close" onclick="closeModal('editKhotbahModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form action="khotbah-list/update" method="POST">
+                    <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="id" id="edit-khotbah-id">
+                    <div class="form-group">
+                        <label class="form-label">Bulan</label>
+                        <select name="moon" id="edit-khotbah-moon" class="form-control" required>
+                            <option value="Januari">Januari</option>
+                            <option value="Februari">Februari</option>
+                            <option value="Maret">Maret</option>
+                            <option value="April">April</option>
+                            <option value="Mei">Mei</option>
+                            <option value="Juni">Juni</option>
+                            <option value="Juli">Juli</option>
+                            <option value="Agustus">Agustus</option>
+                            <option value="September">September</option>
+                            <option value="Oktober">Oktober</option>
+                            <option value="November">November</option>
+                            <option value="Desember">Desember</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tanggal</label>
+                        <input type="text" name="date" id="edit-khotbah-date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nama Imam / Khatib</label>
+                        <input type="text" name="identity" id="edit-khotbah-identity" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%;">Simpan Perubahan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-            const updateClosingTotal = function() {
-                closingTotal.value = ((Number(closingUmat.value) || 0) + (Number(closingMasjid.value) || 0)).toFixed(2);
-            };
-
-            closingUmat.addEventListener('input', updateClosingTotal);
-            closingMasjid.addEventListener('input', updateClosingTotal);
-            updateClosingTotal();
-        });
-    </script>
-    <script>
-        function editRawatib(button) {
-            document.getElementById('edit-rawatib-id').value = button.dataset.id;
-            document.getElementById('edit-rawatib-shalat').value = button.dataset.shalat;
-            document.getElementById('edit-rawatib-hari').value = button.dataset.hari;
-            document.getElementById('edit-rawatib-name').value = button.dataset.name;
-            document.getElementById('edit-rawatib-preview').src = button.dataset.profile;
-            document.getElementById('edit-rawatib-profile').value = '';
-            openModal('editRawatib');
-        }
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('input[type="file"][data-preview-id]').forEach(function(input) {
-                input.addEventListener('change', function() {
-                    const file = input.files[0];
-                    const preview = document.getElementById(input.dataset.previewId);
-
-                    if (file && preview && file.type.startsWith('image/')) {
-                        preview.src = URL.createObjectURL(file);
-                    }
-                });
-            });
-        });
-    </script>
-</body>
-
-</html>
+<div id="staff" class="modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Tambah Susunan Pengurus</h4>
+                <button type="button" class="modal-close" onclick="closeModal('staff')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form action="staff" method="POST">
+                    <input type="hidden" name="action" value="insert">
+                    <div class="form-group">
+                        <label class="form-label">Jabatan</label>
+                        <select name="tier" class="form-control" required>
+                            <option value="">-- Pilih Jabatan --</option>
+                            <option value="PENASEHAT">PENASEHAT</option>
+                            <option value="KETUA">KETUA</option>
+                            <option value="WAKIL KETUA">WAKIL KETUA</option>
+                            <option value="SEKRETARIS">SEKRETARIS</option>
+                            <option value="BENDAHARA">BENDAHARA</option>
+                            <option value="HUMAS, SOSIAL &amp; PHBI">HUMAS, SOSIAL &amp; PHBI</option>
+                            <option value="PERIBADATAN/DAKWAH">PERIBADATAN/DAKWAH</option>
+                            <option value="PENDIDIKAN">PENDIDIKAN</option>
+                            <option value="REMAJA MASJID">REMAJA MASJID</option>
+                            <option value="PEMBANGUNAN &amp; PEMELIHARAAN KEBERSIHAN">PEMBANGUNAN &amp; PEMELIHARAAN KEBERSIHAN</option>
+                            <option value="KELISTRIKAN DAN TEKNIS">KELISTRIKAN DAN TEKNIS</option>
+                            <option value="KEAMANAN">KEAMANAN</option>
+                            <option value="PERGUDANGAN">PERGUDANGAN</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nama Lengkap</label>
+                        <input type="text" name="identity" class="form-control" placeholder="Nama Lengkap Pengurus" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%;">Simpan Data Pengurus</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

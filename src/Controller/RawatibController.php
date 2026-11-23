@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Database\Connection;
+use App\Core\Kernel;
 use App\Service\FileUploadService;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
@@ -14,16 +14,17 @@ use Slim\Views\PhpRenderer;
 final class RawatibController extends AbstractController
 {
     public function __construct(
-        Connection $db,
+        Kernel $kernel,
         PhpRenderer $view,
         string $basePath,
         private readonly FileUploadService $fileUploadService
     ) {
-        parent::__construct($db, $view, $basePath);
+        parent::__construct($kernel, $view, $basePath);
     }
 
     public function insert(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+        $this->assertActivated($request);
         $body = $this->body($request);
         $dataShalat = (string) ($body['data_shalat'] ?? '');
         $hari = (string) ($body['hari'] ?? '');
@@ -49,16 +50,19 @@ final class RawatibController extends AbstractController
             );
         }
 
-        $stmt = $this->db->pdo()->prepare(
+        $stmt = $this->pdo()->prepare(
             'INSERT INTO data_rawatib (data_shalat, hari, name, profile) VALUES (?, ?, ?, ?)'
         );
         $stmt->execute([$dataShalat, $hari, $name, $profileFilename]);
+
+        $this->flash('success', 'Data imam rawatib berhasil ditambahkan.');
 
         return $this->redirect($response, '/');
     }
 
     public function update(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+        $this->assertActivated($request);
         $body = $this->body($request);
         $id = (int) ($body['id'] ?? 0);
         $dataShalat = (string) ($body['data_shalat'] ?? '');
@@ -73,7 +77,7 @@ final class RawatibController extends AbstractController
             );
         }
 
-        $pdo = $this->db->pdo();
+        $pdo = $this->pdo();
         $stmtSelect = $pdo->prepare('SELECT profile FROM data_rawatib WHERE id = ? LIMIT 1');
         $stmtSelect->execute([$id]);
         $currentData = $stmtSelect->fetch();
@@ -108,6 +112,8 @@ final class RawatibController extends AbstractController
             $this->fileUploadService->deletePicture($oldProfile);
         }
 
+        $this->flash('success', 'Data imam rawatib berhasil diperbarui.');
+
         return $this->redirect($response, '/');
     }
 
@@ -116,11 +122,12 @@ final class RawatibController extends AbstractController
      */
     public function delete(ServerRequestInterface $request, ResponseInterface $response, array $args = []): ResponseInterface
     {
+        $this->assertActivated($request);
         $query = $request->getQueryParams();
         $id = (int) ($args['id'] ?? $query['id'] ?? 0);
 
         if ($id > 0) {
-            $pdo = $this->db->pdo();
+            $pdo = $this->pdo();
             $stmtSelect = $pdo->prepare('SELECT profile FROM data_rawatib WHERE id = ? LIMIT 1');
             $stmtSelect->execute([$id]);
             $row = $stmtSelect->fetch();
@@ -131,6 +138,7 @@ final class RawatibController extends AbstractController
 
             $stmtDelete = $pdo->prepare('DELETE FROM data_rawatib WHERE id = ?');
             $stmtDelete->execute([$id]);
+            $this->flash('success', 'Data imam rawatib berhasil dihapus.');
         }
 
         return $this->redirect($response, '/');
@@ -159,7 +167,7 @@ final class RawatibController extends AbstractController
 
     private function rawatibExists(string $dataShalat, string $hari, string $name, int $excludedId = 0): bool
     {
-        $stmt = $this->db->pdo()->prepare(
+        $stmt = $this->pdo()->prepare(
             'SELECT id FROM data_rawatib WHERE data_shalat = ? AND hari = ? AND name = ? AND id != ? LIMIT 1'
         );
         $stmt->execute([$dataShalat, $hari, $name, $excludedId]);

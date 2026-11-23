@@ -11,6 +11,8 @@ final class AuthController extends AbstractController
 {
     public function showLogin(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+        $this->assertActivated($request);
+
         if (($_SESSION['logged_in'] ?? false) === true) {
             return $this->redirect($response, '/');
         }
@@ -22,6 +24,8 @@ final class AuthController extends AbstractController
 
     public function login(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+        $this->assertActivated($request);
+
         if (($_SESSION['logged_in'] ?? false) === true) {
             return $this->redirect($response, '/');
         }
@@ -30,11 +34,10 @@ final class AuthController extends AbstractController
         $username = (string) ($body['username'] ?? '');
         $password = (string) ($body['password'] ?? '');
 
-        $stmt = $this->db->pdo()->prepare('SELECT password FROM user WHERE username = ? LIMIT 1');
+        $stmt = $this->pdo()->prepare('SELECT password FROM user WHERE username = ? LIMIT 1');
         $stmt->execute([$username]);
         $row = $stmt->fetch();
 
-        $error = '';
         if ($row !== false) {
             $storedPassword = (string) ($row['password'] ?? '');
             if (password_verify($password, $storedPassword) || hash_equals($storedPassword, $password)) {

@@ -3,19 +3,20 @@
 
 <head>
     <meta charset="UTF-8">
+    <base href="<?= $e($baseUrl) ?>">
     <title>Display Signage</title>
     <meta name="description" content="The small framework with powerful features">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="<?= $e($basePath) ?>/assets/css/show.css">
-    <link rel="stylesheet" type="text/css" href="<?= $e($basePath) ?>/assets/css/font-awesome-4.7.0/css/font-awesome.min.css">
-    <link rel="shortcut icon" type="image/png" href="<?= $e($basePath) ?>/assets/img/favicon.png">
+    <link rel="stylesheet" type="text/css" href="assets/css/show.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="shortcut icon" type="image/png" href="assets/img/favicon.png">
 </head>
 
-<body style="background-image: url('<?= $e($basePath) ?>/assets/img/background/<?= $e($bgImage) ?>?v=<?= time() ?>');">
+<body style="background-image: url('assets/img/background/<?= $e($bgImage) ?>?v=<?= time() ?>');">
     <!--- MODAL SHALAT TIME & JUMAT --->
     <div id="prayerModal" class="prayer-modal-overlay">
         <div class="prayer-modal-content">
-            <img src="<?= $e($basePath) ?>/assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo" class="prayer-logo">
+            <img src="assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo" class="prayer-logo">
             <h2 id="prayerName" style="font-size: 80px; margin: 10px 0; font-family: 'Times New Roman', serif;">حيا الشلاء</h2>
             <div class="divider"></div>
             <p style="font-size: 24px; margin-top: 10px;">Telah tiba waktu Shalat <span id="prayerTimeLabel">...</span></p>
@@ -26,17 +27,17 @@
     </div>
     <div id="jumatModal" class="prayer-modal-overlay">
         <div class="full-screen-container">
-            <img src="<?= $e($basePath) ?>/assets/img/frame.png" class="corner top-left">
-            <img src="<?= $e($basePath) ?>/assets/img/frame.png" class="corner top-right">
-            <img src="<?= $e($basePath) ?>/assets/img/frame.png" class="corner bottom-left">
-            <img src="<?= $e($basePath) ?>/assets/img/frame.png" class="corner bottom-right">
+            <img src="assets/img/frame.png" class="corner top-left">
+            <img src="assets/img/frame.png" class="corner top-right">
+            <img src="assets/img/frame.png" class="corner bottom-left">
+            <img src="assets/img/frame.png" class="corner bottom-right">
 
             <div class="bismillah">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
 
             <div class="title jumat-title"><?= $e($view['title'] ?? '') ?></div>
 
             <div class="avatar-frame">
-                <img class="jumat-avatar" src="<?= $e($basePath) ?>/assets/img/pictures/<?= $e(!empty($view['avatar']) ? $view['avatar'] : 'default.png') ?>" alt="Khotib">
+                <img class="jumat-avatar" src="assets/img/pictures/<?= $e(!empty($view['avatar']) ? $view['avatar'] : 'default.png') ?>" alt="Khotib">
             </div>
 
             <div class="khotib-wrapper">
@@ -61,7 +62,7 @@
             <!--- HEADER --->
             <div class="container-header">
                 <div class="logo-header">
-                    <img src="<?= $e($basePath) ?>/assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo">
+                    <img src="assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo">
                 </div>
                 <div class="block-tittle">
                     <br><br><br>
@@ -81,7 +82,7 @@
 
             <script>
                 function refreshDate() {
-                    fetch('<?= $e($basePath) ?>/api/time')
+                    fetch('api/time')
                         .then(response => response.text())
                         .then(data => {
                             document.getElementById('date-container').innerHTML = data;
@@ -152,7 +153,7 @@
             <!--- HEADER --->
             <div class="container-header">
                 <div class="logo-header-slide">
-                    <img src="<?= $e($basePath) ?>/assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo" style="width: 160px; height: auto;">
+                    <img src="assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo" style="width: 160px; height: auto;">
                 </div>
                 <div class="block-tittle-slide">
                     <div class="slide-text">Jadwal Rutinitas Bulanan</div>
@@ -193,7 +194,7 @@
             <!--- HEADER --->
             <div class="container-header">
                 <div class="logo-header-slide">
-                    <img src="<?= $e($basePath) ?>/assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo" style="width: 160px; height: auto;">
+                    <img src="assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo" style="width: 160px; height: auto;">
                 </div>
                 <div class="block-tittle-slide">
                     <div class="slide-text">Daftar Khotbah Jum'at</div>
@@ -236,7 +237,7 @@
             <!--- HEADER --->
             <div class="container-header">
                 <div class="logo-header-slide">
-                    <img src="<?= $e($basePath) ?>/assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo" style="width: 160px; height: auto;">
+                    <img src="assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo" style="width: 160px; height: auto;">
                 </div>
                 <div class="block-tittle-slide">
                     <div class="slide-text">Susunan Pengurus</div>
@@ -283,7 +284,7 @@
             <!--- HEADER --->
             <div class="container-header">
                 <div class="logo-header-slide">
-                    <img src="<?= $e($basePath) ?>/assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo" style="width: 160px; height: auto;">
+                    <img src="assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo" style="width: 160px; height: auto;">
                 </div>
                 <div class="block-tittle-slide">
                     <div class="slide-text">Imam Rawatib</div>
@@ -307,7 +308,7 @@
                                             </td>
                                             <td class="td-imam">
                                                 <div class="imam-wrapper">
-                                                    <img src="<?= $e($basePath) ?>/assets/img/pictures/<?= $e($item['profil']) ?>"
+                                                    <img src="assets/img/pictures/<?= $e($item['profil']) ?>"
                                                         alt="Foto" class="img-avatar">
                                                     <span class="nama-imam"><?= $e($item['nama']) ?></span>
                                                 </div>
@@ -335,7 +336,7 @@
     </div>
 
     <!--- SCRIPTS --->
-    <script type="text/javascript" src="<?= $e($basePath) ?>/assets/js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="assets/js/jquery-3.2.1.min.js"></script>
     <!--- Slideshow --->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -385,7 +386,7 @@
     <!--- Data Keuangan --->
     <script>
         function refreshKasTable() {
-            fetch('<?= $e($basePath) ?>/api/money?v=' + new Date().getTime(), {
+            fetch('api/money?v=' + new Date().getTime(), {
                     cache: 'no-store'
                 })
                 .then(response => {
@@ -520,7 +521,7 @@
         let shalatSchedule = <?= json_encode($shalatTimes ?: null) ?>;
 
         function fetchShalatSchedule() {
-            fetch('<?= $e($basePath) ?>/api/shalat-time')
+            fetch('api/shalat-time')
                 .then(response => response.json())
                 .then(data => {
                     shalatSchedule = data;
@@ -533,7 +534,7 @@
     <!--- Khotbah Jum'at --->
     <script>
         function refreshJumatData() {
-            fetch('<?= $e($basePath) ?>/api/khotbah')
+            fetch('api/khotbah')
                 .then(response => {
                     if (!response.ok) throw new Error('Gagal memuat data Jumat');
                     return response.json();
@@ -546,7 +547,7 @@
 
                     document.querySelectorAll('.jumat-avatar').forEach(img => {
                         var avatarFile = (data.avatar && data.avatar.trim() !== '') ? data.avatar : 'default.png';
-                        img.src = '<?= $e($basePath) ?>/assets/img/pictures/' + avatarFile;
+                        img.src = 'assets/img/pictures/' + avatarFile;
                     });
                 })
                 .catch(error => console.error('Error AJAX Jumat:', error));
@@ -564,7 +565,7 @@
         let scenePlusInterval = null;
 
         function fetchScenePlusData() {
-            fetch('<?= $e($basePath) ?>/api/scene-plus')
+            fetch('api/scene-plus')
                 .then(response => {
                     if (!response.ok) throw new Error('Gagal mengambil data Scene Plus');
                     return response.json();
@@ -595,7 +596,7 @@
             images.forEach((imgName, index) => {
                 const img = document.createElement('img');
                 img.className = 'scene-plus-img' + (index === 0 ? ' active' : '');
-                img.src = '<?= $e($basePath) ?>/assets/img/pictures/' + imgName + '?v=' + cacheBuster;
+                img.src = 'assets/img/pictures/' + imgName + '?v=' + cacheBuster;
                 img.alt = 'Banner ' + (index + 1);
                 wrapper.appendChild(img);
             });

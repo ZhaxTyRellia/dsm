@@ -12,7 +12,8 @@ final class DashboardController extends AbstractController
 {
     public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $pdo = $this->db->pdo();
+        $this->assertActivated($request);
+        $pdo = $this->pdo();
 
         $youtubeRow = $pdo->query('SELECT url FROM youtube LIMIT 1')->fetch();
         $currentUrl = (string) ($youtubeRow['url'] ?? '');
@@ -41,19 +42,35 @@ final class DashboardController extends AbstractController
         if ($bannerData === false) {
             $bannerData = $pdo->query('SELECT * FROM banner LIMIT 1')->fetch() ?: [];
         }
-        $limit = (int) ($bannerData['active_slides'] ?? 1);
+        $limit = max(1, (int) ($bannerData['active_slides'] ?? 1));
 
-        return $this->render($response, 'dashboard/index.php', [
-            'currentUrl' => $currentUrl,
-            'currentVideoId' => $youtubeParsed['video_id'],
-            'latestCashReport' => $latestCashReport,
-            'latestClosingTotal' => $latestClosingTotal,
-            'rawatibList' => $rawatibList,
-            'activityList' => $activityList,
-            'khotbahList' => $khotbahList,
-            'staffList' => $staffList,
-            'bannerData' => $bannerData,
-            'limit' => $limit,
-        ]);
+        return $this->renderAdmin(
+            $request,
+            $response,
+            'dashboard/index.php',
+            [
+                'currentUrl' => $currentUrl,
+                'currentVideoId' => $youtubeParsed['video_id'],
+                'latestCashReport' => $latestCashReport,
+                'latestClosingTotal' => $latestClosingTotal,
+                'rawatibList' => $rawatibList,
+                'activityList' => $activityList,
+                'khotbahList' => $khotbahList,
+                'staffList' => $staffList,
+                'bannerData' => $bannerData,
+                'limit' => $limit,
+                'kpi' => [
+                    'closingTotal' => $latestClosingTotal,
+                    'closingDate' => (string) ($latestCashReport['closing_date'] ?? '-'),
+                    'rawatibCount' => count($rawatibList),
+                    'activityCount' => count($activityList),
+                    'khotbahCount' => count($khotbahList),
+                    'staffCount' => count($staffList),
+                    'activeSlides' => $limit,
+                ],
+            ],
+            'Dashboard Utama',
+            'dashboard'
+        );
     }
 }

@@ -11,10 +11,12 @@ final class YoutubeController extends AbstractController
 {
     public function update(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+        $this->assertActivated($request);
         $body = $this->body($request);
+
         if (array_key_exists('youtube_url', $body)) {
             $url = trim((string) $body['youtube_url']);
-            $pdo = $this->db->pdo();
+            $pdo = $this->pdo();
 
             $exists = (int) $pdo->query('SELECT COUNT(*) FROM youtube WHERE id = 1')->fetchColumn();
             if ($exists > 0) {
@@ -24,6 +26,8 @@ final class YoutubeController extends AbstractController
                 $stmt = $pdo->prepare('INSERT INTO youtube (id, url) VALUES (1, ?)');
                 $stmt->execute([$url]);
             }
+
+            $this->flash('success', 'URL video YouTube berhasil diperbarui.');
         }
 
         return $this->redirect($response, '/');

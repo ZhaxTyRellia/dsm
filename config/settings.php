@@ -28,6 +28,13 @@ return static function (string $rootDir): array {
     $debugRaw = strtolower($env('APP_DEBUG', 'false'));
     $debug = in_array($debugRaw, ['1', 'true', 'yes', 'on'], true);
 
+    $dbPathRaw = trim($env('DB_PATH', 'storage/database/dsm.sqlite'));
+    if ($dbPathRaw === ':memory:' || str_starts_with($dbPathRaw, '/') || preg_match('/^[A-Za-z]:[\\\\\/]/', $dbPathRaw)) {
+        $dbPath = $dbPathRaw;
+    } else {
+        $dbPath = $rootDir . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $dbPathRaw);
+    }
+
     return [
         'app' => [
             'env' => $env('APP_ENV', 'production'),
@@ -36,12 +43,7 @@ return static function (string $rootDir): array {
             'timezone' => $timezone,
         ],
         'db' => [
-            'host' => $env('DB_HOST', 'localhost'),
-            'port' => (int) $env('DB_PORT', '3306'),
-            'database' => $env('DB_DATABASE', 'dsm'),
-            'username' => $env('DB_USERNAME', 'root'),
-            'password' => $env('DB_PASSWORD', 'Shakti250.'),
-            'charset' => $env('DB_CHARSET', 'utf8mb4'),
+            'path' => $dbPath,
         ],
         'paths' => [
             'root' => $rootDir,
@@ -49,10 +51,6 @@ return static function (string $rootDir): array {
             'templates' => $rootDir . '/templates',
             'pictures' => $rootDir . '/public/assets/img/pictures',
             'audio' => $rootDir . '/public/assets/audio',
-        ],
-        'license' => [
-            'file_path' => $env('LICENSE_FILE_PATH', 'C:\\WampDock\\license.key'),
-            'secret_salt' => $env('LICENSE_SECRET_SALT', 'MTP-Production!!!'),
         ],
     ];
 };

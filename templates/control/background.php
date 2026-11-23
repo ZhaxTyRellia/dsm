@@ -1,37 +1,37 @@
-<!DOCTYPE html>
-<html lang="id">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Change Background</title>
-    <link rel="shortcut icon" type="image/png" href="<?= $e($basePath) ?>/assets/img/favicon.png">
-    <meta name="description" content="The small framework with powerful features">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="<?= $e($basePath) ?>/assets/css/background.css">
-</head>
-
-<body>
-    <?php
-    $backgrounds = ['bg1.png', 'bg2.jpg', 'bg3.jpeg', 'bg4.jpg', 'bg5.jpg', 'bg6.jpg'];
-    $currentBg = (string) ($currentBackground ?? '');
-    ?>
-    <div class="container">
-        <h3>Change Background</h3>
-        <p>Pilih Background yang ingin ditampilkan:</p>
-
-        <form action="<?= $e($basePath) ?>/control/background" method="POST">
-            <div class="grid-container">
-                <?php foreach ($backgrounds as $bg): ?>
-                    <label>
-                        <input type="radio" name="background" value="<?= $e($bg) ?>" <?= $currentBg === $bg ? 'checked' : '' ?> required>
-                        <img src="<?= $e($basePath) ?>/assets/img/background/<?= $e($bg) ?>" class="bg-item" alt="<?= $e($bg) ?>">
-                    </label>
-                <?php endforeach; ?>
+<div class="control-wrap">
+    <div class="section-card">
+        <div class="card-header">
+            <div class="card-header-left">
+                <div class="card-badge-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/></svg>
+                </div>
+                <div>
+                    <h2 class="card-title">Latar Belakang Display</h2>
+                    <p class="card-subtitle">Pilih tema latar belakang untuk tampilan signage portrait</p>
+                </div>
             </div>
-            <button type="submit" class="btn-submit">Save</button>
-        </form>
+            <a href="" class="btn btn-outline btn-sm">Kembali ke Dashboard</a>
+        </div>
+        <div class="card-body">
+            <?php
+            $backgrounds = ['bg1.png', 'bg2.jpg', 'bg3.jpeg', 'bg4.jpg', 'bg5.jpg', 'bg6.jpg'];
+            $currentBg = (string) ($currentBackground ?? '');
+            ?>
+            <form action="control/background" method="POST">
+                <div class="bg-gallery">
+                    <?php foreach ($backgrounds as $index => $bg): ?>
+                        <label class="bg-option">
+                            <input type="radio" name="background" value="<?= $e($bg) ?>" <?= $currentBg === $bg ? 'checked' : '' ?> required>
+                            <img src="assets/img/background/<?= $e($bg) ?>" class="bg-thumb" alt="Tema <?= $index + 1 ?>">
+                            <div class="bg-caption">Tema #<?= $index + 1 ?> (<?= $e($bg) ?>)</div>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <a href="" class="btn btn-outline">Batal</a>
+                    <button type="submit" class="btn btn-primary">Simpan Latar Belakang</button>
+                </div>
+            </form>
+        </div>
     </div>
-
-</body>
-
-</html>
+</div>
