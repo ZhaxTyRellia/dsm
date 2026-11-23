@@ -5,18 +5,17 @@
     <meta charset="UTF-8">
     <base href="<?= $e($baseUrl) ?>">
     <title>Display Signage</title>
-    <meta name="description" content="The small framework with powerful features">
+    <meta name="description" content="Digital Signage Masjid">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="assets/css/show.css">
-    <link rel="stylesheet" type="text/css" href="assets/css/font-awesome-4.7.0/css/font-awesome.min.css">
-    <link rel="shortcut icon" type="image/png" href="assets/img/favicon.png">
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
 </head>
 
 <body style="background-image: url('assets/img/background/<?= $e($bgImage) ?>?v=<?= time() ?>');">
     <!--- MODAL SHALAT TIME & JUMAT --->
     <div id="prayerModal" class="prayer-modal-overlay">
         <div class="prayer-modal-content">
-            <img src="assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo" class="prayer-logo">
+            <img src="<?= $e($uploadUrl('identity', $identity['logo'] ?? null)) ?>" alt="Logo" class="prayer-logo">
             <h2 id="prayerName" style="font-size: 80px; margin: 10px 0; font-family: 'Times New Roman', serif;">حيا الشلاء</h2>
             <div class="divider"></div>
             <p style="font-size: 24px; margin-top: 10px;">Telah tiba waktu Shalat <span id="prayerTimeLabel">...</span></p>
@@ -37,7 +36,7 @@
             <div class="title jumat-title"><?= $e($view['title'] ?? '') ?></div>
 
             <div class="avatar-frame">
-                <img class="jumat-avatar" src="assets/img/pictures/<?= $e(!empty($view['avatar']) ? $view['avatar'] : 'default.png') ?>" alt="Khotib">
+                <img class="jumat-avatar" src="<?= $e($uploadUrl('khotbah', $view['avatar'] ?? null)) ?>" alt="Khotib">
             </div>
 
             <div class="khotib-wrapper">
@@ -46,7 +45,10 @@
             </div>
 
             <div class="lokasi-box">
-                <div class="lokasi-title jumat-lokasi-title">📍 <?= $e($profil['tittle'] ?? '') ?></div>
+                <div class="lokasi-title jumat-lokasi-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+                    <span class="jumat-lokasi-title-text"><?= $e($profil['tittle'] ?? '') ?></span>
+                </div>
                 <div class="lokasi-detail jumat-lokasi-detail">
                     <?= $e($profil['name'] ?? '') ?>
                 </div>
@@ -62,7 +64,7 @@
             <!--- HEADER --->
             <div class="container-header">
                 <div class="logo-header">
-                    <img src="assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo">
+                    <img src="<?= $e($uploadUrl('identity', $identity['logo'] ?? null)) ?>" alt="Logo">
                 </div>
                 <div class="block-tittle">
                     <br><br><br>
@@ -153,7 +155,7 @@
             <!--- HEADER --->
             <div class="container-header">
                 <div class="logo-header-slide">
-                    <img src="assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo" style="width: 160px; height: auto;">
+                    <img src="<?= $e($uploadUrl('identity', $identity['logo'] ?? null)) ?>" alt="Logo" style="width: 160px; height: auto;">
                 </div>
                 <div class="block-tittle-slide">
                     <div class="slide-text">Jadwal Rutinitas Bulanan</div>
@@ -194,7 +196,7 @@
             <!--- HEADER --->
             <div class="container-header">
                 <div class="logo-header-slide">
-                    <img src="assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo" style="width: 160px; height: auto;">
+                    <img src="<?= $e($uploadUrl('identity', $identity['logo'] ?? null)) ?>" alt="Logo" style="width: 160px; height: auto;">
                 </div>
                 <div class="block-tittle-slide">
                     <div class="slide-text">Daftar Khotbah Jum'at</div>
@@ -237,7 +239,7 @@
             <!--- HEADER --->
             <div class="container-header">
                 <div class="logo-header-slide">
-                    <img src="assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo" style="width: 160px; height: auto;">
+                    <img src="<?= $e($uploadUrl('identity', $identity['logo'] ?? null)) ?>" alt="Logo" style="width: 160px; height: auto;">
                 </div>
                 <div class="block-tittle-slide">
                     <div class="slide-text">Susunan Pengurus</div>
@@ -284,7 +286,7 @@
             <!--- HEADER --->
             <div class="container-header">
                 <div class="logo-header-slide">
-                    <img src="assets/img/pictures/<?= $e($identity['logo'] ?? 'default.png') ?>" alt="Logo" style="width: 160px; height: auto;">
+                    <img src="<?= $e($uploadUrl('identity', $identity['logo'] ?? null)) ?>" alt="Logo" style="width: 160px; height: auto;">
                 </div>
                 <div class="block-tittle-slide">
                     <div class="slide-text">Imam Rawatib</div>
@@ -308,7 +310,7 @@
                                             </td>
                                             <td class="td-imam">
                                                 <div class="imam-wrapper">
-                                                    <img src="assets/img/pictures/<?= $e($item['profil']) ?>"
+                                                    <img src="<?= $e($uploadUrl('rawatib', $item['profil'] ?? null)) ?>"
                                                         alt="Foto" class="img-avatar">
                                                     <span class="nama-imam"><?= $e($item['nama']) ?></span>
                                                 </div>
@@ -335,8 +337,6 @@
         </div>
     </div>
 
-    <!--- SCRIPTS --->
-    <script type="text/javascript" src="assets/js/jquery-3.2.1.min.js"></script>
     <!--- Slideshow --->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -542,12 +542,18 @@
                 .then(data => {
                     document.querySelectorAll('.jumat-title').forEach(el => el.textContent = data.title);
                     document.querySelectorAll('.jumat-name').forEach(el => el.textContent = data.name);
-                    document.querySelectorAll('.jumat-lokasi-title').forEach(el => el.textContent = '📍 ' + data.tittle);
+                    document.querySelectorAll('.jumat-lokasi-title-text').forEach(el => el.textContent = data.tittle);
                     document.querySelectorAll('.jumat-lokasi-detail').forEach(el => el.textContent = data.profil_name);
 
                     document.querySelectorAll('.jumat-avatar').forEach(img => {
-                        var avatarFile = (data.avatar && data.avatar.trim() !== '') ? data.avatar : 'default.png';
-                        img.src = 'assets/img/pictures/' + avatarFile;
+                        if (data.avatar_url) {
+                            img.src = data.avatar_url;
+                        } else {
+                            var avatarFile = (data.avatar && data.avatar.trim() !== '') ? data.avatar : 'default.png';
+                            img.src = avatarFile.toLowerCase() === 'default.png'
+                                ? 'assets/img/default.png'
+                                : 'uploads/khotbah/' + avatarFile;
+                        }
                     });
                 })
                 .catch(error => console.error('Error AJAX Jumat:', error));
@@ -571,7 +577,7 @@
                     return response.json();
                 })
                 .then(data => {
-                    const newImages = data.images || [];
+                    const newImages = data.image_urls || data.images || [];
 
                     if (JSON.stringify(newImages) !== JSON.stringify(currentScenePlusImages)) {
                         currentScenePlusImages = newImages;
@@ -593,10 +599,16 @@
 
             const cacheBuster = new Date().getTime();
 
-            images.forEach((imgName, index) => {
+            images.forEach((imgPath, index) => {
                 const img = document.createElement('img');
                 img.className = 'scene-plus-img' + (index === 0 ? ' active' : '');
-                img.src = 'assets/img/pictures/' + imgName + '?v=' + cacheBuster;
+                if (imgPath.indexOf('/') !== -1) {
+                    img.src = imgPath + '?v=' + cacheBuster;
+                } else if (imgPath.toLowerCase() === 'default.png') {
+                    img.src = 'assets/img/default.png?v=' + cacheBuster;
+                } else {
+                    img.src = 'uploads/banner/' + imgPath + '?v=' + cacheBuster;
+                }
                 img.alt = 'Banner ' + (index + 1);
                 wrapper.appendChild(img);
             });

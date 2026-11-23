@@ -62,6 +62,11 @@ return static function (App $app): void {
 
     // Dashboard (protected by Kernel license gate + AuthMiddleware)
     $app->get('/', [DashboardController::class, 'index'])->add($authMiddleware);
+    $app->post('/', static function ($request, $response) use ($container) {
+        /** @var \App\Core\Kernel $kernel */
+        $kernel = $container->get(\App\Core\Kernel::class);
+        return $response->withHeader('Location', $kernel->baseUrl())->withStatus(302);
+    });
     $app->get('/index.php', [DashboardController::class, 'index'])->add($authMiddleware);
 
     // Protected Admin & Control Routes (protected by Kernel license gate + AuthMiddleware)
@@ -134,6 +139,8 @@ return static function (App $app): void {
         $group->get('/app/control/khotbah_day', [ControlController::class, 'showKhotbahDay']);
         $group->get('/app/control/khotbah_day.php', [ControlController::class, 'showKhotbahDay']);
         $group->post('/app/action/khotbah.php', [ControlController::class, 'updateKhotbahDay']);
+
+        $group->post('/control/factory-reset', [ControlController::class, 'factoryReset']);
 
         $group->map(['GET', 'POST'], '/control/shutdown', [ControlController::class, 'shutdown']);
         $group->map(['GET', 'POST'], '/app/action/shutdown', [ControlController::class, 'shutdown']);

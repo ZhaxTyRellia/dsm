@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core;
 
 use App\Middleware\SessionMiddleware;
+use App\Service\FileUploadService;
 use PDO;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -50,6 +51,20 @@ PEM;
         '/app/control/get_time.php',
     ];
 
+    private const RESETTABLE_TABLES = [
+        'user',
+        'identity',
+        'youtube',
+        'data_money',
+        'data_rawatib',
+        'monthly_planner',
+        'data_list',
+        'staff',
+        'banner',
+        'shalattime',
+        'khotbah_view',
+    ];
+
     private ?PDO $pdo;
     private bool $schemaReady = false;
     private string $publicKeyPem;
@@ -63,7 +78,7 @@ PEM;
     public function __construct(
         private readonly string $dbPath,
         private readonly string $basePath,
-        private readonly string $picturesDir,
+        private readonly string $uploadsDir,
         private readonly bool $debug = false,
         ?PDO $pdo = null,
         ?string $publicKeyPem = null,
@@ -99,11 +114,16 @@ PEM;
 
         if (!$this->schemaReady) {
             $this->ensureSchema($this->pdo);
-            $this->seedDefaults($this->pdo);
             $this->schemaReady = true;
+            $this->seedFactoryData(false);
         }
 
         return $this->pdo;
+    }
+
+    public function uploadsDir(): string
+    {
+        return $this->uploadsDir;
     }
 
     public function normalizeDeviceId(string $deviceId): string
@@ -229,6 +249,154 @@ PEM;
         }
     }
 
+    public function factoryReset(?FileUploadService $fileUploadService = null, bool $resetLicense = false): void
+    {
+        $pdo = $this->pdo();
+
+        $pdo->beginTransaction();
+        try {
+            foreach (self::RESETTABLE_TABLES as $table) {
+                $pdo->exec("DELETE FROM {$table}");
+            }
+
+            $hasSeq = (int) $pdo->query(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'sqlite_sequence'"
+            )->fetchColumn();
+            if ($hasSeq > 0) {
+                $placeholders = implode(', ', array_fill(0, count(self::RESETTABLE_TABLES), '?'));
+                $seqStmt = $pdo->prepare("DELETE FROM sqlite_sequence WHERE name IN ({$placeholders})");
+                $seqStmt->execute(self::RESETTABLE_TABLES);
+            }
+
+            if ($resetLicense) {
+                $pdo->exec("DELETE FROM system_meta WHERE meta_key = 'activate_key'");
+            }
+
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
+
+        if ($fileUploadService !== null) {
+            $fileUploadService->clearAllUploads();
+        }
+
+        $this->seedFactoryData(true);
+    }
+
+    public function seedFactoryData(bool $force = false): void
+    {
+        $pdo = $this->pdo();
+        $initialized = (string) ($pdo->query(
+            "SELECT meta_value FROM system_meta WHERE meta_key = 'factory_seeded' LIMIT 1"
+        )->fetchColumn() ?: '');
+
+        $shouldSeedCollections = $force || ($initialized === '');
+
+        if ((int) $pdo->query('SELECT COUNT(*) FROM user')->fetchColumn() === 0) {
+            $stmt = $pdo->prepare('INSERT INTO user (username, password) VALUES (?, ?)');
+            $stmt->execute(['admin', password_hash('admin123', PASSWORD_DEFAULT)]);
+        }
+
+        if ((int) $pdo->query('SELECT COUNT(*) FROM identity')->fetchColumn() === 0) {
+            $stmt = $pdo->prepare(
+                'INSERT INTO identity (id, logo, tittle, name, background, audio, marquee) VALUES (1, ?, ?, ?, ?, ?, ?)'
+            );
+            $stmt->execute([
+                'default.png',
+                'Masjid Agung Al-Ikhlas',
+                'Jl. Masjid Raya No. 1',
+                'bg1.png',
+                'uploads/audio/audio.mp3',
+                'Selamat datang di Masjid Agung Al-Ikhlas — Luruskan dan rapatkan shaf sebelum menunaikan shalat berjamaah.',
+            ]);
+        }
+
+        if ((int) $pdo->query('SELECT COUNT(*) FROM youtube')->fetchColumn() === 0) {
+            $pdo->exec("INSERT INTO youtube (id, url) VALUES (1, '')");
+        }
+
+        if ((int) $pdo->query('SELECT COUNT(*) FROM data_money')->fetchColumn() === 0) {
+            $pdo->exec(
+                "INSERT INTO data_money (
+                    id, opening_date, period_start, opening_umat, opening_masjid, opening_total,
+                    income_umat, income_masjid, income_total, position_date, position_umat, position_masjid, position_total,
+                    expense_date, expense_umat, expense_masjid, expense_total, closing_date, closing_umat, closing_masjid, closing_total
+                ) VALUES (
+                    1, '-', '-', 0, 0, 0,
+                    0, 0, 0, '-', 0, 0, 0,
+                    '-', 0, 0, 0, '-', 0, 0, 0
+                )"
+            );
+        }
+
+        if ((int) $pdo->query('SELECT COUNT(*) FROM banner')->fetchColumn() === 0) {
+            $pdo->exec(
+                "INSERT INTO banner (id, active_slides, pict1, pict2, pict3, pict4, pict5, pict6, pict7, pict8, pict9)
+                 VALUES (1, 1, 'default.png', 'default.png', 'default.png', 'default.png', 'default.png', 'default.png', 'default.png', 'default.png', 'default.png')"
+            );
+        }
+
+        if ((int) $pdo->query('SELECT COUNT(*) FROM shalattime')->fetchColumn() === 0) {
+            $pdo->exec(
+                "INSERT INTO shalattime (id, subuh, dzuhur, ashar, maghrib, isya, jumat)
+                 VALUES (1, '04:30:00', '12:00:00', '15:15:00', '18:00:00', '19:15:00', '12:00:00')"
+            );
+        }
+
+        if ((int) $pdo->query('SELECT COUNT(*) FROM khotbah_view')->fetchColumn() === 0) {
+            $pdo->exec(
+                "INSERT INTO khotbah_view (id, title, avatar, name)
+                 VALUES (1, 'Jumat Pekan Ini', 'default.png', 'Ustadz Ahmad Fauzi')"
+            );
+        }
+
+        if ($shouldSeedCollections) {
+            if ((int) $pdo->query('SELECT COUNT(*) FROM data_rawatib')->fetchColumn() === 0) {
+                $stmt = $pdo->prepare('INSERT INTO data_rawatib (data_shalat, hari, name, profile) VALUES (?, ?, ?, ?)');
+                $stmt->execute(['SUBUH', 'SENIN - MINGGU', 'Ustadz Ahmad Fauzi', 'default.png']);
+                $stmt->execute(['DZUHUR', 'SENIN - KAMIS', 'Ustadz Hasanuddin', 'default.png']);
+                $stmt->execute(['MAGHRIB', 'SENIN - MINGGU', 'Ustadz Abdul Karim', 'default.png']);
+            }
+
+            if ((int) $pdo->query('SELECT COUNT(*) FROM monthly_planner')->fetchColumn() === 0) {
+                $stmt = $pdo->prepare('INSERT INTO monthly_planner (id_desc, `desc`, `time`, speaker) VALUES (?, ?, ?, ?)');
+                $stmt->execute([1, 'KAJIAN HADITS "BULUGHUL MAROM"', "Setiap Ahad Ba'da Subuh", 'Ustadz Ahmad Fauzi']);
+                $stmt->execute([5, 'KAJIAN FIQIH "SAFINATUN NAJAH"', "Setiap Rabu Ba'da Maghrib", 'Ustadz Hasanuddin']);
+            }
+
+            if ((int) $pdo->query('SELECT COUNT(*) FROM data_list')->fetchColumn() === 0) {
+                $stmt = $pdo->prepare('INSERT INTO data_list (moon, `date`, identity) VALUES (?, ?, ?)');
+                $stmt->execute(['Januari', '03', 'Ustadz Ahmad Fauzi']);
+                $stmt->execute(['Januari', '10', 'Ustadz Abdul Karim']);
+            }
+
+            if ((int) $pdo->query('SELECT COUNT(*) FROM staff')->fetchColumn() === 0) {
+                $stmt = $pdo->prepare('INSERT INTO staff (tier, id_no, identity) VALUES (?, ?, ?)');
+                $stmt->execute(['PENASEHAT', 1, 'KH. Abdullah Mansur']);
+                $stmt->execute(['KETUA', 2, 'H. Muhammad Ridwan']);
+                $stmt->execute(['SEKRETARIS', 4, 'Ahmad Syafi\'i, S.Pd']);
+            }
+
+            $metaStmt = $pdo->prepare(
+                "INSERT INTO system_meta (meta_key, meta_value, updated_at)
+                 VALUES ('factory_seeded', '1', CURRENT_TIMESTAMP)
+                 ON CONFLICT(meta_key) DO UPDATE SET
+                    meta_value = '1',
+                    updated_at = CURRENT_TIMESTAMP"
+            );
+            $metaStmt->execute();
+        }
+    }
+
+    public function basePath(): string
+    {
+        return $this->basePath;
+    }
+
     public function baseUrl(): string
     {
         return ($this->basePath !== '' ? $this->basePath : '') . '/';
@@ -241,31 +409,43 @@ PEM;
         $app->addBodyParsingMiddleware();
         $app->addRoutingMiddleware();
 
+        $kernel = $this;
         $errorMiddleware = $app->addErrorMiddleware($this->debug, true, true);
         $errorMiddleware->setDefaultErrorHandler(
-            function (
-                ServerRequestInterface $request,
-                Throwable $exception,
-                bool $displayErrorDetails
-            ) use ($app): ResponseInterface {
-                $baseTarget = $this->baseUrl();
-                $requestPath = $request->getUri()->getPath();
-                $isAtBase = ($requestPath === $baseTarget)
-                    || ($this->basePath !== '' && $requestPath === $this->basePath);
-
-                if ($exception instanceof HttpException || (!$displayErrorDetails && !$isAtBase)) {
-                    return $app->getResponseFactory()
-                        ->createResponse(302)
-                        ->withHeader('Location', $baseTarget);
+            new class ($app, $kernel) {
+                public function __construct(
+                    private readonly App $app,
+                    private readonly Kernel $kernel
+                ) {
                 }
 
-                $response = $app->getResponseFactory()->createResponse(500);
-                $message = $displayErrorDetails
-                    ? $exception->getMessage() . "\n" . $exception->getTraceAsString()
-                    : 'Internal Server Error';
-                $response->getBody()->write($message);
+                public function __invoke(
+                    ServerRequestInterface $request,
+                    Throwable $exception,
+                    bool $displayErrorDetails,
+                    bool $logErrors,
+                    bool $logErrorDetails
+                ): ResponseInterface {
+                    $baseTarget = $this->kernel->baseUrl();
+                    $basePath = $this->kernel->basePath();
+                    $requestPath = $request->getUri()->getPath();
+                    $isAtBase = ($requestPath === $baseTarget)
+                        || ($basePath !== '' && $requestPath === $basePath);
 
-                return $response->withHeader('Content-Type', 'text/plain; charset=utf-8');
+                    if ($exception instanceof HttpException || (!$displayErrorDetails && !$isAtBase)) {
+                        return $this->app->getResponseFactory()
+                            ->createResponse(302)
+                            ->withHeader('Location', $baseTarget);
+                    }
+
+                    $response = $this->app->getResponseFactory()->createResponse(500);
+                    $message = $displayErrorDetails
+                        ? $exception->getMessage() . "\n" . $exception->getTraceAsString()
+                        : 'Internal Server Error';
+                    $response->getBody()->write($message);
+
+                    return $response->withHeader('Content-Type', 'text/plain; charset=utf-8');
+                }
             }
         );
     }
@@ -357,7 +537,7 @@ HTML;
     <base href="{$baseHref}">
     <title>Aktivasi Lisensi Offline | Digital Signage Masjid</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" type="image/png" href="assets/img/favicon.png">
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
     <style>
         :root {
             --emerald-950: #041e19;
@@ -365,7 +545,6 @@ HTML;
             --emerald-800: #0c4438;
             --gold-500: #d4af37;
             --gold-400: #e5c663;
-            --surface: #ffffff;
             --text-dark: #102a24;
             --text-muted: #5b6e68;
             --danger: #dc2626;
@@ -392,25 +571,35 @@ HTML;
             border: 1px solid rgba(212, 175, 55, 0.4);
             box-shadow: 0 28px 60px rgba(0, 0, 0, 0.42);
         }
+        .license-head {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+        .license-emblem {
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+        }
         .license-badge {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 14px;
+            gap: 6px;
+            padding: 5px 12px;
             border-radius: 999px;
             background: rgba(212, 175, 55, 0.14);
             color: #8b6d11;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
             letter-spacing: 0.06em;
             text-transform: uppercase;
-            margin-bottom: 16px;
+            margin-bottom: 6px;
         }
         .license-title {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 800;
             color: var(--emerald-900);
-            margin-bottom: 8px;
         }
         .license-desc {
             font-size: 14px;
@@ -500,6 +689,10 @@ HTML;
             box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.18);
         }
         .btn-activate {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             width: 100%;
             padding: 14px 20px;
             border: none;
@@ -528,8 +721,23 @@ HTML;
 </head>
 <body>
     <div class="license-card">
-        <div class="license-badge">ECDSA P-256 &bull; Offline Activation</div>
-        <h1 class="license-title">Aktivasi Lisensi Aplikasi</h1>
+        <div class="license-head">
+            <svg class="license-emblem" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+                <rect width="64" height="64" rx="14" fill="#062c24"/>
+                <rect x="3" y="3" width="58" height="58" rx="12" fill="none" stroke="#d4af37" stroke-width="2" opacity="0.65"/>
+                <path d="M34.5 11.5a6 6 0 1 0 5.7 7.9 4.7 4.7 0 1 1-5.7-7.9z" fill="#d4af37"/>
+                <path d="M32 20c-6.5 4.2-10 8.8-10 14v2h20v-2c0-5.2-3.5-9.8-10-14z" fill="#d4af37"/>
+                <rect x="14" y="26" width="5" height="24" rx="1.5" fill="#d4af37"/>
+                <rect x="45" y="26" width="5" height="24" rx="1.5" fill="#d4af37"/>
+                <rect x="19" y="36" width="26" height="14" fill="#d4af37"/>
+                <path d="M28 50v-6.5a4 4 0 0 1 8 0V50z" fill="#062c24"/>
+                <rect x="11" y="49" width="42" height="3.5" rx="1.75" fill="#d4af37"/>
+            </svg>
+            <div>
+                <div class="license-badge">ECDSA P-256 &bull; Offline Activation</div>
+                <h1 class="license-title">Aktivasi Lisensi Aplikasi</h1>
+            </div>
+        </div>
         <p class="license-desc">Perangkat ini belum teraktivasi. Salin Device ID di bawah dan masukkan Activate Key resmi untuk membuka panel kontrol.</p>
         {$errorHtml}
         <div class="device-box">
@@ -539,10 +747,13 @@ HTML;
             </div>
             {$copyButtonHtml}
         </div>
-        <form method="POST" action="">
+        <form method="POST" action="./">
             <label class="field-label" for="activate_key">Activate Key</label>
             <input type="text" id="activate_key" name="activate_key" class="field-input" placeholder="Tempel Activate Key (Base64URL)..." required autocomplete="off">
-            <button type="submit" class="btn-activate">Aktivasi Sekarang</button>
+            <button type="submit" class="btn-activate">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                <span>Aktivasi Sekarang</span>
+            </button>
         </form>
         <p class="license-foot">Verifikasi kriptografi offline terintegrasi pada inti sistem.</p>
     </div>
@@ -581,7 +792,7 @@ HTML;
                 tittle TEXT NOT NULL DEFAULT '',
                 name TEXT NOT NULL DEFAULT '',
                 background TEXT NOT NULL DEFAULT 'bg1.png',
-                audio TEXT NOT NULL DEFAULT 'assets/audio/audio.mp3',
+                audio TEXT NOT NULL DEFAULT 'uploads/audio/audio.mp3',
                 marquee TEXT NOT NULL DEFAULT ''
             )",
             "CREATE TABLE IF NOT EXISTS youtube (
@@ -671,70 +882,6 @@ HTML;
 
         foreach ($tables as $sql) {
             $pdo->exec($sql);
-        }
-    }
-
-    private function seedDefaults(PDO $pdo): void
-    {
-        if ((int) $pdo->query('SELECT COUNT(*) FROM user')->fetchColumn() === 0) {
-            $stmt = $pdo->prepare('INSERT INTO user (username, password) VALUES (?, ?)');
-            $stmt->execute(['admin', password_hash('admin123', PASSWORD_DEFAULT)]);
-        }
-
-        if ((int) $pdo->query('SELECT COUNT(*) FROM identity')->fetchColumn() === 0) {
-            $logo = is_file($this->picturesDir . DIRECTORY_SEPARATOR . 'Profil_20260922_085925.png')
-                ? 'Profil_20260922_085925.png'
-                : 'default.png';
-            $stmt = $pdo->prepare(
-                'INSERT INTO identity (id, logo, tittle, name, background, audio, marquee) VALUES (1, ?, ?, ?, ?, ?, ?)'
-            );
-            $stmt->execute([
-                $logo,
-                'Masjid Digital Signage',
-                'Jl. Masjid Raya No. 1',
-                'bg1.png',
-                'assets/audio/audio.mp3',
-                'Selamat datang — Luruskan dan rapatkan shaf sebelum menunaikan shalat berjamaah.',
-            ]);
-        }
-
-        if ((int) $pdo->query('SELECT COUNT(*) FROM youtube')->fetchColumn() === 0) {
-            $pdo->exec("INSERT INTO youtube (id, url) VALUES (1, '')");
-        }
-
-        if ((int) $pdo->query('SELECT COUNT(*) FROM data_money')->fetchColumn() === 0) {
-            $pdo->exec(
-                "INSERT INTO data_money (
-                    id, opening_date, period_start, opening_umat, opening_masjid, opening_total,
-                    income_umat, income_masjid, income_total, position_date, position_umat, position_masjid, position_total,
-                    expense_date, expense_umat, expense_masjid, expense_total, closing_date, closing_umat, closing_masjid, closing_total
-                ) VALUES (
-                    1, '-', '-', 0, 0, 0,
-                    0, 0, 0, '-', 0, 0, 0,
-                    '-', 0, 0, 0, '-', 0, 0, 0
-                )"
-            );
-        }
-
-        if ((int) $pdo->query('SELECT COUNT(*) FROM banner')->fetchColumn() === 0) {
-            $pdo->exec(
-                "INSERT INTO banner (id, active_slides, pict1, pict2, pict3, pict4, pict5, pict6, pict7, pict8, pict9)
-                 VALUES (1, 1, 'default.png', 'default.png', 'default.png', 'default.png', 'default.png', 'default.png', 'default.png', 'default.png', 'default.png')"
-            );
-        }
-
-        if ((int) $pdo->query('SELECT COUNT(*) FROM shalattime')->fetchColumn() === 0) {
-            $pdo->exec(
-                "INSERT INTO shalattime (id, subuh, dzuhur, ashar, maghrib, isya, jumat)
-                 VALUES (1, '04:30:00', '12:00:00', '15:15:00', '18:00:00', '19:15:00', '12:00:00')"
-            );
-        }
-
-        if ((int) $pdo->query('SELECT COUNT(*) FROM khotbah_view')->fetchColumn() === 0) {
-            $pdo->exec(
-                "INSERT INTO khotbah_view (id, title, avatar, name)
-                 VALUES (1, 'Jumat Pekan Ini', 'default.png', 'Khotib Jum''at')"
-            );
         }
     }
 }

@@ -10,7 +10,10 @@
                     <p class="card-subtitle">Atur khatib, tanggal Jum'at, dan foto untuk tampilan overlay khotbah</p>
                 </div>
             </div>
-            <a href="" class="btn btn-outline btn-sm">Kembali ke Dashboard</a>
+            <a href="" class="btn btn-outline btn-sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                <span>Kembali ke Dashboard</span>
+            </a>
         </div>
         <div class="card-body">
             <form action="control/khotbah-day" method="post" enctype="multipart/form-data">
@@ -18,7 +21,7 @@
 
                 <div style="text-align:center; margin-bottom:22px;">
                     <label for="avatar" style="cursor:pointer; display:inline-block;">
-                        <img id="avatar-preview" src="assets/img/pictures/<?= $e(!empty($p['avatar']) ? $p['avatar'] : 'default.png') ?>"
+                        <img id="avatar-preview" src="<?= $e($uploadUrl('khotbah', $p['avatar'] ?? null)) ?>"
                             class="preview-circle" style="width:132px; height:132px;" alt="Avatar Khatib">
                         <span class="badge badge-gold">Klik foto untuk ganti avatar khatib</span>
                     </label>
@@ -59,7 +62,10 @@
 
                 <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">
                     <a href="" class="btn btn-outline">Batal</a>
-                    <button type="submit" name="submit" class="btn btn-primary">Perbarui Banner Khotbah</button>
+                    <button type="submit" name="submit" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Perbarui Banner Khotbah</span>
+                    </button>
                 </div>
             </form>
         </div>

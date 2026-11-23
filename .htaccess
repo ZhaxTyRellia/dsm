@@ -4,15 +4,17 @@ RewriteEngine On
 
 # Route sensitive files and directories through Slim so requests redirect to base URL
 RewriteRule ^(\.env(\.example)?|\.gitignore|composer\.(json|lock)|phpunit\.xml)$ public/index.php [L]
-RewriteRule ^(config|src|storage|templates|tests|vendor)(/.*)?$ public/index.php [L]
+RewriteRule ^(bin|config|src|storage|templates|tests|vendor)(/.*)?$ public/index.php [L]
 
 # Allow already-rewritten requests inside public/
 RewriteRule ^public/ - [L]
 
 # Preserve legacy /app/{css,js,img,audio}/... URLs relatively
-RewriteRule ^app/(css|js|img|audio)/(.*)$ public/assets/$1/$2 [L]
+RewriteRule ^app/audio/(.*)$ public/uploads/audio/$1 [L]
+RewriteRule ^app/(css|js|img)/(.*)$ public/assets/$1/$2 [L]
 
-# Serve /assets/... directly from public/assets/...
+# Serve /uploads/... and /assets/... directly
+RewriteRule ^uploads/(.*)$ public/uploads/$1 [L]
 RewriteRule ^assets/(.*)$ public/assets/$1 [L]
 
 # Route all other requests through Slim front controller

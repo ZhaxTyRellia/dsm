@@ -78,7 +78,7 @@
         document.getElementById('edit-rawatib-shalat').value = button.dataset.shalat || '';
         document.getElementById('edit-rawatib-hari').value = button.dataset.hari || '';
         document.getElementById('edit-rawatib-name').value = button.dataset.name || '';
-        document.getElementById('edit-rawatib-preview').src = button.dataset.profile || 'assets/img/pictures/default.png';
+        document.getElementById('edit-rawatib-preview').src = button.dataset.profile || 'assets/img/default.png';
         document.getElementById('edit-rawatib-profile').value = '';
         window.openModal('editRawatib');
     };

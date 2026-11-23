@@ -51,7 +51,7 @@ final class DisplayController extends AbstractController
                 'tittle' => 'Title',
                 'name' => 'Name',
                 'background' => 'bg1.png',
-                'audio' => 'assets/audio/audio.mp3',
+                'audio' => 'uploads/audio/audio.mp3',
                 'marquee' => '',
             ];
         }
@@ -114,7 +114,7 @@ final class DisplayController extends AbstractController
             'identity' => $identity,
             'profil' => $identity,
             'bgImage' => (string) ($identity['background'] ?? 'bg1.png'),
-            'audioPath' => ltrim((string) ($identity['audio'] ?? 'assets/audio/audio.mp3'), '/'),
+            'audioPath' => ltrim((string) ($identity['audio'] ?? 'uploads/audio/audio.mp3'), '/'),
             'shalatTimes' => $shalatTimes,
             'view' => $khotbahView,
             'embedSrc' => $videoData['embed_src'],
@@ -158,6 +158,7 @@ final class DisplayController extends AbstractController
         return $this->json($response, [
             'title' => (string) ($view['title'] ?? ''),
             'avatar' => $avatarName,
+            'avatar_url' => $this->fileUploadService->publicImageUrl(FileUploadService::CATEGORY_KHOTBAH, $avatarName),
             'name' => (string) ($view['name'] ?? ''),
             'tittle' => (string) ($profil['tittle'] ?? ''),
             'profil_name' => (string) ($profil['name'] ?? ''),
@@ -169,12 +170,20 @@ final class DisplayController extends AbstractController
         $banner = $this->pdo()->query('SELECT * FROM banner WHERE id = 1 LIMIT 1')->fetch();
         $limit = $banner !== false ? (int) ($banner['active_slides'] ?? 0) : 0;
         $images = [];
+        $imageUrls = [];
 
         if ($banner !== false && $limit > 0) {
             for ($i = 1; $i <= $limit; $i++) {
                 $imageName = trim((string) ($banner['pict' . $i] ?? ''));
-                if ($imageName !== '' && $this->fileUploadService->pictureExists($imageName)) {
+                if (
+                    $imageName !== ''
+                    && (
+                        strtolower($imageName) === 'default.png'
+                        || $this->fileUploadService->imageExists(FileUploadService::CATEGORY_BANNER, $imageName)
+                    )
+                ) {
                     $images[] = $imageName;
+                    $imageUrls[] = $this->fileUploadService->publicImageUrl(FileUploadService::CATEGORY_BANNER, $imageName);
                 }
             }
         }
@@ -182,6 +191,7 @@ final class DisplayController extends AbstractController
         return $this->json($response, [
             'active_slides' => $limit,
             'images' => $images,
+            'image_urls' => $imageUrls,
         ]);
     }
 

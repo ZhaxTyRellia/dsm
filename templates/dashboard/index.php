@@ -65,7 +65,10 @@
                 <input type="text" id="youtube_url" name="youtube_url" class="form-control"
                     value="<?= $e($currentUrl) ?>" placeholder="https://www.youtube.com/watch?v=..." autocomplete="url">
             </div>
-            <button type="submit" class="btn btn-primary">Simpan Video</button>
+            <button type="submit" class="btn btn-primary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                <span>Simpan Video</span>
+            </button>
         </form>
 
         <div class="video-preview-row table-wrap">
@@ -167,7 +170,10 @@
                 </table>
             </div>
             <div style="display:flex; justify-content:flex-end;">
-                <button type="submit" class="btn btn-primary">Simpan Laporan Kas</button>
+                <button type="submit" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    <span>Simpan Laporan Kas</span>
+                </button>
             </div>
         </form>
     </div>
@@ -185,7 +191,10 @@
                 <p class="card-subtitle">Atur jadwal imam shalat wajib dan badal imam beserta foto profil</p>
             </div>
         </div>
-        <button type="button" class="btn btn-primary" onclick="openModal('dataRawatib')">+ Tambah Imam</button>
+        <button type="button" class="btn btn-primary" onclick="openModal('dataRawatib')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Tambah Imam</span>
+        </button>
     </div>
     <div class="card-body">
         <div class="table-wrap">
@@ -197,7 +206,7 @@
                         <th style="width:160px;">Hari</th>
                         <th style="width:80px;">Foto</th>
                         <th>Nama Imam</th>
-                        <th style="width:150px;">Aksi</th>
+                        <th style="width:185px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -206,13 +215,13 @@
                     <?php else: ?>
                         <?php $no = 1; ?>
                         <?php foreach ($rawatibList as $row): ?>
-                            <?php $profileFile = !empty($row['profile']) ? $row['profile'] : 'default.png'; ?>
+                            <?php $profileUrl = $uploadUrl('rawatib', $row['profile'] ?? null); ?>
                             <tr>
                                 <td><?= $no++ ?></td>
                                 <td><span class="badge"><?= $e($row['data_shalat']) ?></span></td>
                                 <td><?= $e(!empty($row['hari']) ? $row['hari'] : '-') ?></td>
                                 <td>
-                                    <img src="assets/img/pictures/<?= $e($profileFile) ?>" alt="Foto Profil" class="table-avatar">
+                                    <img src="<?= $e($profileUrl) ?>" alt="Foto Profil" class="table-avatar">
                                 </td>
                                 <td><strong><?= $e($row['name']) ?></strong></td>
                                 <td>
@@ -224,10 +233,16 @@
                                             data-shalat="<?= $e($row['data_shalat']) ?>"
                                             data-hari="<?= $e($row['hari']) ?>"
                                             data-name="<?= $e($row['name']) ?>"
-                                            data-profile="assets/img/pictures/<?= $e($profileFile) ?>">Edit</button>
+                                            data-profile="<?= $e($profileUrl) ?>">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            <span>Edit</span>
+                                        </button>
                                         <a href="rawatib/<?= (int) $row['id'] ?>/delete"
                                             onclick="return confirm('Yakin ingin menghapus data ini?')"
-                                            class="btn btn-sm btn-action-delete">Hapus</a>
+                                            class="btn btn-sm btn-action-delete">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                            <span>Hapus</span>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -251,7 +266,10 @@
                 <p class="card-subtitle">Jadwal kajian rutin, pengajian, dan kegiatan masjid bulanan</p>
             </div>
         </div>
-        <button type="button" class="btn btn-primary" onclick="openModal('dataRutinitas')">+ Tambah Agenda</button>
+        <button type="button" class="btn btn-primary" onclick="openModal('dataRutinitas')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Tambah Agenda</span>
+        </button>
     </div>
     <div class="card-body">
         <div class="table-wrap">
@@ -262,7 +280,7 @@
                         <th>Keterangan Kegiatan</th>
                         <th>Waktu</th>
                         <th>Pengisi / Ustadz</th>
-                        <th style="width:100px;">Aksi</th>
+                        <th style="width:120px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -279,7 +297,10 @@
                                 <td>
                                     <a href="activity/<?= (int) $row['id'] ?>/delete"
                                         onclick="return confirm('Yakin ingin menghapus data ini?')"
-                                        class="btn btn-sm btn-action-delete">Hapus</a>
+                                        class="btn btn-sm btn-action-delete">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                        <span>Hapus</span>
+                                    </a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -302,7 +323,10 @@
                 <p class="card-subtitle">Jadwal khatib dan imam shalat Jum'at sepanjang tahun</p>
             </div>
         </div>
-        <button type="button" class="btn btn-primary" onclick="openModal('khotbahJumat')">+ Tambah Jadwal</button>
+        <button type="button" class="btn btn-primary" onclick="openModal('khotbahJumat')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Tambah Jadwal</span>
+        </button>
     </div>
     <div class="card-body">
         <div class="table-wrap">
@@ -313,7 +337,7 @@
                         <th style="width:140px;">Bulan</th>
                         <th style="width:140px;">Tanggal</th>
                         <th>Nama Imam / Khatib</th>
-                        <th style="width:150px;">Aksi</th>
+                        <th style="width:185px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -335,10 +359,16 @@
                                             data-id="<?= (int) $row['id'] ?>"
                                             data-moon="<?= $e($row['moon']) ?>"
                                             data-date="<?= $e($row['date']) ?>"
-                                            data-identity="<?= $e($row['identity']) ?>">Edit</button>
+                                            data-identity="<?= $e($row['identity']) ?>">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            <span>Edit</span>
+                                        </button>
                                         <a href="khotbah-list/<?= (int) $row['id'] ?>/delete"
                                             onclick="return confirm('Yakin ingin menghapus data ini?')"
-                                            class="btn btn-sm btn-action-delete">Hapus</a>
+                                            class="btn btn-sm btn-action-delete">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                            <span>Hapus</span>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -362,7 +392,10 @@
                 <p class="card-subtitle">Struktur jabatan dan anggota kepengurusan masjid</p>
             </div>
         </div>
-        <button type="button" class="btn btn-primary" onclick="openModal('staff')">+ Tambah Pengurus</button>
+        <button type="button" class="btn btn-primary" onclick="openModal('staff')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Tambah Pengurus</span>
+        </button>
     </div>
     <div class="card-body">
         <div class="table-wrap">
@@ -372,7 +405,7 @@
                         <th style="width:60px;">No</th>
                         <th>Jabatan</th>
                         <th>Nama Lengkap</th>
-                        <th style="width:100px;">Aksi</th>
+                        <th style="width:120px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -388,7 +421,10 @@
                                 <td>
                                     <a href="staff/<?= (int) $row['id'] ?>/delete"
                                         onclick="return confirm('Yakin ingin menghapus data ini?')"
-                                        class="btn btn-sm btn-action-delete">Hapus</a>
+                                        class="btn btn-sm btn-action-delete">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                        <span>Hapus</span>
+                                    </a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -435,7 +471,7 @@
                 <?php
                 $pictKey = 'pict' . $i;
                 $previewId = $pictKey . '_preview';
-                $currentImage = !empty($bannerData[$pictKey]) ? $bannerData[$pictKey] : 'default.png';
+                $currentImageUrl = $uploadUrl('banner', $bannerData[$pictKey] ?? null);
                 ?>
                 <div class="banner-card">
                     <div class="banner-card-title">
@@ -444,10 +480,13 @@
                     </div>
                     <form action="banner/upload" method="post" enctype="multipart/form-data">
                         <label for="<?= $e($pictKey) ?>" class="banner-preview-label">
-                            <img src="assets/img/pictures/<?= $e($currentImage) ?>" id="<?= $e($previewId) ?>" alt="Banner Slide <?= $i ?>">
+                            <img src="<?= $e($currentImageUrl) ?>" id="<?= $e($previewId) ?>" alt="Banner Slide <?= $i ?>">
                         </label>
                         <input id="<?= $e($pictKey) ?>" type="file" name="<?= $e($pictKey) ?>" accept="image/*" class="banner-file-input" data-preview-id="<?= $e($previewId) ?>">
-                        <button type="submit" value="save" name="<?= $e($pictKey) ?>" class="btn btn-primary" style="width:100%; margin-top:12px;">Upload Slide <?= $i ?></button>
+                        <button type="submit" value="save" name="<?= $e($pictKey) ?>" class="btn btn-primary" style="width:100%; margin-top:12px;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <span>Upload Slide <?= $i ?></span>
+                        </button>
                     </form>
                 </div>
             <?php endfor; ?>
@@ -490,7 +529,10 @@
                         <label for="profile" class="form-label">Foto Profil</label>
                         <input type="file" name="profile" id="profile" class="form-control" accept="image/*" required>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width:100%;">Simpan Data Imam</button>
+                    <button type="submit" class="btn btn-primary" style="width:100%;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Simpan Data Imam</span>
+                    </button>
                 </form>
             </div>
         </div>
@@ -508,7 +550,7 @@
                 <form action="rawatib/update" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="id" id="edit-rawatib-id">
-                    <img id="edit-rawatib-preview" src="assets/img/pictures/default.png" alt="Foto Profil" class="preview-circle">
+                    <img id="edit-rawatib-preview" src="assets/img/default.png" alt="Foto Profil" class="preview-circle">
                     <div class="form-group">
                         <label class="form-label">Kategori Shalat</label>
                         <select name="data_shalat" id="edit-rawatib-shalat" class="form-control" required>

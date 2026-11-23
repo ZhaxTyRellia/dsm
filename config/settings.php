@@ -49,8 +49,7 @@ return static function (string $rootDir): array {
             'root' => $rootDir,
             'public' => $rootDir . '/public',
             'templates' => $rootDir . '/templates',
-            'pictures' => $rootDir . '/public/assets/img/pictures',
-            'audio' => $rootDir . '/public/assets/audio',
+            'uploads' => $rootDir . '/public/uploads',
         ],
     ];
 };

@@ -49,7 +49,7 @@ final class BannerController extends AbstractController
                     $col = 'pict' . $i;
                     $oldFile = (string) ($current[$col] ?? '');
                     if ($oldFile !== '' && strtolower($oldFile) !== 'default.png') {
-                        $this->fileUploadService->deletePicture($oldFile);
+                        $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_BANNER, $oldFile);
                     }
 
                     $resetStmt = $pdo->prepare("UPDATE banner SET {$col} = 'default.png' WHERE id = 1");
@@ -80,13 +80,17 @@ final class BannerController extends AbstractController
             $row = $selectStmt->fetch();
             $oldFile = $row !== false ? (string) ($row[$target] ?? '') : '';
 
-            $newName = $this->fileUploadService->moveUploadedImage($files[$target], 'image_');
+            $newName = $this->fileUploadService->moveUploadedImage(
+                $files[$target],
+                FileUploadService::CATEGORY_BANNER,
+                'image_'
+            );
 
             $updateStmt = $pdo->prepare("UPDATE banner SET {$target} = ? WHERE id = 1");
             $updateStmt->execute([$newName]);
 
             if ($oldFile !== '' && strtolower($oldFile) !== 'default.png') {
-                $this->fileUploadService->deletePicture($oldFile);
+                $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_BANNER, $oldFile);
             }
 
             $this->flash('success', 'Gambar banner berhasil diunggah.');

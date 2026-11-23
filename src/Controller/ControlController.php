@@ -60,9 +60,13 @@ final class ControlController extends AbstractController
 
         $files = $this->files($request);
         if (isset($files['logo']) && $files['logo']->getError() === UPLOAD_ERR_OK) {
-            $logo = $this->fileUploadService->moveUploadedImage($files['logo'], 'Profil_');
+            $logo = $this->fileUploadService->moveUploadedImage(
+                $files['logo'],
+                FileUploadService::CATEGORY_IDENTITY,
+                'Profil_'
+            );
             if ($oldLogo !== '' && $logo !== $oldLogo) {
-                $this->fileUploadService->deletePicture($oldLogo);
+                $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_IDENTITY, $oldLogo);
             }
         }
 
@@ -136,7 +140,7 @@ final class ControlController extends AbstractController
         }
 
         $filename = $this->fileUploadService->moveUploadedAudio($files['audio_file']);
-        $relativeDbPath = 'assets/audio/' . $filename;
+        $relativeDbPath = 'uploads/audio/' . $filename;
 
         $updateStmt = $pdo->prepare('UPDATE identity SET audio = ? WHERE id = ?');
         $updateStmt->execute([$relativeDbPath, $targetId]);
@@ -252,11 +256,12 @@ final class ControlController extends AbstractController
             try {
                 $newAvatar = $this->fileUploadService->moveUploadedImage(
                     $files['avatar'],
+                    FileUploadService::CATEGORY_KHOTBAH,
                     'Avatar_',
                     ['png', 'jpg', 'jpeg']
                 );
                 if ($oldAvatar !== '' && $newAvatar !== $oldAvatar) {
-                    $this->fileUploadService->deletePicture($oldAvatar);
+                    $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_KHOTBAH, $oldAvatar);
                 }
                 $avatar = $newAvatar;
             } catch (InvalidArgumentException) {
@@ -268,6 +273,15 @@ final class ControlController extends AbstractController
         $updateStmt->execute([$name, $title, $avatar, $id]);
 
         $this->flash('success', 'Banner Khotbah Jum\'at berhasil diperbarui.');
+
+        return $this->redirect($response, '/');
+    }
+
+    public function factoryReset(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $this->assertActivated($request);
+        $this->kernel->factoryReset($this->fileUploadService, false);
+        $this->flash('success', 'Sistem berhasil di-reset ke pengaturan pabrik (factory reset).');
 
         return $this->redirect($response, '/');
     }

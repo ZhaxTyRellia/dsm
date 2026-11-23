@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <base href="<?= $e($baseUrl) ?>">
     <title>Login | Digital Signage Masjid</title>
-    <link rel="shortcut icon" type="image/png" href="assets/img/favicon.png">
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root {
@@ -42,12 +42,9 @@
             text-align: center;
             margin-bottom: 26px;
         }
-        .login-logo {
-            width: 58px;
-            height: 58px;
-            border-radius: 16px;
-            object-fit: cover;
-            border: 2px solid var(--gold-500);
+        .login-logo-svg {
+            width: 62px;
+            height: 62px;
             margin-bottom: 12px;
         }
         .login-kicker {
@@ -83,9 +80,17 @@
         .input-wrap {
             position: relative;
         }
+        .input-icon {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
         .form-control {
             width: 100%;
-            padding: 12px 14px;
+            padding: 12px 14px 12px 40px;
             border: 1.5px solid #d5e0db;
             border-radius: 12px;
             font-size: 14px;
@@ -107,11 +112,17 @@
             border: none;
             background: none;
             color: var(--text-muted);
-            font-size: 12px;
-            font-weight: 700;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
         }
         .btn-login {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             width: 100%;
             margin-top: 8px;
             padding: 13px 20px;
@@ -157,6 +168,9 @@
             color: var(--text-muted);
         }
         .login-foot a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             color: var(--emerald-800);
             font-weight: 700;
             text-decoration: none;
@@ -167,7 +181,17 @@
 <body>
     <div class="login-card">
         <div class="login-brand">
-            <img src="assets/img/favicon.png" alt="Logo" class="login-logo">
+            <svg class="login-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+                <rect width="64" height="64" rx="16" fill="#062c24"/>
+                <rect x="3" y="3" width="58" height="58" rx="14" fill="none" stroke="#d4af37" stroke-width="2" opacity="0.65"/>
+                <path d="M34.5 11.5a6 6 0 1 0 5.7 7.9 4.7 4.7 0 1 1-5.7-7.9z" fill="#d4af37"/>
+                <path d="M32 20c-6.5 4.2-10 8.8-10 14v2h20v-2c0-5.2-3.5-9.8-10-14z" fill="#d4af37"/>
+                <rect x="14" y="26" width="5" height="24" rx="1.5" fill="#d4af37"/>
+                <rect x="45" y="26" width="5" height="24" rx="1.5" fill="#d4af37"/>
+                <rect x="19" y="36" width="26" height="14" fill="#d4af37"/>
+                <path d="M28 50v-6.5a4 4 0 0 1 8 0V50z" fill="#062c24"/>
+                <rect x="11" y="49" width="42" height="3.5" rx="1.75" fill="#d4af37"/>
+            </svg>
             <div><span class="login-kicker">Dashboard Panel</span></div>
             <h1 class="login-title">Masuk Pengelola</h1>
             <p class="login-sub">Digital Signage Masjid</p>
@@ -181,36 +205,41 @@
         <form action="login" method="post">
             <div class="form-group">
                 <label class="form-label" for="username">Username</label>
-                <input id="username" class="form-control" type="text" name="username" placeholder="Masukkan username" required autocomplete="username">
+                <div class="input-wrap">
+                    <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <input id="username" class="form-control" type="text" name="username" placeholder="Masukkan username" required autocomplete="username">
+                </div>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="password">Password</label>
                 <div class="input-wrap">
-                    <input id="password" class="form-control" type="password" name="password" placeholder="Masukkan password" required autocomplete="current-password" style="padding-right: 64px;">
-                    <button type="button" class="toggle-pw" onclick="togglePassword()">Lihat</button>
+                    <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <input id="password" class="form-control" type="password" name="password" placeholder="Masukkan password" required autocomplete="current-password" style="padding-right: 44px;">
+                    <button type="button" class="toggle-pw" onclick="togglePassword()" aria-label="Tampilkan Password">
+                        <svg id="eyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
                 </div>
             </div>
 
-            <button type="submit" class="btn-login">Sign In</button>
+            <button type="submit" class="btn-login">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                <span>Sign In</span>
+            </button>
         </form>
 
         <div class="login-foot">
-            <a href="potrait">Lihat Layar Display Signage &rarr;</a>
+            <a href="potrait">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                <span>Lihat Layar Display Signage</span>
+            </a>
         </div>
     </div>
 
     <script>
         function togglePassword() {
             var input = document.getElementById('password');
-            var btn = document.querySelector('.toggle-pw');
-            if (input.type === 'password') {
-                input.type = 'text';
-                btn.textContent = 'Tutup';
-            } else {
-                input.type = 'password';
-                btn.textContent = 'Lihat';
-            }
+            input.type = input.type === 'password' ? 'text' : 'password';
         }
         <?php if (!empty($error)): ?>
             (function () {

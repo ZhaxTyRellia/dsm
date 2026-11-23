@@ -6,7 +6,7 @@
     <base href="<?= $e($baseUrl) ?>">
     <title><?= $e($pageTitle ?? 'Dashboard') ?> | Digital Signage Masjid</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" type="image/png" href="assets/img/favicon.png">
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
     <link rel="stylesheet" type="text/css" href="assets/css/admin.css">
 </head>
 
@@ -20,7 +20,7 @@
     <div class="app-shell">
         <aside class="sidebar" id="appSidebar" aria-label="Navigasi Utama">
             <a href="" class="sidebar-brand">
-                <img src="assets/img/pictures/<?= $e($brandLogo) ?>" alt="Logo" class="sidebar-logo">
+                <img src="<?= $e($uploadUrl('identity', $brandLogo)) ?>" alt="Logo" class="sidebar-logo">
                 <div class="sidebar-brand-text">
                     <div class="sidebar-brand-title"><?= $e($brandTitle) ?></div>
                     <div class="sidebar-brand-sub"><?= $e($brandSub) ?></div>
@@ -98,6 +98,10 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                         <span>Keluar (Logout)</span>
                     </a>
+                    <button type="button" class="nav-item" onclick="openModal('factoryResetModal')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                        <span>Reset Factory</span>
+                    </button>
                     <button type="button" class="nav-item nav-danger" onclick="openModal('shutdownConfirmModal')">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
                         <span>Matikan PC</span>
@@ -150,6 +154,30 @@
             <button type="button" class="modal-close" onclick="this.parentElement.remove()" style="width:26px;height:26px;font-size:16px;">&times;</button>
         </div>
     <?php endif; ?>
+
+    <!-- Factory Reset Confirmation Modal -->
+    <div id="factoryResetModal" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Reset Pengaturan Pabrik</h4>
+                    <button type="button" class="modal-close" onclick="closeModal('factoryResetModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p style="margin-bottom: 18px; color: var(--text-muted); font-size: 14px;">
+                        Seluruh data masjid, laporan kas, daftar imam, jadwal, dan file unggahan akan dikembalikan ke data awal bawaan pabrik (akun login kembali ke <strong>admin / admin123</strong>). Lisensi perangkat tetap dipertahankan.
+                    </p>
+                    <form action="control/factory-reset" method="POST" style="display:flex; gap:10px; justify-content:flex-end;">
+                        <button type="button" class="btn btn-outline" onclick="closeModal('factoryResetModal')">Batal</button>
+                        <button type="submit" class="btn btn-danger">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                            <span>Ya, Reset Factory</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Shutdown Confirmation Modal -->
     <div id="shutdownConfirmModal" class="modal">

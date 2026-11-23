@@ -44,6 +44,7 @@ final class RawatibController extends AbstractController
         if (isset($files['profile']) && $files['profile']->getError() === UPLOAD_ERR_OK) {
             $profileFilename = $this->fileUploadService->moveUploadedImage(
                 $files['profile'],
+                FileUploadService::CATEGORY_RAWATIB,
                 'avatar_',
                 null,
                 true
@@ -94,6 +95,7 @@ final class RawatibController extends AbstractController
             try {
                 $profileFilename = $this->fileUploadService->moveUploadedImage(
                     $files['profile'],
+                    FileUploadService::CATEGORY_RAWATIB,
                     'avatar_',
                     ['jpg', 'jpeg', 'png'],
                     true
@@ -109,7 +111,7 @@ final class RawatibController extends AbstractController
         $stmtUpdate->execute([$dataShalat, $hari, $name, $profileFilename, $id]);
 
         if ($profileFilename !== $oldProfile && $oldProfile !== null && $oldProfile !== '') {
-            $this->fileUploadService->deletePicture($oldProfile);
+            $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_RAWATIB, $oldProfile);
         }
 
         $this->flash('success', 'Data imam rawatib berhasil diperbarui.');
@@ -133,7 +135,7 @@ final class RawatibController extends AbstractController
             $row = $stmtSelect->fetch();
 
             if ($row !== false && !empty($row['profile'])) {
-                $this->fileUploadService->deletePicture((string) $row['profile']);
+                $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_RAWATIB, (string) $row['profile']);
             }
 
             $stmtDelete = $pdo->prepare('DELETE FROM data_rawatib WHERE id = ?');

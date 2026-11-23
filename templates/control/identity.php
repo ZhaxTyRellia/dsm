@@ -10,15 +10,18 @@
                     <p class="card-subtitle">Atur logo, nama masjid, alamat, dan teks berjalan di layar signage</p>
                 </div>
             </div>
-            <a href="" class="btn btn-outline btn-sm">Kembali ke Dashboard</a>
+            <a href="" class="btn btn-outline btn-sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                <span>Kembali ke Dashboard</span>
+            </a>
         </div>
         <div class="card-body">
             <?php foreach ($identities as $data): ?>
-                <?php $logoFile = !empty($data['logo']) ? $data['logo'] : 'default.png'; ?>
+                <?php $logoUrl = $uploadUrl('identity', $data['logo'] ?? null); ?>
                 <form action="control/identity" method="post" enctype="multipart/form-data">
                     <div style="text-align:center; margin-bottom:22px;">
                         <label for="logo" style="cursor:pointer; display:inline-block;">
-                            <img id="logo-preview" src="assets/img/pictures/<?= $e($logoFile) ?>"
+                            <img id="logo-preview" src="<?= $e($logoUrl) ?>"
                                 class="preview-circle" style="width:120px; height:120px;" alt="Logo Masjid">
                             <span class="badge badge-gold">Klik gambar untuk ganti logo</span>
                         </label>
@@ -43,7 +46,10 @@
 
                     <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">
                         <a href="" class="btn btn-outline">Batal</a>
-                        <button type="submit" value="save" name="submit" class="btn btn-primary">Simpan Identitas</button>
+                        <button type="submit" value="save" name="submit" class="btn btn-primary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                            <span>Simpan Identitas</span>
+                        </button>
                     </div>
                 </form>
             <?php endforeach; ?>

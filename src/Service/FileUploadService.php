@@ -10,10 +10,32 @@ use RuntimeException;
 
 final class FileUploadService
 {
+    public const CATEGORY_IDENTITY = 'identity';
+    public const CATEGORY_RAWATIB = 'rawatib';
+    public const CATEGORY_BANNER = 'banner';
+    public const CATEGORY_KHOTBAH = 'khotbah';
+    public const CATEGORY_AUDIO = 'audio';
+
+    private const ALLOWED_CATEGORIES = [
+        self::CATEGORY_IDENTITY,
+        self::CATEGORY_RAWATIB,
+        self::CATEGORY_BANNER,
+        self::CATEGORY_KHOTBAH,
+        self::CATEGORY_AUDIO,
+    ];
+
     public function __construct(
-        private readonly string $picturesDir,
-        private readonly string $audioDir
+        private readonly string $uploadsBaseDir
     ) {
+    }
+
+    public function categoryDir(string $category): string
+    {
+        if (!in_array($category, self::ALLOWED_CATEGORIES, true)) {
+            throw new InvalidArgumentException("Kategori upload tidak valid: {$category}");
+        }
+
+        return rtrim($this->uploadsBaseDir, '/\\') . DIRECTORY_SEPARATOR . $category;
     }
 
     /**
@@ -21,6 +43,7 @@ final class FileUploadService
      */
     public function moveUploadedImage(
         UploadedFileInterface $file,
+        string $category,
         string $prefix,
         ?array $allowedExtensions = null,
         bool $appendRandom = false
@@ -36,8 +59,9 @@ final class FileUploadService
             throw new InvalidArgumentException('Format foto harus PNG, JPG, atau JPEG.');
         }
 
-        if (!is_dir($this->picturesDir) && !@mkdir($this->picturesDir, 0755, true) && !is_dir($this->picturesDir)) {
-            throw new RuntimeException('Gagal membuat direktori gambar.');
+        $targetDir = $this->categoryDir($category);
+        if (!is_dir($targetDir) && !@mkdir($targetDir, 0755, true) && !is_dir($targetDir)) {
+            throw new RuntimeException('Gagal membuat direktori upload.');
         }
 
         $suffix = $appendRandom
@@ -45,24 +69,44 @@ final class FileUploadService
             : date('Ymd_His');
 
         $filename = $prefix . $suffix . ($ext !== '' ? '.' . $ext : '');
-        $targetPath = $this->picturesDir . DIRECTORY_SEPARATOR . $filename;
-
-        $file->moveTo($targetPath);
+        $file->moveTo($targetDir . DIRECTORY_SEPARATOR . $filename);
 
         return $filename;
     }
 
-    public function deletePicture(?string $filename): void
+    public function deleteImage(string $category, ?string $filename): void
     {
         $safeName = basename(trim((string) $filename));
         if ($safeName === '' || strtolower($safeName) === 'default.png') {
             return;
         }
 
-        $path = $this->picturesDir . DIRECTORY_SEPARATOR . $safeName;
+        $path = $this->categoryDir($category) . DIRECTORY_SEPARATOR . $safeName;
         if (is_file($path)) {
             @unlink($path);
         }
+    }
+
+    public function imageExists(string $category, string $filename): bool
+    {
+        $safeName = basename(trim($filename));
+        if ($safeName === '' || strtolower($safeName) === 'default.png') {
+            return false;
+        }
+
+        return is_file($this->categoryDir($category) . DIRECTORY_SEPARATOR . $safeName);
+    }
+
+    public function publicImageUrl(string $category, ?string $filename): string
+    {
+        $this->categoryDir($category);
+        $safeName = basename(trim((string) $filename));
+
+        if ($safeName === '' || strtolower($safeName) === 'default.png') {
+            return 'assets/img/default.png';
+        }
+
+        return 'uploads/' . $category . '/' . $safeName;
     }
 
     public function moveUploadedAudio(UploadedFileInterface $file): string
@@ -71,16 +115,16 @@ final class FileUploadService
             throw new RuntimeException('Gagal mengunggah file audio.');
         }
 
-        if (!is_dir($this->audioDir) && !@mkdir($this->audioDir, 0755, true) && !is_dir($this->audioDir)) {
+        $targetDir = $this->categoryDir(self::CATEGORY_AUDIO);
+        if (!is_dir($targetDir) && !@mkdir($targetDir, 0755, true) && !is_dir($targetDir)) {
             throw new RuntimeException('Gagal membuat direktori audio.');
         }
 
         $clientFilename = (string) ($file->getClientFilename() ?? '');
         $ext = strtolower(pathinfo($clientFilename, PATHINFO_EXTENSION));
         $filename = 'audio_' . time() . ($ext !== '' ? '.' . $ext : '');
-        $targetPath = $this->audioDir . DIRECTORY_SEPARATOR . $filename;
 
-        $file->moveTo($targetPath);
+        $file->moveTo($targetDir . DIRECTORY_SEPARATOR . $filename);
 
         return $filename;
     }
@@ -88,23 +132,36 @@ final class FileUploadService
     public function deleteAudio(?string $storedPath): void
     {
         $safeName = basename(trim((string) $storedPath));
-        if ($safeName === '') {
+        if ($safeName === '' || strtolower($safeName) === 'audio.mp3') {
             return;
         }
 
-        $path = $this->audioDir . DIRECTORY_SEPARATOR . $safeName;
+        $path = $this->categoryDir(self::CATEGORY_AUDIO) . DIRECTORY_SEPARATOR . $safeName;
         if (is_file($path)) {
             @unlink($path);
         }
     }
 
-    public function pictureExists(string $filename): bool
+    public function clearAllUploads(): void
     {
-        $safeName = basename(trim($filename));
-        if ($safeName === '') {
-            return false;
-        }
+        foreach (self::ALLOWED_CATEGORIES as $category) {
+            $dir = $this->categoryDir($category);
+            if (!is_dir($dir)) {
+                continue;
+            }
 
-        return is_file($this->picturesDir . DIRECTORY_SEPARATOR . $safeName);
+            foreach (scandir($dir) ?: [] as $item) {
+                if ($item === '.' || $item === '..' || $item === '.gitkeep' || $item === '.gitignore') {
+                    continue;
+                }
+                if ($category === self::CATEGORY_AUDIO && strtolower($item) === 'audio.mp3') {
+                    continue;
+                }
+                $full = $dir . DIRECTORY_SEPARATOR . $item;
+                if (is_file($full)) {
+                    @unlink($full);
+                }
+            }
+        }
     }
 }

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#041d17"/>
+      <stop offset="100%" stop-color="#0c4438"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f2dc8c"/>
+      <stop offset="100%" stop-color="#d4af37"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <rect x="3" y="3" width="58" height="58" rx="12" fill="none" stroke="url(#gold)" stroke-width="2" opacity="0.65"/>
+  <!-- Crescent & Star -->
+  <path d="M34.5 11.5a6 6 0 1 0 5.7 7.9 4.7 4.7 0 1 1-5.7-7.9z" fill="url(#gold)"/>
+  <polygon points="39,12.5 39.8,14.2 41.7,14.4 40.3,15.7 40.7,17.5 39,16.6 37.3,17.5 37.7,15.7 36.3,14.4 38.2,14.2" fill="url(#gold)"/>
+  <!-- Mosque Dome & Minarets -->
+  <path d="M32 20c-6.5 4.2-10 8.8-10 14v2h20v-2c0-5.2-3.5-9.8-10-14z" fill="url(#gold)"/>
+  <rect x="14" y="26" width="5" height="24" rx="1.5" fill="url(#gold)" opacity="0.9"/>
+  <path d="M16.5 21l-2.8 5h5.6z" fill="url(#gold)"/>
+  <rect x="45" y="26" width="5" height="24" rx="1.5" fill="url(#gold)" opacity="0.9"/>
+  <path d="M47.5 21l-2.8 5h5.6z" fill="url(#gold)"/>
+  <!-- Mosque Base & Arch Door -->
+  <rect x="19" y="36" width="26" height="14" fill="url(#gold)" opacity="0.95"/>
+  <path d="M28 50v-6.5a4 4 0 0 1 8 0V50z" fill="#062c24"/>
+  <rect x="11" y="49" width="42" height="3.5" rx="1.75" fill="url(#gold)"/>
+</svg>

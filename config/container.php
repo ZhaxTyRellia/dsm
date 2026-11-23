@@ -54,22 +54,12 @@ return static function (array $settings, array $overrides = []): ContainerInterf
             return new Kernel(
                 (string) ($cfg['db']['path'] ?? ''),
                 (string) $c->get('basePath'),
-                (string) ($cfg['paths']['pictures'] ?? ''),
+                (string) ($cfg['paths']['uploads'] ?? ''),
                 (bool) ($cfg['app']['debug'] ?? false),
                 $pdo,
                 $publicKeyPem,
                 $uuidResolver
             );
-        },
-
-        PhpRenderer::class => static function (ContainerInterface $c): PhpRenderer {
-            $paths = $c->get('settings')['paths'];
-
-            return new PhpRenderer($paths['templates'], [
-                'basePath' => (string) $c->get('basePath'),
-                'baseUrl' => (string) $c->get('baseUrl'),
-                'e' => static fn (mixed $value): string => htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8'),
-            ]);
         },
 
         FileUploadService::class => static function (ContainerInterface $c) use ($overrides): FileUploadService {
@@ -78,10 +68,20 @@ return static function (array $settings, array $overrides = []): ContainerInterf
             }
             $paths = $c->get('settings')['paths'];
 
-            return new FileUploadService(
-                (string) $paths['pictures'],
-                (string) $paths['audio']
-            );
+            return new FileUploadService((string) $paths['uploads']);
+        },
+
+        PhpRenderer::class => static function (ContainerInterface $c): PhpRenderer {
+            $paths = $c->get('settings')['paths'];
+            /** @var FileUploadService $uploads */
+            $uploads = $c->get(FileUploadService::class);
+
+            return new PhpRenderer($paths['templates'], [
+                'basePath' => (string) $c->get('basePath'),
+                'baseUrl' => (string) $c->get('baseUrl'),
+                'uploadUrl' => static fn (string $category, ?string $filename): string => $uploads->publicImageUrl($category, $filename),
+                'e' => static fn (mixed $value): string => htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8'),
+            ]);
         },
 
         YoutubeEmbedService::class => static fn (): YoutubeEmbedService => new YoutubeEmbedService(),
