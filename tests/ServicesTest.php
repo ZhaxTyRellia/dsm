@@ -12,6 +12,8 @@ use App\Support\BasePathDetector;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use Slim\Psr7\UploadedFile;
 
 final class ServicesTest extends TestCase
@@ -81,7 +83,7 @@ final class ServicesTest extends TestCase
         ], $fridays);
     }
 
-    public function testKernelEcdsaP256VerificationAndSqliteBootstrap(): void
+    public function testKernelEcdsaP256VerificationAndFactoryReset(): void
     {
         $cnf = 'C:/WampDock/apache/conf/openssl.cnf';
         $opts = ['private_key_type' => OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1'];
@@ -96,92 +98,155 @@ final class ServicesTest extends TestCase
         $details = openssl_pkey_get_details($key);
         $publicPem = (string) $details['key'];
 
-        $kernel = new Kernel(
-            ':memory:',
-            '/dsm',
-            dirname(__DIR__) . '/public/assets/img/pictures',
-            false,
-            null,
-            $publicPem,
-            static fn (): string => '  ab12-cd34-ef56  '
-        );
+        $tempUploads = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'dsm_kernel_uploads_' . uniqid('', true);
+        mkdir($tempUploads . DIRECTORY_SEPARATOR . 'banner', 0777, true);
+        mkdir($tempUploads . DIRECTORY_SEPARATOR . 'audio', 0777, true);
+        file_put_contents($tempUploads . DIRECTORY_SEPARATOR . 'banner' . DIRECTORY_SEPARATOR . 'custom.jpg', 'img');
+        file_put_contents($tempUploads . DIRECTORY_SEPARATOR . 'audio' . DIRECTORY_SEPARATOR . 'audio.mp3', 'base');
 
-        $this->assertSame('AB12-CD34-EF56', $kernel->getDeviceId());
-        $this->assertFalse($kernel->isActivated());
+        try {
+            $kernel = new Kernel(
+                ':memory:',
+                '/dsm',
+                $tempUploads,
+                false,
+                null,
+                $publicPem,
+                static fn (): string => '  ab12-cd34-ef56  '
+            );
 
-        // Sign normalized device ID using ECDSA SHA-256 (DER format) -> unpadded Base64URL
-        $derSig = '';
-        $this->assertTrue(openssl_sign('AB12-CD34-EF56', $derSig, $privatePem, OPENSSL_ALGO_SHA256));
-        $activateKey = rtrim(strtr(base64_encode($derSig), '+/', '-_'), '=');
+            $this->assertSame('AB12-CD34-EF56', $kernel->getDeviceId());
+            $this->assertFalse($kernel->isActivated());
 
-        $this->assertTrue($kernel->verifyActivateKey('  ab12-cd34-ef56 ', $activateKey));
-        $this->assertFalse($kernel->verifyActivateKey('OTHER-DEVICE-ID', $activateKey));
-        $this->assertFalse($kernel->verifyActivateKey('AB12-CD34-EF56', $activateKey . '='));
-        $this->assertFalse($kernel->verifyActivateKey('AB12-CD34-EF56', 'tampered-key'));
+            $derSig = '';
+            $this->assertTrue(openssl_sign('AB12-CD34-EF56', $derSig, $privatePem, OPENSSL_ALGO_SHA256));
+            $activateKey = rtrim(strtr(base64_encode($derSig), '+/', '-_'), '=');
 
-        $bad = $kernel->activate('invalid');
-        $this->assertFalse($bad['success']);
-        $this->assertFalse($kernel->isActivated());
+            $this->assertTrue($kernel->verifyActivateKey('  ab12-cd34-ef56 ', $activateKey));
+            $this->assertFalse($kernel->verifyActivateKey('OTHER-DEVICE-ID', $activateKey));
+            $this->assertFalse($kernel->verifyActivateKey('AB12-CD34-EF56', $activateKey . '='));
+            $this->assertFalse($kernel->verifyActivateKey('AB12-CD34-EF56', 'tampered-key'));
 
-        $ok = $kernel->activate($activateKey);
-        $this->assertTrue($ok['success']);
-        $this->assertTrue($kernel->isActivated());
+            $this->assertFalse($kernel->activate('invalid')['success']);
+            $this->assertTrue($kernel->activate($activateKey)['success']);
+            $this->assertTrue($kernel->isActivated());
 
-        // Verify SQLite auto-schema and default seed rows
-        $pdo = $kernel->pdo();
-        $this->assertSame('admin', $pdo->query("SELECT username FROM user LIMIT 1")->fetchColumn());
-        $this->assertSame(1, (int) $pdo->query("SELECT COUNT(*) FROM banner")->fetchColumn());
-        $this->assertSame(1, (int) $pdo->query("SELECT COUNT(*) FROM data_money")->fetchColumn());
+            // Verify factory seeded default rows
+            $pdo = $kernel->pdo();
+            $this->assertSame('admin', $pdo->query("SELECT username FROM user LIMIT 1")->fetchColumn());
+            $this->assertSame(3, (int) $pdo->query("SELECT COUNT(*) FROM data_rawatib")->fetchColumn());
+            $this->assertSame(2, (int) $pdo->query("SELECT COUNT(*) FROM monthly_planner")->fetchColumn());
+            $this->assertSame(2, (int) $pdo->query("SELECT COUNT(*) FROM data_list")->fetchColumn());
+            $this->assertSame(3, (int) $pdo->query("SELECT COUNT(*) FROM staff")->fetchColumn());
+
+            // Mutate database then factory reset (preserving license)
+            $pdo->exec("DELETE FROM data_rawatib");
+            $pdo->exec("UPDATE identity SET tittle = 'Modified Masjid' WHERE id = 1");
+
+            $uploadService = new FileUploadService($tempUploads);
+            $kernel->factoryReset($uploadService, false);
+
+            $this->assertSame('Masjid Agung Al-Ikhlas', $pdo->query("SELECT tittle FROM identity WHERE id = 1")->fetchColumn());
+            $this->assertSame(3, (int) $pdo->query("SELECT COUNT(*) FROM data_rawatib")->fetchColumn());
+            $this->assertFileDoesNotExist($tempUploads . DIRECTORY_SEPARATOR . 'banner' . DIRECTORY_SEPARATOR . 'custom.jpg');
+            $this->assertFileExists($tempUploads . DIRECTORY_SEPARATOR . 'audio' . DIRECTORY_SEPARATOR . 'audio.mp3');
+            $this->assertTrue($kernel->isActivated());
+
+            // Reset including license
+            $kernel->factoryReset($uploadService, true);
+            $this->assertFalse($kernel->isActivated());
+        } finally {
+            foreach (['banner', 'audio'] as $sub) {
+                $d = $tempUploads . DIRECTORY_SEPARATOR . $sub;
+                foreach (glob($d . DIRECTORY_SEPARATOR . '*') ?: [] as $f) {
+                    @unlink($f);
+                }
+                @rmdir($d);
+            }
+            @rmdir($tempUploads);
+        }
     }
 
-    public function testFileUploadService(): void
+    public function testFileUploadServicePerModuleFolders(): void
     {
         $baseDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'dsm_upload_test_' . uniqid('', true);
-        $picDir = $baseDir . DIRECTORY_SEPARATOR . 'pictures';
-        $audioDir = $baseDir . DIRECTORY_SEPARATOR . 'audio';
-        mkdir($picDir, 0777, true);
-        mkdir($audioDir, 0777, true);
+        mkdir($baseDir . DIRECTORY_SEPARATOR . 'rawatib', 0777, true);
+        mkdir($baseDir . DIRECTORY_SEPARATOR . 'audio', 0777, true);
 
         $srcImg = $baseDir . DIRECTORY_SEPARATOR . 'source.png';
         $srcBad = $baseDir . DIRECTORY_SEPARATOR . 'source.exe';
+        $srcAudio = $baseDir . DIRECTORY_SEPARATOR . 'source.mp3';
         file_put_contents($srcImg, 'png-bytes');
         file_put_contents($srcBad, 'exe-bytes');
-        file_put_contents($picDir . DIRECTORY_SEPARATOR . 'default.png', 'keep-me');
+        file_put_contents($srcAudio, 'mp3-bytes');
+        file_put_contents($baseDir . DIRECTORY_SEPARATOR . 'audio' . DIRECTORY_SEPARATOR . 'audio.mp3', 'keep-default');
 
         try {
-            $service = new FileUploadService($picDir, $audioDir);
+            $service = new FileUploadService($baseDir);
 
             $uploadedImg = new UploadedFile($srcImg, 'photo.png', 'image/png', filesize($srcImg), UPLOAD_ERR_OK, false);
-            $savedName = $service->moveUploadedImage($uploadedImg, 'avatar_', ['png', 'jpg'], true);
+            $savedName = $service->moveUploadedImage($uploadedImg, FileUploadService::CATEGORY_RAWATIB, 'avatar_', ['png', 'jpg'], true);
             $this->assertStringStartsWith('avatar_', $savedName);
-            $this->assertStringEndsWith('.png', $savedName);
-            $this->assertTrue($service->pictureExists($savedName));
+            $this->assertTrue($service->imageExists(FileUploadService::CATEGORY_RAWATIB, $savedName));
+            $this->assertSame('uploads/rawatib/' . $savedName, $service->publicImageUrl(FileUploadService::CATEGORY_RAWATIB, $savedName));
+            $this->assertSame('assets/img/default.png', $service->publicImageUrl(FileUploadService::CATEGORY_RAWATIB, 'default.png'));
 
-            // default.png must never be deleted
-            $service->deletePicture('default.png');
-            $this->assertTrue($service->pictureExists('default.png'));
+            $uploadedAudio = new UploadedFile($srcAudio, 'custom.mp3', 'audio/mpeg', filesize($srcAudio), UPLOAD_ERR_OK, false);
+            $audioName = $service->moveUploadedAudio($uploadedAudio);
+            $this->assertFileExists($baseDir . DIRECTORY_SEPARATOR . 'audio' . DIRECTORY_SEPARATOR . $audioName);
 
-            $service->deletePicture($savedName);
-            $this->assertFalse($service->pictureExists($savedName));
+            $service->clearAllUploads();
+            $this->assertFalse($service->imageExists(FileUploadService::CATEGORY_RAWATIB, $savedName));
+            $this->assertFileDoesNotExist($baseDir . DIRECTORY_SEPARATOR . 'audio' . DIRECTORY_SEPARATOR . $audioName);
+            $this->assertFileExists($baseDir . DIRECTORY_SEPARATOR . 'audio' . DIRECTORY_SEPARATOR . 'audio.mp3');
 
             $badFile = new UploadedFile($srcBad, 'bad.exe', 'application/octet-stream', filesize($srcBad), UPLOAD_ERR_OK, false);
             $this->expectException(InvalidArgumentException::class);
-            $service->moveUploadedImage($badFile, 'avatar_', ['png', 'jpg']);
+            $service->moveUploadedImage($badFile, FileUploadService::CATEGORY_RAWATIB, 'avatar_', ['png', 'jpg']);
         } finally {
-            foreach (glob($picDir . '/*') ?: [] as $f) {
+            foreach (glob($baseDir . DIRECTORY_SEPARATOR . '*' . DIRECTORY_SEPARATOR . '*') ?: [] as $f) {
                 @unlink($f);
             }
-            foreach (glob($audioDir . '/*') ?: [] as $f) {
-                @unlink($f);
-            }
-            foreach (glob($baseDir . '/*') ?: [] as $f) {
+            foreach (glob($baseDir . DIRECTORY_SEPARATOR . '*') ?: [] as $f) {
                 if (is_file($f)) {
                     @unlink($f);
+                } elseif (is_dir($f)) {
+                    @rmdir($f);
                 }
             }
-            @rmdir($picDir);
-            @rmdir($audioDir);
             @rmdir($baseDir);
+        }
+    }
+
+    public function testZeroExternalCdnUrlsExistInTemplatesOrAssets(): void
+    {
+        $root = dirname(__DIR__);
+        $scanDirs = [
+            $root . '/public/assets/css',
+            $root . '/public/assets/js',
+            $root . '/templates',
+        ];
+
+        $allowedHosts = ['www.youtube.com', 'youtube.com', 'youtu.be', 'www.w3.org'];
+
+        foreach ($scanDirs as $dir) {
+            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
+            foreach ($iterator as $file) {
+                if (!$file->isFile()) {
+                    continue;
+                }
+                $content = (string) file_get_contents($file->getPathname());
+                if (preg_match_all('#https?://[^\s"\'\)\<]+#i', $content, $matches)) {
+                    foreach ($matches[0] as $url) {
+                        $host = strtolower((string) (parse_url($url, PHP_URL_HOST) ?? ''));
+                        $this->assertContains(
+                            $host,
+                            $allowedHosts,
+                            "Disallowed external URL '{$url}' found in {$file->getPathname()}"
+                        );
+                    }
+                }
+            }
         }
     }
 }

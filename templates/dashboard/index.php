@@ -574,7 +574,10 @@
                         <label for="edit-rawatib-profile" class="form-label">Ganti Foto Profil (Opsional)</label>
                         <input type="file" name="profile" id="edit-rawatib-profile" class="form-control" accept="image/png, image/jpeg" data-preview-id="edit-rawatib-preview">
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width:100%;">Simpan Perubahan</button>
+                    <button type="submit" class="btn btn-primary" style="width:100%;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Simpan Perubahan</span>
+                    </button>
                 </form>
             </div>
         </div>
@@ -623,7 +626,10 @@
                         <label class="form-label">Nama Pengisi</label>
                         <input type="text" name="speaker" class="form-control" placeholder="Nama Ustadz / Pembicara" required>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width:100%;">Simpan Agenda</button>
+                    <button type="submit" class="btn btn-primary" style="width:100%;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Simpan Agenda</span>
+                    </button>
                 </form>
             </div>
         </div>
@@ -666,7 +672,10 @@
                         <label class="form-label">Nama Imam / Khatib</label>
                         <input type="text" name="identity" class="form-control" placeholder="Nama Khatib" required>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width:100%;">Simpan Jadwal</button>
+                    <button type="submit" class="btn btn-primary" style="width:100%;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Simpan Jadwal</span>
+                    </button>
                 </form>
             </div>
         </div>
@@ -709,7 +718,10 @@
                         <label class="form-label">Nama Imam / Khatib</label>
                         <input type="text" name="identity" id="edit-khotbah-identity" class="form-control" required>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width:100%;">Simpan Perubahan</button>
+                    <button type="submit" class="btn btn-primary" style="width:100%;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Simpan Perubahan</span>
+                    </button>
                 </form>
             </div>
         </div>
@@ -749,7 +761,10 @@
                         <label class="form-label">Nama Lengkap</label>
                         <input type="text" name="identity" class="form-control" placeholder="Nama Lengkap Pengurus" required>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width:100%;">Simpan Data Pengurus</button>
+                    <button type="submit" class="btn btn-primary" style="width:100%;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Simpan Data Pengurus</span>
+                    </button>
                 </form>
             </div>
         </div>

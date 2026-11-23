@@ -152,12 +152,21 @@
             return min + ':' + (sec < 10 ? '0' : '') + sec;
         };
 
+        var setPlayLabel = function (text) {
+            var span = playBtn.querySelector('span');
+            if (span) {
+                span.textContent = text;
+            } else {
+                playBtn.textContent = text;
+            }
+        };
+
         fileInput.addEventListener('change', function () {
             var file = this.files && this.files[0];
             if (file) {
                 audio.src = URL.createObjectURL(file);
                 audio.load();
-                playBtn.textContent = 'Play Preview';
+                setPlayLabel('Play Preview');
             }
         });
 
@@ -168,10 +177,10 @@
             }
             if (audio.paused) {
                 audio.play();
-                playBtn.textContent = 'Stop Preview';
+                setPlayLabel('Stop Preview');
             } else {
                 audio.pause();
-                playBtn.textContent = 'Play Preview';
+                setPlayLabel('Play Preview');
             }
         });
 
@@ -187,7 +196,7 @@
         });
 
         audio.addEventListener('ended', function () {
-            playBtn.textContent = 'Play Preview';
+            setPlayLabel('Play Preview');
             if (progressBar) progressBar.style.width = '0%';
             if (currentTimeEl) currentTimeEl.textContent = '0:00';
         });
