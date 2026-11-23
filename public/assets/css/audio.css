@@ -1,0 +1,140 @@
+/* Body dengan Background Animasi & Center Layout */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    /* Background gradasi bergerak */
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+
+    /* Memastikan konten di tengah */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+/* Animasi Gradasi */
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Container Box */
+.container {
+    background: rgba(255, 255, 255, 0.95);
+    /* Sedikit transparan agar estetik */
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 450px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    /* Efek glassmorphism */
+}
+
+/* Audio Preview Card (Style Modern) */
+.audio-preview-card {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid #ddd;
+    margin: 20px 0;
+}
+
+.audio-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    font-size: 12px;
+    color: #555;
+}
+
+.progress-container {
+    flex: 1;
+    height: 6px;
+    background: #ddd;
+    border-radius: 3px;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #4a90e2;
+    transition: width 0.1s linear;
+}
+
+.btn-submit {
+    margin-top: 15px;
+    padding: 12px 30px;
+    background: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn-submit:hover {
+    background: #357abd;
+    transform: translateY(-2px);
+}
+
+.play-btn {
+    /* Layout */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 25px;
+    margin-top: 15px;
+
+    /* Warna & Tampilan */
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+
+    /* Efek & Interaksi */
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(110, 142, 251, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.play-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(110, 142, 251, 0.6);
+    filter: brightness(1.1);
+}
+
+.play-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(110, 142, 251, 0.4);
+}
+
+/* Status Saat Musik Sedang Berjalan */
+.play-btn.playing {
+    background: linear-gradient(135deg, #ff9a9e, #fecfef);
+    box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
+}
+
+.play-btn.playing:hover {
+    box-shadow: 0 8px 20px rgba(255, 154, 158, 0.6);
+}
