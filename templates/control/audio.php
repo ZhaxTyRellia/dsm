@@ -1,4 +1,5 @@
-<div class="control-wrap">
+<?php $isEmbedded = !empty($embeddedSection); ?>
+<?php if (!$isEmbedded): ?><div class="control-wrap"><?php endif; ?>
     <div class="section-card">
         <div class="card-header">
             <div class="card-header-left">
@@ -10,10 +11,12 @@
                     <p class="card-subtitle">Upload and listen to an audio track for the live display</p>
                 </div>
             </div>
-            <a href="" class="btn btn-outline btn-sm">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                <span>Back to Overview</span>
-            </a>
+            <?php if (!$isEmbedded): ?>
+                <a href="" class="btn btn-outline btn-sm">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                    <span>Back to Overview</span>
+                </a>
+            <?php endif; ?>
         </div>
         <div class="card-body">
             <form action="control/audio" method="POST" enctype="multipart/form-data">
@@ -38,7 +41,9 @@
                 </div>
 
                 <div style="display:flex; justify-content:flex-end; gap:10px;">
-                    <a href="" class="btn btn-outline">Cancel</a>
+                    <?php if (!$isEmbedded): ?>
+                        <a href="" class="btn btn-outline">Cancel</a>
+                    <?php endif; ?>
                     <button type="submit" class="btn btn-primary" name="submit">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                         <span>Save Audio</span>
@@ -47,4 +52,4 @@
             </form>
         </div>
     </div>
-</div>
+<?php if (!$isEmbedded): ?></div><?php endif; ?>

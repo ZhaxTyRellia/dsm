@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Service\DateTimeService;
 use App\Service\YoutubeEmbedService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -44,6 +45,28 @@ final class DashboardController extends AbstractController
         }
         $limit = max(1, (int) ($bannerData['active_slides'] ?? 1));
 
+        $identities = $pdo->query('SELECT * FROM identity')->fetchAll();
+        $identityRow = $identities[0] ?? [];
+        $currentBackground = (string) ($identityRow['background'] ?? 'bg1.png');
+
+        $shalatTimeData = $pdo->query('SELECT * FROM shalattime WHERE id = 1 LIMIT 1')->fetch() ?: [
+            'subuh' => '',
+            'dzuhur' => '',
+            'ashar' => '',
+            'maghrib' => '',
+            'isya' => '',
+            'jumat' => '',
+        ];
+
+        $khotbahView = $pdo->query('SELECT * FROM khotbah_view WHERE id = 1 LIMIT 1')->fetch() ?: [
+            'id' => 1,
+            'title' => '',
+            'avatar' => 'default.png',
+            'name' => '',
+        ];
+        $khotbahSpeakers = $pdo->query("SELECT DISTINCT * FROM data_list WHERE identity != ''")->fetchAll();
+        $upcomingFridays = (new DateTimeService())->upcomingFridays(8);
+
         return $this->renderAdmin(
             $request,
             $response,
@@ -59,6 +82,12 @@ final class DashboardController extends AbstractController
                 'staffList' => $staffList,
                 'bannerData' => $bannerData,
                 'limit' => $limit,
+                'identities' => $identities,
+                'currentBackground' => $currentBackground,
+                'shalatTimeData' => $shalatTimeData,
+                'khotbahView' => $khotbahView,
+                'khotbahSpeakers' => $khotbahSpeakers,
+                'upcomingFridays' => $upcomingFridays,
                 'kpi' => [
                     'closingTotal' => $latestClosingTotal,
                     'closingDate' => (string) ($latestCashReport['closing_date'] ?? '-'),

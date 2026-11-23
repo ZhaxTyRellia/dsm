@@ -1,4 +1,5 @@
-<div class="control-wrap">
+<?php $isEmbedded = !empty($embeddedSection); ?>
+<?php if (!$isEmbedded): ?><div class="control-wrap"><?php endif; ?>
     <div class="section-card">
         <div class="card-header">
             <div class="card-header-left">
@@ -10,10 +11,12 @@
                     <p class="card-subtitle">Choose a background theme for the live display screen</p>
                 </div>
             </div>
-            <a href="" class="btn btn-outline btn-sm">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                <span>Back to Overview</span>
-            </a>
+            <?php if (!$isEmbedded): ?>
+                <a href="" class="btn btn-outline btn-sm">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                    <span>Back to Overview</span>
+                </a>
+            <?php endif; ?>
         </div>
         <div class="card-body">
             <?php
@@ -31,7 +34,9 @@
                     <?php endforeach; ?>
                 </div>
                 <div style="display:flex; justify-content:flex-end; gap:10px;">
-                    <a href="" class="btn btn-outline">Cancel</a>
+                    <?php if (!$isEmbedded): ?>
+                        <a href="" class="btn btn-outline">Cancel</a>
+                    <?php endif; ?>
                     <button type="submit" class="btn btn-primary">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
                         <span>Save Background</span>
@@ -40,4 +45,4 @@
             </form>
         </div>
     </div>
-</div>
+<?php if (!$isEmbedded): ?></div><?php endif; ?>

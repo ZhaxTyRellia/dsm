@@ -1,50 +1,155 @@
-<!-- Summary Cards -->
-<div class="kpi-grid">
-    <div class="kpi-card kpi-featured">
-        <div>
-            <div class="kpi-label">Total Cash Balance</div>
-            <div class="kpi-value">Rp <?= number_format((float) ($kpi['closingTotal'] ?? 0), 0, ',', '.') ?></div>
-            <div class="kpi-sub">As of: <?= $e($kpi['closingDate'] ?? '-') ?></div>
+<div class="dashboard-section is-active" data-section="overview" data-section-title="Overview">
+    <!-- Summary Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card kpi-featured kpi-clickable" data-goto-section="keuangan" title="Open Laporan Kas Masjid">
+            <div>
+                <div class="kpi-label">Total Cash Balance</div>
+                <div class="kpi-value">Rp <?= number_format((float) ($kpi['closingTotal'] ?? 0), 0, ',', '.') ?></div>
+                <div class="kpi-sub">As of: <?= $e($kpi['closingDate'] ?? '-') ?></div>
+            </div>
+            <div class="kpi-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            </div>
         </div>
-        <div class="kpi-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+
+        <div class="kpi-card kpi-clickable" data-goto-section="rawatib" title="Open Daftar Imam Rawatib">
+            <div>
+                <div class="kpi-label">Imam Rawatib</div>
+                <div class="kpi-value"><?= (int) ($kpi['rawatibCount'] ?? 0) ?></div>
+                <div class="kpi-sub">Daily prayers &amp; substitute imams</div>
+            </div>
+            <div class="kpi-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-clickable" data-goto-section="rutinitas" title="Open Jadwal Rutinitas Bulanan">
+            <div>
+                <div class="kpi-label">Rutinitas &amp; Khotbah</div>
+                <div class="kpi-value"><?= (int) ($kpi['activityCount'] ?? 0) ?> / <?= (int) ($kpi['khotbahCount'] ?? 0) ?></div>
+                <div class="kpi-sub">Monthly activities &amp; Friday sermons</div>
+            </div>
+            <div class="kpi-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-clickable" data-goto-section="pengurus" title="Open Susunan Pengurus">
+            <div>
+                <div class="kpi-label">Pengurus &amp; Slides</div>
+                <div class="kpi-value"><?= (int) ($kpi['staffCount'] ?? 0) ?> / <?= (int) ($kpi['activeSlides'] ?? 1) ?></div>
+                <div class="kpi-sub">Committee members &amp; active slides</div>
+            </div>
+            <div class="kpi-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
         </div>
     </div>
 
-    <div class="kpi-card">
-        <div>
-            <div class="kpi-label">Imam Rawatib</div>
-            <div class="kpi-value"><?= (int) ($kpi['rawatibCount'] ?? 0) ?></div>
-            <div class="kpi-sub">Daily prayers &amp; substitute imams</div>
+    <section class="section-card">
+        <div class="card-header">
+            <div class="card-header-left">
+                <div class="card-badge-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                </div>
+                <div>
+                    <h2 class="card-title">Quick Access</h2>
+                    <p class="card-subtitle">Select any section from the sidebar or open one directly below</p>
+                </div>
+            </div>
         </div>
-        <div class="kpi-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        <div class="card-body">
+            <div class="quick-nav-grid">
+                <button type="button" class="quick-nav-tile" data-goto-section="video">
+                    <div class="quick-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+                    <div>
+                        <div class="quick-nav-title">Video Banner</div>
+                        <div class="quick-nav-desc">YouTube live stream &amp; video</div>
+                    </div>
+                </button>
+                <button type="button" class="quick-nav-tile" data-goto-section="keuangan">
+                    <div class="quick-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+                    <div>
+                        <div class="quick-nav-title">Laporan Kas Masjid</div>
+                        <div class="quick-nav-desc">Cash report &amp; balances</div>
+                    </div>
+                </button>
+                <button type="button" class="quick-nav-tile" data-goto-section="rawatib">
+                    <div class="quick-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+                    <div>
+                        <div class="quick-nav-title">Imam Rawatib</div>
+                        <div class="quick-nav-desc">Daily &amp; substitute imams</div>
+                    </div>
+                </button>
+                <button type="button" class="quick-nav-tile" data-goto-section="rutinitas">
+                    <div class="quick-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+                    <div>
+                        <div class="quick-nav-title">Rutinitas Bulanan</div>
+                        <div class="quick-nav-desc">Monthly study programs</div>
+                    </div>
+                </button>
+                <button type="button" class="quick-nav-tile" data-goto-section="khotbah">
+                    <div class="quick-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+                    <div>
+                        <div class="quick-nav-title">Daftar Khotbah Jum'at</div>
+                        <div class="quick-nav-desc">Yearly Friday schedule</div>
+                    </div>
+                </button>
+                <button type="button" class="quick-nav-tile" data-goto-section="pengurus">
+                    <div class="quick-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.2L18.5 20 12 15.8 5.5 20l2-6.8L2 9h7z"/></svg></div>
+                    <div>
+                        <div class="quick-nav-title">Susunan Pengurus</div>
+                        <div class="quick-nav-desc">Committee structure</div>
+                    </div>
+                </button>
+                <button type="button" class="quick-nav-tile" data-goto-section="banner">
+                    <div class="quick-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+                    <div>
+                        <div class="quick-nav-title">Image Banner</div>
+                        <div class="quick-nav-desc">Full-screen announcement slides</div>
+                    </div>
+                </button>
+                <button type="button" class="quick-nav-tile" data-goto-section="identity">
+                    <div class="quick-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg></div>
+                    <div>
+                        <div class="quick-nav-title">Masjid Profile</div>
+                        <div class="quick-nav-desc">Logo, address &amp; running text</div>
+                    </div>
+                </button>
+                <button type="button" class="quick-nav-tile" data-goto-section="background">
+                    <div class="quick-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/></svg></div>
+                    <div>
+                        <div class="quick-nav-title">Display Background</div>
+                        <div class="quick-nav-desc">Screen theme selector</div>
+                    </div>
+                </button>
+                <button type="button" class="quick-nav-tile" data-goto-section="audio">
+                    <div class="quick-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+                    <div>
+                        <div class="quick-nav-title">Background Music</div>
+                        <div class="quick-nav-desc">Audio track &amp; preview</div>
+                    </div>
+                </button>
+                <button type="button" class="quick-nav-tile" data-goto-section="shalat">
+                    <div class="quick-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                    <div>
+                        <div class="quick-nav-title">Waktu Shalat</div>
+                        <div class="quick-nav-desc">Daily &amp; Friday prayer reminders</div>
+                    </div>
+                </button>
+                <button type="button" class="quick-nav-tile" data-goto-section="khotbah-day">
+                    <div class="quick-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></div>
+                    <div>
+                        <div class="quick-nav-title">Banner Khotbah Jum'at</div>
+                        <div class="quick-nav-desc">Speaker photo &amp; Friday date</div>
+                    </div>
+                </button>
+            </div>
         </div>
-    </div>
-
-    <div class="kpi-card">
-        <div>
-            <div class="kpi-label">Rutinitas &amp; Khotbah</div>
-            <div class="kpi-value"><?= (int) ($kpi['activityCount'] ?? 0) ?> / <?= (int) ($kpi['khotbahCount'] ?? 0) ?></div>
-            <div class="kpi-sub">Monthly activities &amp; Friday sermons</div>
-        </div>
-        <div class="kpi-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        </div>
-    </div>
-
-    <div class="kpi-card">
-        <div>
-            <div class="kpi-label">Pengurus &amp; Slides</div>
-            <div class="kpi-value"><?= (int) ($kpi['staffCount'] ?? 0) ?> / <?= (int) ($kpi['activeSlides'] ?? 1) ?></div>
-            <div class="kpi-sub">Committee members &amp; active slides</div>
-        </div>
-        <div class="kpi-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        </div>
-    </div>
+    </section>
 </div>
 
+<div class="dashboard-section" data-section="video" data-section-title="Video Banner">
 <!-- VIDEO BANNER -->
 <section class="section-card" id="sec-video">
     <div class="card-header">
@@ -101,7 +206,9 @@
         </div>
     </div>
 </section>
+</div>
 
+<div class="dashboard-section" data-section="keuangan" data-section-title="Laporan Kas Masjid">
 <!-- LAPORAN KAS MASJID -->
 <section class="section-card" id="sec-keuangan">
     <div class="card-header">
@@ -178,7 +285,9 @@
         </form>
     </div>
 </section>
+</div>
 
+<div class="dashboard-section" data-section="rawatib" data-section-title="Daftar Imam Rawatib">
 <!-- DAFTAR IMAM RAWATIB -->
 <section class="section-card" id="sec-rawatib">
     <div class="card-header">
@@ -253,7 +362,9 @@
         </div>
     </div>
 </section>
+</div>
 
+<div class="dashboard-section" data-section="rutinitas" data-section-title="Jadwal Rutinitas Bulanan">
 <!-- JADWAL RUTINITAS BULANAN -->
 <section class="section-card" id="sec-rutinitas">
     <div class="card-header">
@@ -310,7 +421,9 @@
         </div>
     </div>
 </section>
+</div>
 
+<div class="dashboard-section" data-section="khotbah" data-section-title="Daftar Khotbah Jum'at">
 <!-- DAFTAR KHOTBAH JUM'AT -->
 <section class="section-card" id="sec-khotbah">
     <div class="card-header">
@@ -379,7 +492,9 @@
         </div>
     </div>
 </section>
+</div>
 
+<div class="dashboard-section" data-section="pengurus" data-section-title="Susunan Pengurus">
 <!-- SUSUNAN PENGURUS -->
 <section class="section-card" id="sec-pengurus">
     <div class="card-header">
@@ -434,7 +549,9 @@
         </div>
     </div>
 </section>
+</div>
 
+<div class="dashboard-section" data-section="banner" data-section-title="Image Banner">
 <!-- IMAGE BANNER -->
 <section class="section-card" id="sec-banner">
     <div class="card-header">
@@ -493,6 +610,38 @@
         </div>
     </div>
 </section>
+</div>
+
+<?php
+$embeddedSection = true;
+$identities = $identities ?? [];
+$currentBackground = $currentBackground ?? 'bg1.png';
+$data = $shalatTimeData ?? [];
+$p = $khotbahView ?? [];
+$speakers = $khotbahSpeakers ?? [];
+$totalRows = count($speakers);
+$fridays = $upcomingFridays ?? [];
+?>
+
+<div class="dashboard-section" data-section="identity" data-section-title="Masjid Profile">
+    <?php require __DIR__ . '/../control/identity.php'; ?>
+</div>
+
+<div class="dashboard-section" data-section="background" data-section-title="Display Background">
+    <?php require __DIR__ . '/../control/background.php'; ?>
+</div>
+
+<div class="dashboard-section" data-section="audio" data-section-title="Background Music">
+    <?php require __DIR__ . '/../control/audio.php'; ?>
+</div>
+
+<div class="dashboard-section" data-section="shalat" data-section-title="Jadwal Waktu Shalat">
+    <?php require __DIR__ . '/../control/shalattime.php'; ?>
+</div>
+
+<div class="dashboard-section" data-section="khotbah-day" data-section-title="Banner Khotbah Jum'at">
+    <?php require __DIR__ . '/../control/khotbah_day.php'; ?>
+</div>
 
 <!-- DIALOGS -->
 <div id="dataRawatib" class="modal">

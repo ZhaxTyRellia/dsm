@@ -208,6 +208,31 @@ final class ApplicationTest extends TestCase
         $this->assertStringContainsString('assets/img/favicon.svg', $html);
         $this->assertStringContainsString('id="appSidebar"', $html);
         $this->assertStringContainsString('control/factory-reset', $html);
+        $this->assertStringContainsString('id="topbarPageTitle"', $html);
+
+        $expectedSections = [
+            'overview',
+            'video',
+            'keuangan',
+            'rawatib',
+            'rutinitas',
+            'khotbah',
+            'pengurus',
+            'banner',
+            'identity',
+            'background',
+            'audio',
+            'shalat',
+            'khotbah-day',
+        ];
+        foreach ($expectedSections as $sec) {
+            $this->assertStringContainsString('data-section="' . $sec . '"', $html);
+            $this->assertStringContainsString('href="#' . $sec . '"', $html);
+        }
+
+        $adminJs = (string) file_get_contents(dirname(__DIR__) . '/public/assets/js/admin.js');
+        $this->assertStringContainsString('dsm_active_section', $adminJs);
+        $this->assertStringContainsString('initSectionNavigation', $adminJs);
 
         $logout = $this->dispatch($app, 'GET', '/dsm/logout');
         $this->assertSame(302, $logout->getStatusCode());

@@ -1,11 +1,115 @@
 (function () {
     'use strict';
 
+    var SECTION_STORAGE_KEY = 'dsm_active_section';
     var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     var MONTHS = [
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
     ];
+
+    function normalizeSection(raw) {
+        if (!raw) return null;
+        var clean = String(raw).replace(/^#/, '').trim();
+        if (clean.indexOf('sec-') === 0) {
+            clean = clean.slice(4);
+        }
+        return clean || null;
+    }
+
+    function initSectionNavigation() {
+        var sections = Array.prototype.slice.call(document.querySelectorAll('.dashboard-section[data-section]'));
+        var topbarTitleEl = document.getElementById('topbarPageTitle');
+        var navLinks = Array.prototype.slice.call(document.querySelectorAll('.sidebar-nav .nav-item[data-section]'));
+        var sectionTriggers = Array.prototype.slice.call(document.querySelectorAll('[data-section], [data-goto-section]'));
+
+        if (sections.length === 0) {
+            sectionTriggers.forEach(function (el) {
+                el.addEventListener('click', function () {
+                    var target = normalizeSection(el.getAttribute('data-section') || el.getAttribute('data-goto-section'));
+                    if (target) {
+                        try {
+                            localStorage.setItem(SECTION_STORAGE_KEY, target);
+                        } catch (e) {}
+                    }
+                });
+            });
+            return;
+        }
+
+        var sectionMap = {};
+        sections.forEach(function (sec) {
+            var id = sec.getAttribute('data-section');
+            if (id) {
+                sectionMap[id] = sec;
+            }
+        });
+
+        var fallbackId = sectionMap.overview ? 'overview' : sections[0].getAttribute('data-section');
+
+        function activateSection(sectionId, syncHash) {
+            var target = sectionMap[sectionId] ? sectionId : fallbackId;
+            var activeSection = sectionMap[target];
+
+            sections.forEach(function (sec) {
+                sec.classList.toggle('is-active', sec.getAttribute('data-section') === target);
+            });
+
+            navLinks.forEach(function (link) {
+                link.classList.toggle('active', link.getAttribute('data-section') === target);
+            });
+
+            var title = (activeSection && activeSection.getAttribute('data-section-title')) || 'Overview';
+            if (topbarTitleEl) {
+                topbarTitleEl.textContent = title;
+            }
+            document.title = title + ' | Masjid Display';
+
+            try {
+                localStorage.setItem(SECTION_STORAGE_KEY, target);
+            } catch (e) {}
+
+            if (syncHash) {
+                try {
+                    if (window.history && typeof window.history.replaceState === 'function') {
+                        window.history.replaceState(null, '', '#' + target);
+                    } else {
+                        window.location.hash = target;
+                    }
+                } catch (e) {}
+            }
+        }
+
+        var fromHash = normalizeSection(window.location.hash);
+        var fromStorage = null;
+        try {
+            fromStorage = normalizeSection(localStorage.getItem(SECTION_STORAGE_KEY));
+        } catch (e) {}
+
+        var initialSection = (fromHash && sectionMap[fromHash])
+            ? fromHash
+            : ((fromStorage && sectionMap[fromStorage]) ? fromStorage : fallbackId);
+
+        activateSection(initialSection, Boolean(fromHash && sectionMap[fromHash]));
+
+        sectionTriggers.forEach(function (el) {
+            el.addEventListener('click', function (event) {
+                var target = normalizeSection(el.getAttribute('data-section') || el.getAttribute('data-goto-section'));
+                if (!target || !sectionMap[target]) return;
+                event.preventDefault();
+                activateSection(target, true);
+                document.body.classList.remove('sidebar-open');
+                window.scrollTo({ top: 0, behavior: 'auto' });
+            });
+        });
+
+        window.addEventListener('hashchange', function () {
+            var hashId = normalizeSection(window.location.hash);
+            if (hashId && sectionMap[hashId]) {
+                activateSection(hashId, false);
+            }
+        });
+    }
 
     function pad2(n) {
         return n < 10 ? '0' + n : String(n);
@@ -236,6 +340,8 @@
             });
         }
     });
+
+    initSectionNavigation();
 
     document.addEventListener('DOMContentLoaded', function () {
         initSidebar();
