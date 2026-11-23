@@ -23,7 +23,7 @@ final class ActivityController extends AbstractController
         );
         $stmt->execute([$idDesc, $desc, $time, $speaker]);
 
-        $this->flash('success', 'Aktivitas rutinitas bulanan berhasil ditambahkan.');
+        $this->flash('success', 'Monthly activity added successfully.');
 
         return $this->redirect($response, '/');
     }
@@ -40,7 +40,7 @@ final class ActivityController extends AbstractController
         if ($id > 0) {
             $stmt = $this->pdo()->prepare('DELETE FROM monthly_planner WHERE id = ?');
             $stmt->execute([$id]);
-            $this->flash('success', 'Aktivitas rutinitas bulanan berhasil dihapus.');
+            $this->flash('success', 'Monthly activity removed.');
         }
 
         return $this->redirect($response, '/');

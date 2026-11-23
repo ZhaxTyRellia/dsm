@@ -32,7 +32,7 @@ final class FileUploadService
     public function categoryDir(string $category): string
     {
         if (!in_array($category, self::ALLOWED_CATEGORIES, true)) {
-            throw new InvalidArgumentException("Kategori upload tidak valid: {$category}");
+            throw new InvalidArgumentException("Invalid upload folder: {$category}");
         }
 
         return rtrim($this->uploadsBaseDir, '/\\') . DIRECTORY_SEPARATOR . $category;
@@ -49,19 +49,19 @@ final class FileUploadService
         bool $appendRandom = false
     ): string {
         if ($file->getError() !== UPLOAD_ERR_OK) {
-            throw new RuntimeException('Gagal mengunggah file gambar.');
+            throw new RuntimeException('Unable to upload the image file.');
         }
 
         $clientFilename = (string) ($file->getClientFilename() ?? '');
         $ext = strtolower(pathinfo($clientFilename, PATHINFO_EXTENSION));
 
         if ($allowedExtensions !== null && !in_array($ext, $allowedExtensions, true)) {
-            throw new InvalidArgumentException('Format foto harus PNG, JPG, atau JPEG.');
+            throw new InvalidArgumentException('Image format must be PNG, JPG, or JPEG.');
         }
 
         $targetDir = $this->categoryDir($category);
         if (!is_dir($targetDir) && !@mkdir($targetDir, 0755, true) && !is_dir($targetDir)) {
-            throw new RuntimeException('Gagal membuat direktori upload.');
+            throw new RuntimeException('Unable to prepare the upload folder.');
         }
 
         $suffix = $appendRandom
@@ -112,12 +112,12 @@ final class FileUploadService
     public function moveUploadedAudio(UploadedFileInterface $file): string
     {
         if ($file->getError() !== UPLOAD_ERR_OK) {
-            throw new RuntimeException('Gagal mengunggah file audio.');
+            throw new RuntimeException('Unable to upload the audio file.');
         }
 
         $targetDir = $this->categoryDir(self::CATEGORY_AUDIO);
         if (!is_dir($targetDir) && !@mkdir($targetDir, 0755, true) && !is_dir($targetDir)) {
-            throw new RuntimeException('Gagal membuat direktori audio.');
+            throw new RuntimeException('Unable to prepare the audio folder.');
         }
 
         $clientFilename = (string) ($file->getClientFilename() ?? '');

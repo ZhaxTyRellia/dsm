@@ -59,7 +59,8 @@ final class BannerController extends AbstractController
 
             $stmt = $pdo->prepare('UPDATE banner SET active_slides = ? WHERE id = 1');
             $stmt->execute([$val]);
-            $this->flash('success', "Jumlah slide banner aktif diatur ke {$val} slide.");
+            $slideWord = $val === 1 ? 'slide.' : 'slides.';
+            $this->flash('success', "Active announcement slides set to {$val} {$slideWord}");
         }
 
         return $this->redirect($response, '/');
@@ -93,7 +94,7 @@ final class BannerController extends AbstractController
                 $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_BANNER, $oldFile);
             }
 
-            $this->flash('success', 'Gambar banner berhasil diunggah.');
+            $this->flash('success', 'Banner image uploaded successfully.');
 
             return $this->redirect($response, '/');
         }

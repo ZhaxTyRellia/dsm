@@ -40,7 +40,7 @@ final class ControlController extends AbstractController
             $response,
             'control/identity.php',
             ['identities' => $identities],
-            'Identitas Masjid',
+            'Masjid Profile',
             'control-identity'
         );
     }
@@ -73,7 +73,7 @@ final class ControlController extends AbstractController
         $stmt = $pdo->prepare('UPDATE identity SET logo = ?, tittle = ?, name = ?, marquee = ?');
         $stmt->execute([$logo, $tittle, $name, $marquee]);
 
-        $this->flash('success', 'Identitas masjid berhasil diperbarui.');
+        $this->flash('success', 'Masjid profile updated successfully.');
 
         return $this->redirect($response, '/');
     }
@@ -88,7 +88,7 @@ final class ControlController extends AbstractController
             $response,
             'control/background.php',
             ['currentBackground' => $currentBackground],
-            'Latar Belakang Display',
+            'Display Background',
             'control-background'
         );
     }
@@ -102,7 +102,7 @@ final class ControlController extends AbstractController
         $stmt = $this->pdo()->prepare('UPDATE identity SET background = ? WHERE id = 1');
         $stmt->execute([$bg]);
 
-        $this->flash('success', 'Latar belakang display berhasil diperbarui.');
+        $this->flash('success', 'Display background updated successfully.');
 
         return $this->redirect($response, '/');
     }
@@ -114,7 +114,7 @@ final class ControlController extends AbstractController
             $response,
             'control/audio.php',
             [],
-            'Audio Latar Display',
+            'Background Music',
             'control-audio'
         );
     }
@@ -145,7 +145,7 @@ final class ControlController extends AbstractController
         $updateStmt = $pdo->prepare('UPDATE identity SET audio = ? WHERE id = ?');
         $updateStmt->execute([$relativeDbPath, $targetId]);
 
-        $this->flash('success', 'File audio berhasil diunggah.');
+        $this->flash('success', 'Background audio updated successfully.');
 
         return $this->redirect($response, '/');
     }
@@ -198,7 +198,7 @@ final class ControlController extends AbstractController
             1,
         ]);
 
-        $this->flash('success', 'Jadwal shalat berhasil diperbarui!');
+        $this->flash('success', 'Prayer times updated successfully.');
 
         return $this->redirect($response, '/');
     }
@@ -215,7 +215,7 @@ final class ControlController extends AbstractController
         $khotbahView = $stmt->fetch();
 
         if ($khotbahView === false) {
-            return $this->text($response, "Data dengan ID {$id} tidak ditemukan!", 404);
+            return $this->text($response, 'The requested Khotbah banner entry was not found.', 404);
         }
 
         $speakers = $pdo->query("SELECT DISTINCT * FROM data_list WHERE identity != ''")->fetchAll();
@@ -272,7 +272,7 @@ final class ControlController extends AbstractController
         $updateStmt = $pdo->prepare('UPDATE khotbah_view SET name = ?, title = ?, avatar = ? WHERE id = ?');
         $updateStmt->execute([$name, $title, $avatar, $id]);
 
-        $this->flash('success', 'Banner Khotbah Jum\'at berhasil diperbarui.');
+        $this->flash('success', 'Banner Khotbah Jum\'at updated successfully.');
 
         return $this->redirect($response, '/');
     }
@@ -281,7 +281,7 @@ final class ControlController extends AbstractController
     {
         $this->assertActivated($request);
         $this->kernel->factoryReset($this->fileUploadService, false);
-        $this->flash('success', 'Sistem berhasil di-reset ke pengaturan pabrik (factory reset).');
+        $this->flash('success', 'All settings have been restored to their defaults.');
 
         return $this->redirect($response, '/');
     }
@@ -291,6 +291,6 @@ final class ControlController extends AbstractController
         $this->assertActivated($request);
         ($this->shutdownRunner)();
 
-        return $this->text($response, 'Shutdown initiated.', 200);
+        return $this->text($response, 'Shutting down computer.', 200);
     }
 }

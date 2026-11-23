@@ -148,7 +148,7 @@ final class ApplicationTest extends TestCase
 
         $resLogin = $this->dispatch($app, 'GET', '/dsm/login');
         $this->assertSame(200, $resLogin->getStatusCode());
-        $this->assertStringContainsString('Aktivasi Lisensi Aplikasi', (string) $resLogin->getBody());
+        $this->assertStringContainsString('Activate Application', (string) $resLogin->getBody());
 
         $this->dispatch($app, 'POST', '/dsm/youtube', ['youtube_url' => 'https://youtu.be/hacked']);
         $this->assertSame('', $this->pdo->query('SELECT url FROM youtube WHERE id = 1')->fetchColumn());
@@ -170,7 +170,7 @@ final class ApplicationTest extends TestCase
 
         $resBad = $this->dispatch($app, 'POST', '/dsm/', ['activate_key' => 'invalid-key']);
         $this->assertSame(200, $resBad->getStatusCode());
-        $this->assertStringContainsString('Activate Key tidak valid', (string) $resBad->getBody());
+        $this->assertStringContainsString('The activation key is not valid', (string) $resBad->getBody());
 
         $validActivateKey = $this->signDeviceId($this->deviceUuid);
         $resOk = $this->dispatch($app, 'POST', '/dsm/', ['activate_key' => $validActivateKey]);
@@ -191,11 +191,11 @@ final class ApplicationTest extends TestCase
 
         $badUser = $this->dispatch($app, 'POST', '/dsm/login', ['username' => 'nobody', 'password' => 'x']);
         $this->assertSame(200, $badUser->getStatusCode());
-        $this->assertStringContainsString('Username tidak ditemukan!', (string) $badUser->getBody());
+        $this->assertStringContainsString('Username not found!', (string) $badUser->getBody());
 
         $badPass = $this->dispatch($app, 'POST', '/dsm/login', ['username' => 'admin', 'password' => 'wrong']);
         $this->assertSame(200, $badPass->getStatusCode());
-        $this->assertStringContainsString('Password salah!', (string) $badPass->getBody());
+        $this->assertStringContainsString('Incorrect password!', (string) $badPass->getBody());
 
         $okLogin = $this->dispatch($app, 'POST', '/dsm/login', ['username' => 'admin', 'password' => 'admin123']);
         $this->assertSame(302, $okLogin->getStatusCode());
@@ -329,5 +329,84 @@ final class ApplicationTest extends TestCase
         $resRootNotFound = $this->dispatch($appRoot, 'GET', '/does-not-exist');
         $this->assertSame(302, $resRootNotFound->getStatusCode());
         $this->assertSame('/', $resRootNotFound->getHeaderLine('Location'));
+    }
+
+    public function testEnglishNonTechnicalCopyAndPreservedIndonesianTitles(): void
+    {
+        // 1. Unlicensed activation screen
+        $unlicensedApp = $this->createTestApp(false);
+        $activationHtml = (string) $this->dispatch($unlicensedApp, 'GET', '/dsm/')->getBody();
+        $this->assertStringContainsString('Activate Application', $activationHtml);
+        $this->assertStringContainsString('Offline Activation', $activationHtml);
+        foreach (['ECDSA', 'P-256', 'Base64URL', 'kriptografi', 'SQLite', 'PDO'] as $jargon) {
+            $this->assertStringNotContainsStringIgnoringCase($jargon, $activationHtml);
+        }
+
+        // 2. Login screen
+        $app = $this->createTestApp(true);
+        $loginHtml = (string) $this->dispatch($app, 'GET', '/dsm/login')->getBody();
+        $this->assertStringContainsString('Welcome Back', $loginHtml);
+        $this->assertStringContainsString('Sign In', $loginHtml);
+        $this->assertStringContainsString('Username', $loginHtml);
+        $this->assertStringContainsString('Password', $loginHtml);
+        $this->assertStringNotContainsString('Masuk Pengelola', $loginHtml);
+
+        // 3. Dashboard & control screens
+        $_SESSION['logged_in'] = true;
+
+        $dashHtml = (string) $this->dispatch($app, 'GET', '/dsm/')->getBody();
+        foreach ([
+            'Overview',
+            'Laporan Kas Masjid',
+            'Daftar Imam Rawatib',
+            'Jadwal Rutinitas Bulanan',
+            "Daftar Khotbah Jum'at",
+            'Susunan Pengurus',
+            'Restore Defaults',
+        ] as $expected) {
+            $this->assertStringContainsString($expected, $dashHtml);
+        }
+        foreach (['Factory Reset', 'Reset Factory', 'Marquee Footer', 'URL YouTube', 'SQLite', 'PDO', 'DKM'] as $jargon) {
+            $this->assertStringNotContainsStringIgnoringCase($jargon, $dashHtml);
+        }
+
+        $identityHtml = (string) $this->dispatch($app, 'GET', '/dsm/control/identity')->getBody();
+        $this->assertStringContainsString('Masjid Profile', $identityHtml);
+        $this->assertStringContainsString('Running Text', $identityHtml);
+        $this->assertStringNotContainsStringIgnoringCase('Marquee', str_replace('name="marquee"', '', $identityHtml));
+
+        $bgHtml = (string) $this->dispatch($app, 'GET', '/dsm/control/background')->getBody();
+        $this->assertStringContainsString('Display Background', $bgHtml);
+        $this->assertStringContainsString('Theme 1', $bgHtml);
+        $this->assertStringNotContainsString('(bg1.png)', $bgHtml);
+
+        $audioHtml = (string) $this->dispatch($app, 'GET', '/dsm/control/audio')->getBody();
+        $this->assertStringContainsString('Background Music', $audioHtml);
+        $this->assertStringContainsString('Choose Audio File', $audioHtml);
+
+        $shalatHtml = (string) $this->dispatch($app, 'GET', '/dsm/control/shalat-time')->getBody();
+        $this->assertStringContainsString('Jadwal Waktu Shalat', $shalatHtml);
+        $this->assertStringContainsString('Save Prayer Times', $shalatHtml);
+
+        $khotbahHtml = (string) $this->dispatch($app, 'GET', '/dsm/control/khotbah-day')->getBody();
+        $this->assertStringContainsString("Banner Khotbah Jum'at", $khotbahHtml);
+        $this->assertStringContainsString('Current Khotib', $khotbahHtml);
+        $this->assertStringNotContainsStringIgnoringCase('avatar khatib', $khotbahHtml);
+
+        // 4. Portrait display preserves Indonesian signage headings without technical jargon
+        $portraitHtml = (string) $this->dispatch($app, 'GET', '/dsm/potrait')->getBody();
+        foreach ([
+            'LAPORAN KAS MASJID',
+            'Jadwal Rutinitas Bulanan',
+            "Daftar Khotbah Jum'at",
+            'Susunan Pengurus',
+            'Imam Rawatib',
+            'Telah tiba waktu Shalat',
+        ] as $preserved) {
+            $this->assertStringContainsString($preserved, $portraitHtml);
+        }
+        foreach (['AJAX', 'Scene Plus'] as $jargon) {
+            $this->assertStringNotContainsStringIgnoringCase($jargon, $portraitHtml);
+        }
     }
 }

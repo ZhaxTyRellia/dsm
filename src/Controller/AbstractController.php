@@ -51,7 +51,7 @@ abstract class AbstractController
         ResponseInterface $response,
         string $template,
         array $data = [],
-        string $pageTitle = 'Dashboard',
+        string $pageTitle = 'Overview',
         string $activeNav = 'dashboard',
         int $status = 200
     ): ResponseInterface {
@@ -61,8 +61,8 @@ abstract class AbstractController
             ->query('SELECT logo, tittle, name FROM identity WHERE id = 1 LIMIT 1')
             ->fetch() ?: [
                 'logo' => 'default.png',
-                'tittle' => 'Masjid Digital Signage',
-                'name' => 'Panel Manajemen',
+                'tittle' => 'Masjid Display',
+                'name' => 'Management Panel',
             ];
 
         $flash = $this->pullFlash();

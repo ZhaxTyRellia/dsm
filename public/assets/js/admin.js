@@ -1,10 +1,10 @@
 (function () {
     'use strict';
 
-    var DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     var MONTHS = [
-        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
     ];
 
     function pad2(n) {
@@ -172,7 +172,7 @@
 
         playBtn.addEventListener('click', function () {
             if (!audio.src) {
-                alert('Silakan pilih file audio terlebih dahulu!');
+                alert('Please choose an audio file first!');
                 return;
             }
             if (audio.paused) {

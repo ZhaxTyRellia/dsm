@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <base href="<?= $e($baseUrl) ?>">
-    <title>Display Signage</title>
-    <meta name="description" content="Digital Signage Masjid">
+    <title>Masjid Display</title>
+    <meta name="description" content="Masjid Display">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="assets/css/show.css">
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
@@ -118,7 +118,7 @@
             </div>
         </div>
 
-        <!--- SCENE Plus --->
+        <!--- ANNOUNCEMENT SLIDES --->
         <div class="scene">
             <style>
                 .scene-plus-container {
@@ -311,7 +311,7 @@
                                             <td class="td-imam">
                                                 <div class="imam-wrapper">
                                                     <img src="<?= $e($uploadUrl('rawatib', $item['profil'] ?? null)) ?>"
-                                                        alt="Foto" class="img-avatar">
+                                                        alt="Imam Photo" class="img-avatar">
                                                     <span class="nama-imam"><?= $e($item['nama']) ?></span>
                                                 </div>
                                             </td>
@@ -383,7 +383,7 @@
         }
         setInterval(showTime, 500);
     </script>
-    <!--- Data Keuangan --->
+    <!--- Cash Report Refresh --->
     <script>
         function refreshKasTable() {
             fetch('api/money?v=' + new Date().getTime(), {
@@ -391,14 +391,14 @@
                 })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Gagal memuat data kas');
+                        throw new Error('Unable to load cash report');
                     }
                     return response.text();
                 })
                 .then(data => {
                     document.getElementById('kas-table-body').innerHTML = data;
                 })
-                .catch(error => console.error('Error AJAX Kas:', error));
+                .catch(error => console.error('Cash report refresh error:', error));
         }
 
         document.addEventListener("DOMContentLoaded", function() {
@@ -426,7 +426,7 @@
             }
         }
     </script>
-    <!--- MODAL SHALAT TIME & JUMAT + KONTROL AUDIO YOUTUBE --->
+    <!--- PRAYER & FRIDAY REMINDER + YOUTUBE SOUND CONTROL --->
     <script>
         let prayerEndTime = 0;
         const prayerDurations = {
@@ -526,7 +526,7 @@
                 .then(data => {
                     shalatSchedule = data;
                 })
-                .catch(error => console.error('Gagal mengambil data:', error));
+                .catch(error => console.error('Unable to load prayer times:', error));
         }
 
         setInterval(fetchShalatSchedule, 3000);
@@ -536,7 +536,7 @@
         function refreshJumatData() {
             fetch('api/khotbah')
                 .then(response => {
-                    if (!response.ok) throw new Error('Gagal memuat data Jumat');
+                    if (!response.ok) throw new Error('Unable to load Friday sermon data');
                     return response.json();
                 })
                 .then(data => {
@@ -556,7 +556,7 @@
                         }
                     });
                 })
-                .catch(error => console.error('Error AJAX Jumat:', error));
+                .catch(error => console.error('Friday sermon refresh error:', error));
         }
 
         document.addEventListener("DOMContentLoaded", function() {
@@ -564,7 +564,7 @@
             setInterval(refreshJumatData, 2500);
         });
     </script>
-    <!--- JavaScript Slideshow & Auto Update Scene Plus --->
+    <!--- Announcement Slideshow & Auto Update --->
     <script>
         let currentScenePlusImages = [];
         let currentPlusIndex = 0;
@@ -573,7 +573,7 @@
         function fetchScenePlusData() {
             fetch('api/scene-plus')
                 .then(response => {
-                    if (!response.ok) throw new Error('Gagal mengambil data Scene Plus');
+                    if (!response.ok) throw new Error('Unable to load announcement slides');
                     return response.json();
                 })
                 .then(data => {
@@ -584,7 +584,7 @@
                         renderScenePlusImages(newImages);
                     }
                 })
-                .catch(error => console.error('Error Scene Plus AJAX:', error));
+                .catch(error => console.error('Announcement slides refresh error:', error));
         }
 
         function renderScenePlusImages(images) {
@@ -628,14 +628,14 @@
             setInterval(fetchScenePlusData, 6000);
         });
     </script>
-    <!--- Deteksi Koneksi Jaringan --->
+    <!--- Network Connection Monitor --->
     <script>
         window.addEventListener('offline', function(e) {
-            console.warn("Koneksi terputus. Layar menggunakan data terakhir (cache).");
+            console.warn("Connection lost. Showing the last loaded screen.");
         });
 
         window.addEventListener('online', function(e) {
-            console.log("Koneksi kembali stabil. Halaman akan dimuat ulang...");
+            console.log("Connection restored. Refreshing display...");
             setTimeout(function() {
                 location.reload();
             }, 3000);

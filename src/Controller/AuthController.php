@@ -49,9 +49,9 @@ final class AuthController extends AbstractController
                 return $this->redirect($response, '/');
             }
 
-            $error = 'Password salah!';
+            $error = 'Incorrect password!';
         } else {
-            $error = 'Username tidak ditemukan!';
+            $error = 'Username not found!';
         }
 
         return $this->render($response, 'auth/login.php', [

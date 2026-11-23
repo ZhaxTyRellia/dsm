@@ -38,7 +38,7 @@ final class StaffController extends AbstractController
         );
         $stmt->execute([$tier, $idNo, $identity]);
 
-        $this->flash('success', 'Data pengurus berhasil ditambahkan.');
+        $this->flash('success', 'Committee member added successfully.');
 
         return $this->redirect($response, '/');
     }
@@ -55,7 +55,7 @@ final class StaffController extends AbstractController
         if ($id > 0) {
             $stmt = $this->pdo()->prepare('DELETE FROM staff WHERE id = ?');
             $stmt->execute([$id]);
-            $this->flash('success', 'Data pengurus berhasil dihapus.');
+            $this->flash('success', 'Committee member removed.');
         }
 
         return $this->redirect($response, '/');

@@ -22,7 +22,7 @@ final class KhotbahListController extends AbstractController
         );
         $stmt->execute([$moon, $date, $identity]);
 
-        $this->flash('success', 'Jadwal khotbah Jum\'at berhasil ditambahkan.');
+        $this->flash('success', 'Friday sermon schedule added successfully.');
 
         return $this->redirect($response, '/');
     }
@@ -41,7 +41,7 @@ final class KhotbahListController extends AbstractController
         );
         $stmt->execute([$moon, $date, $identity, $id]);
 
-        $this->flash('success', 'Jadwal khotbah Jum\'at berhasil diperbarui.');
+        $this->flash('success', 'Friday sermon schedule updated successfully.');
 
         return $this->redirect($response, '/');
     }
@@ -58,7 +58,7 @@ final class KhotbahListController extends AbstractController
         if ($id > 0) {
             $stmt = $this->pdo()->prepare('DELETE FROM data_list WHERE id = ?');
             $stmt->execute([$id]);
-            $this->flash('success', 'Jadwal khotbah Jum\'at berhasil dihapus.');
+            $this->flash('success', 'Friday sermon schedule removed.');
         }
 
         return $this->redirect($response, '/');

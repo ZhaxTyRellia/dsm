@@ -23,8 +23,8 @@ $kernel = new Kernel(
 $uploadService = new FileUploadService((string) $settings['paths']['uploads']);
 $kernel->factoryReset($uploadService, $includeLicense);
 
-echo "Factory reset SQLite selesai.\n";
-echo "Database : " . $settings['db']['path'] . "\n";
-echo "Uploads  : " . $settings['paths']['uploads'] . "\n";
-echo "Akun     : admin / admin123\n";
-echo "Lisensi  : " . ($includeLicense ? "dihapus (perlu aktivasi ulang)" : "dipertahankan") . "\n";
+echo "Default settings restored successfully.\n";
+echo "Data file  : " . $settings['db']['path'] . "\n";
+echo "Uploads    : " . $settings['paths']['uploads'] . "\n";
+echo "Sign-in    : admin / admin123\n";
+echo "Activation : " . ($includeLicense ? "cleared (activation required)" : "kept") . "\n";

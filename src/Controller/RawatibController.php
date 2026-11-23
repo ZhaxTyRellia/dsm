@@ -33,7 +33,7 @@ final class RawatibController extends AbstractController
         if ($this->rawatibExists($dataShalat, $hari, $name)) {
             return $this->text(
                 $response,
-                'Data imam untuk kategori salat, hari, dan nama tersebut sudah ada.',
+                'An Imam Rawatib entry with this prayer, day, and name already exists.',
                 409
             );
         }
@@ -56,7 +56,7 @@ final class RawatibController extends AbstractController
         );
         $stmt->execute([$dataShalat, $hari, $name, $profileFilename]);
 
-        $this->flash('success', 'Data imam rawatib berhasil ditambahkan.');
+        $this->flash('success', 'Imam Rawatib added successfully.');
 
         return $this->redirect($response, '/');
     }
@@ -73,7 +73,7 @@ final class RawatibController extends AbstractController
         if ($this->rawatibExists($dataShalat, $hari, $name, $id)) {
             return $this->text(
                 $response,
-                'Data imam untuk kategori salat, hari, dan nama tersebut sudah ada.',
+                'An Imam Rawatib entry with this prayer, day, and name already exists.',
                 409
             );
         }
@@ -84,7 +84,7 @@ final class RawatibController extends AbstractController
         $currentData = $stmtSelect->fetch();
 
         if ($currentData === false) {
-            return $this->text($response, 'Data imam tidak ditemukan.', 404);
+            return $this->text($response, 'Imam record not found.', 404);
         }
 
         $oldProfile = $currentData['profile'] !== null ? (string) $currentData['profile'] : null;
@@ -114,7 +114,7 @@ final class RawatibController extends AbstractController
             $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_RAWATIB, $oldProfile);
         }
 
-        $this->flash('success', 'Data imam rawatib berhasil diperbarui.');
+        $this->flash('success', 'Imam Rawatib updated successfully.');
 
         return $this->redirect($response, '/');
     }
@@ -140,7 +140,7 @@ final class RawatibController extends AbstractController
 
             $stmtDelete = $pdo->prepare('DELETE FROM data_rawatib WHERE id = ?');
             $stmtDelete->execute([$id]);
-            $this->flash('success', 'Data imam rawatib berhasil dihapus.');
+            $this->flash('success', 'Imam Rawatib removed.');
         }
 
         return $this->redirect($response, '/');

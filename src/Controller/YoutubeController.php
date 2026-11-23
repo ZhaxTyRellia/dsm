@@ -27,7 +27,7 @@ final class YoutubeController extends AbstractController
                 $stmt->execute([$url]);
             }
 
-            $this->flash('success', 'URL video YouTube berhasil diperbarui.');
+            $this->flash('success', 'YouTube video link updated.');
         }
 
         return $this->redirect($response, '/');

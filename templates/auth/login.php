@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
     <base href="<?= $e($baseUrl) ?>">
-    <title>Login | Digital Signage Masjid</title>
+    <title>Sign In | Masjid Display</title>
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
@@ -192,9 +192,9 @@
                 <path d="M28 50v-6.5a4 4 0 0 1 8 0V50z" fill="#062c24"/>
                 <rect x="11" y="49" width="42" height="3.5" rx="1.75" fill="#d4af37"/>
             </svg>
-            <div><span class="login-kicker">Dashboard Panel</span></div>
-            <h1 class="login-title">Masuk Pengelola</h1>
-            <p class="login-sub">Digital Signage Masjid</p>
+            <div><span class="login-kicker">Management Panel</span></div>
+            <h1 class="login-title">Welcome Back</h1>
+            <p class="login-sub">Masjid Display</p>
         </div>
 
         <div id="toast">
@@ -207,7 +207,7 @@
                 <label class="form-label" for="username">Username</label>
                 <div class="input-wrap">
                     <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    <input id="username" class="form-control" type="text" name="username" placeholder="Masukkan username" required autocomplete="username">
+                    <input id="username" class="form-control" type="text" name="username" placeholder="Enter your username" required autocomplete="username">
                 </div>
             </div>
 
@@ -215,8 +215,8 @@
                 <label class="form-label" for="password">Password</label>
                 <div class="input-wrap">
                     <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                    <input id="password" class="form-control" type="password" name="password" placeholder="Masukkan password" required autocomplete="current-password" style="padding-right: 44px;">
-                    <button type="button" class="toggle-pw" onclick="togglePassword()" aria-label="Tampilkan Password">
+                    <input id="password" class="form-control" type="password" name="password" placeholder="Enter your password" required autocomplete="current-password" style="padding-right: 44px;">
+                    <button type="button" class="toggle-pw" onclick="togglePassword()" aria-label="Show Password">
                         <svg id="eyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                     </button>
                 </div>
@@ -231,7 +231,7 @@
         <div class="login-foot">
             <a href="potrait">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-                <span>Lihat Layar Display Signage</span>
+                <span>Open Live Display</span>
             </a>
         </div>
     </div>

@@ -69,7 +69,7 @@ final class DashboardController extends AbstractController
                     'activeSlides' => $limit,
                 ],
             ],
-            'Dashboard Utama',
+            'Overview',
             'dashboard'
         );
     }

@@ -226,7 +226,7 @@ PEM;
         if (!$this->verifyActivateKey($deviceId, $cleanKey)) {
             return [
                 'success' => false,
-                'error' => 'Activate Key tidak valid untuk Device ID perangkat ini.',
+                'error' => 'The activation key is not valid for this device.',
             ];
         }
 
@@ -245,7 +245,7 @@ PEM;
     public function assertActivated(ServerRequestInterface $request): void
     {
         if (!$this->isActivated()) {
-            throw new HttpForbiddenException($request, 'Application license is not activated.');
+            throw new HttpForbiddenException($request, 'This application has not been activated yet.');
         }
     }
 
@@ -441,7 +441,7 @@ PEM;
                     $response = $this->app->getResponseFactory()->createResponse(500);
                     $message = $displayErrorDetails
                         ? $exception->getMessage() . "\n" . $exception->getTraceAsString()
-                        : 'Internal Server Error';
+                        : 'Something went wrong. Please try again.';
                     $response->getBody()->write($message);
 
                     return $response->withHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -522,20 +522,20 @@ PEM;
         $copyButtonHtml = '';
         if ($deviceId !== null) {
             $copyButtonHtml = <<<'HTML'
-<button type="button" onclick="copyDeviceID()" class="btn-copy" id="copyDeviceBtn" title="Salin Device ID">
+<button type="button" onclick="copyDeviceID()" class="btn-copy" id="copyDeviceBtn" title="Copy Device ID">
     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-    <span>Salin</span>
+    <span>Copy</span>
 </button>
 HTML;
         }
 
         return <<<HTML
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <base href="{$baseHref}">
-    <title>Aktivasi Lisensi Offline | Digital Signage Masjid</title>
+    <title>Application Activation | Masjid Display</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
     <style>
@@ -734,11 +734,11 @@ HTML;
                 <rect x="11" y="49" width="42" height="3.5" rx="1.75" fill="#d4af37"/>
             </svg>
             <div>
-                <div class="license-badge">ECDSA P-256 &bull; Offline Activation</div>
-                <h1 class="license-title">Aktivasi Lisensi Aplikasi</h1>
+                <div class="license-badge">Offline Activation</div>
+                <h1 class="license-title">Activate Application</h1>
             </div>
         </div>
-        <p class="license-desc">Perangkat ini belum teraktivasi. Salin Device ID di bawah dan masukkan Activate Key resmi untuk membuka panel kontrol.</p>
+        <p class="license-desc">This device is not activated yet. Copy the Device ID below and enter your activation key to open the management panel.</p>
         {$errorHtml}
         <div class="device-box">
             <div class="device-meta">
@@ -748,14 +748,14 @@ HTML;
             {$copyButtonHtml}
         </div>
         <form method="POST" action="./">
-            <label class="field-label" for="activate_key">Activate Key</label>
-            <input type="text" id="activate_key" name="activate_key" class="field-input" placeholder="Tempel Activate Key (Base64URL)..." required autocomplete="off">
+            <label class="field-label" for="activate_key">Activation Key</label>
+            <input type="text" id="activate_key" name="activate_key" class="field-input" placeholder="Paste your activation key here..." required autocomplete="off">
             <button type="submit" class="btn-activate">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-                <span>Aktivasi Sekarang</span>
+                <span>Activate Now</span>
             </button>
         </form>
-        <p class="license-foot">Verifikasi kriptografi offline terintegrasi pada inti sistem.</p>
+        <p class="license-foot">Built-in offline verification for this device.</p>
     </div>
     <script>
         function copyDeviceID() {
@@ -763,8 +763,8 @@ HTML;
             navigator.clipboard.writeText(text).then(function() {
                 var span = document.querySelector('#copyDeviceBtn span');
                 if (!span) return;
-                span.innerText = 'Tersalin!';
-                setTimeout(function() { span.innerText = 'Salin'; }, 1500);
+                span.innerText = 'Copied!';
+                setTimeout(function() { span.innerText = 'Copy'; }, 1500);
             });
         }
     </script>

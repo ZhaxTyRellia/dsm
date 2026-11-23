@@ -43,7 +43,7 @@ final class MoneyController extends AbstractController
         foreach ($amountKeys as $key) {
             $amount = $nullableValue($body[$key] ?? null);
             if ($amount !== null && !is_numeric($amount)) {
-                return $this->text($response, 'Nominal laporan kas harus berupa angka.', 422);
+                return $this->text($response, 'Cash report amounts must be valid numbers.', 422);
             }
             $amounts[$key] = $amount;
         }
@@ -87,7 +87,7 @@ final class MoneyController extends AbstractController
             $closingTotal,
         ]);
 
-        $this->flash('success', 'Laporan kas masjid berhasil disimpan.');
+        $this->flash('success', 'Laporan Kas Masjid saved successfully.');
 
         return $this->redirect($response, '/');
     }
@@ -103,7 +103,7 @@ final class MoneyController extends AbstractController
         if ($id > 0) {
             $stmt = $this->pdo()->prepare('DELETE FROM data_money WHERE id = ?');
             $stmt->execute([$id]);
-            $this->flash('success', 'Data kas berhasil dihapus.');
+            $this->flash('success', 'Cash record removed.');
         }
 
         return $this->redirect($response, '/');

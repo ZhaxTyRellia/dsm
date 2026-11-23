@@ -39,7 +39,7 @@
     </div>
 <?php else: ?>
     <div class="video-responsive" style="display:flex;align-items:center;justify-content:center;background:#111;color:#fff;font-size:18px;">
-        Live YouTube belum tersedia / URL tidak valid
+        YouTube video is not available yet.
     </div>
 <?php endif; ?>
 
