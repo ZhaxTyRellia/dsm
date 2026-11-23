@@ -177,7 +177,7 @@ final class ApplicationTest extends TestCase
         $this->assertSame(302, $resOk->getStatusCode());
         $this->assertSame('/dsm/', $resOk->getHeaderLine('Location'));
 
-        $stored = $this->pdo->query("SELECT meta_value FROM system_meta WHERE meta_key = 'activate_key'")->fetchColumn();
+        $stored = $this->pdo->query('SELECT activate_key FROM identity WHERE id = 1')->fetchColumn();
         $this->assertSame($validActivateKey, $stored);
 
         $resNow = $this->dispatch($app, 'GET', '/dsm/');
@@ -295,6 +295,7 @@ final class ApplicationTest extends TestCase
         $this->assertStringStartsWith('uploads/audio/audio_', $audioPath);
 
         // 8. Factory Reset via endpoint resets DB & deletes uploaded files while preserving license
+        $beforeResetKey = (string) $this->pdo->query('SELECT activate_key FROM identity WHERE id = 1')->fetchColumn();
         $resReset = $this->dispatch($app, 'POST', '/dsm/control/factory-reset');
         $this->assertSame(302, $resReset->getStatusCode());
         $this->assertSame('/dsm/', $resReset->getHeaderLine('Location'));
@@ -309,8 +310,10 @@ final class ApplicationTest extends TestCase
         $this->assertFileDoesNotExist($this->uploadsDir . DIRECTORY_SEPARATOR . 'khotbah' . DIRECTORY_SEPARATOR . $uploadedAvatar);
         $this->assertFileExists($this->uploadsDir . DIRECTORY_SEPARATOR . 'audio' . DIRECTORY_SEPARATOR . 'audio.mp3');
 
-        // License key still preserved after admin factory reset
-        $this->assertNotFalse($this->pdo->query("SELECT meta_value FROM system_meta WHERE meta_key = 'activate_key'")->fetchColumn());
+        // License key still preserved inside identity table after admin factory reset
+        $afterResetKey = (string) $this->pdo->query('SELECT activate_key FROM identity WHERE id = 1')->fetchColumn();
+        $this->assertNotSame('', $afterResetKey);
+        $this->assertSame($beforeResetKey, $afterResetKey);
     }
 
     public function testErrorsRedirectDirectlyToBaseUrl(): void

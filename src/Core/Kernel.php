@@ -20,13 +20,12 @@ use Throwable;
 final class Kernel
 {
     /**
-     * Embedded ECDSA P-256 (prime256v1) SPKI X.509 Public Key.
-     * Replace with your Cloudflare KV (GAUTAVARIS -> MASTER_KEY.public) PEM for production distribution.
+     * Embedded ECDSA P-256 (prime256v1) SPKI X.509 Public Key (Gautavaris MASTER_KEY.public).
      */
     public const MASTER_PUBLIC_KEY = <<<'PEM'
 -----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE6NrXJvVb5Ngqd/CQjZV7gJVF/GaG
-lrUQNbJWVpVpBzq6eFgLn1EhSx6qGlnL1xRdsKMx0z5CUAAdg8jCex3mUw==
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEa4EhCDAJbrR3FrB883Q7cy/jP0Y+
+dOOKynJavjU3HKpOBkr/xaPCGJTwm0wiBNTcnboSDFz6SXgsI6b21XwTmg==
 -----END PUBLIC KEY-----
 PEM;
 
@@ -68,6 +67,7 @@ PEM;
     private ?PDO $pdo;
     private bool $schemaReady = false;
     private string $publicKeyPem;
+    private ?string $pendingMigratedKey = null;
 
     /** @var (callable(): ?string)|null */
     private $uuidResolver;
@@ -115,7 +115,8 @@ PEM;
         if (!$this->schemaReady) {
             $this->ensureSchema($this->pdo);
             $this->schemaReady = true;
-            $this->seedFactoryData(false);
+            $this->seedFactoryData(false, $this->pendingMigratedKey ?? '');
+            $this->pendingMigratedKey = null;
         }
 
         return $this->pdo;
@@ -204,7 +205,7 @@ PEM;
             return false;
         }
 
-        $stmt = $this->pdo()->prepare("SELECT meta_value FROM system_meta WHERE meta_key = 'activate_key' LIMIT 1");
+        $stmt = $this->pdo()->prepare('SELECT activate_key FROM identity WHERE id = 1 LIMIT 1');
         $stmt->execute();
         $storedKey = $stmt->fetchColumn();
 
@@ -230,14 +231,14 @@ PEM;
             ];
         }
 
-        $stmt = $this->pdo()->prepare(
-            "INSERT INTO system_meta (meta_key, meta_value, updated_at)
-             VALUES ('activate_key', ?, CURRENT_TIMESTAMP)
-             ON CONFLICT(meta_key) DO UPDATE SET
-                meta_value = excluded.meta_value,
-                updated_at = CURRENT_TIMESTAMP"
-        );
-        $stmt->execute([$cleanKey]);
+        $pdo = $this->pdo();
+        $hasIdentity = (int) $pdo->query('SELECT COUNT(*) FROM identity WHERE id = 1')->fetchColumn() > 0;
+        if ($hasIdentity) {
+            $stmt = $pdo->prepare('UPDATE identity SET activate_key = ? WHERE id = 1');
+            $stmt->execute([$cleanKey]);
+        } else {
+            $this->seedFactoryData(false, $cleanKey);
+        }
 
         return ['success' => true, 'error' => null];
     }
@@ -252,6 +253,13 @@ PEM;
     public function factoryReset(?FileUploadService $fileUploadService = null, bool $resetLicense = false): void
     {
         $pdo = $this->pdo();
+        $preservedKey = '';
+        if (!$resetLicense) {
+            $existingKey = $pdo->query('SELECT activate_key FROM identity WHERE id = 1 LIMIT 1')->fetchColumn();
+            if (is_string($existingKey)) {
+                $preservedKey = $existingKey;
+            }
+        }
 
         $pdo->beginTransaction();
         try {
@@ -268,10 +276,6 @@ PEM;
                 $seqStmt->execute(self::RESETTABLE_TABLES);
             }
 
-            if ($resetLicense) {
-                $pdo->exec("DELETE FROM system_meta WHERE meta_key = 'activate_key'");
-            }
-
             $pdo->commit();
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) {
@@ -284,17 +288,14 @@ PEM;
             $fileUploadService->clearAllUploads();
         }
 
-        $this->seedFactoryData(true);
+        $this->seedFactoryData(true, $preservedKey);
     }
 
-    public function seedFactoryData(bool $force = false): void
+    public function seedFactoryData(bool $force = false, string $activateKey = ''): void
     {
         $pdo = $this->pdo();
-        $initialized = (string) ($pdo->query(
-            "SELECT meta_value FROM system_meta WHERE meta_key = 'factory_seeded' LIMIT 1"
-        )->fetchColumn() ?: '');
-
-        $shouldSeedCollections = $force || ($initialized === '');
+        $isFreshInstall = (int) $pdo->query('SELECT COUNT(*) FROM identity')->fetchColumn() === 0;
+        $shouldSeedCollections = $force || $isFreshInstall;
 
         if ((int) $pdo->query('SELECT COUNT(*) FROM user')->fetchColumn() === 0) {
             $stmt = $pdo->prepare('INSERT INTO user (username, password) VALUES (?, ?)');
@@ -303,7 +304,7 @@ PEM;
 
         if ((int) $pdo->query('SELECT COUNT(*) FROM identity')->fetchColumn() === 0) {
             $stmt = $pdo->prepare(
-                'INSERT INTO identity (id, logo, tittle, name, background, audio, marquee) VALUES (1, ?, ?, ?, ?, ?, ?)'
+                'INSERT INTO identity (id, logo, tittle, name, background, audio, marquee, activate_key) VALUES (1, ?, ?, ?, ?, ?, ?, ?)'
             );
             $stmt->execute([
                 'default.png',
@@ -312,6 +313,7 @@ PEM;
                 'bg1.png',
                 'uploads/audio/audio.mp3',
                 'Selamat datang di Masjid Agung Al-Ikhlas — Luruskan dan rapatkan shaf sebelum menunaikan shalat berjamaah.',
+                $activateKey,
             ]);
         }
 
@@ -380,15 +382,6 @@ PEM;
                 $stmt->execute(['KETUA', 2, 'H. Muhammad Ridwan']);
                 $stmt->execute(['SEKRETARIS', 4, 'Ahmad Syafi\'i, S.Pd']);
             }
-
-            $metaStmt = $pdo->prepare(
-                "INSERT INTO system_meta (meta_key, meta_value, updated_at)
-                 VALUES ('factory_seeded', '1', CURRENT_TIMESTAMP)
-                 ON CONFLICT(meta_key) DO UPDATE SET
-                    meta_value = '1',
-                    updated_at = CURRENT_TIMESTAMP"
-            );
-            $metaStmt->execute();
         }
     }
 
@@ -776,11 +769,6 @@ HTML;
     private function ensureSchema(PDO $pdo): void
     {
         $tables = [
-            'CREATE TABLE IF NOT EXISTS system_meta (
-                meta_key TEXT PRIMARY KEY,
-                meta_value TEXT NOT NULL,
-                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-            )',
             'CREATE TABLE IF NOT EXISTS user (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL UNIQUE,
@@ -793,7 +781,8 @@ HTML;
                 name TEXT NOT NULL DEFAULT '',
                 background TEXT NOT NULL DEFAULT 'bg1.png',
                 audio TEXT NOT NULL DEFAULT 'uploads/audio/audio.mp3',
-                marquee TEXT NOT NULL DEFAULT ''
+                marquee TEXT NOT NULL DEFAULT '',
+                activate_key TEXT NOT NULL DEFAULT ''
             )",
             "CREATE TABLE IF NOT EXISTS youtube (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -882,6 +871,39 @@ HTML;
 
         foreach ($tables as $sql) {
             $pdo->exec($sql);
+        }
+
+        $identityCols = $pdo->query('PRAGMA table_info(identity)')->fetchAll();
+        $hasActivateKeyCol = false;
+        foreach ($identityCols as $col) {
+            if (($col['name'] ?? '') === 'activate_key') {
+                $hasActivateKeyCol = true;
+                break;
+            }
+        }
+        if (!$hasActivateKeyCol) {
+            $pdo->exec("ALTER TABLE identity ADD COLUMN activate_key TEXT NOT NULL DEFAULT ''");
+        }
+
+        $hasLegacyMeta = (int) $pdo->query(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'system_meta'"
+        )->fetchColumn() > 0;
+        if ($hasLegacyMeta) {
+            $legacyKey = $pdo->query(
+                "SELECT meta_value FROM system_meta WHERE meta_key = 'activate_key' LIMIT 1"
+            )->fetchColumn();
+            if (is_string($legacyKey) && trim($legacyKey) !== '') {
+                $cleanLegacyKey = trim($legacyKey);
+                if ((int) $pdo->query('SELECT COUNT(*) FROM identity WHERE id = 1')->fetchColumn() > 0) {
+                    $migrateStmt = $pdo->prepare(
+                        "UPDATE identity SET activate_key = ? WHERE id = 1 AND (activate_key IS NULL OR activate_key = '')"
+                    );
+                    $migrateStmt->execute([$cleanLegacyKey]);
+                } else {
+                    $this->pendingMigratedKey = $cleanLegacyKey;
+                }
+            }
+            $pdo->exec('DROP TABLE IF EXISTS system_meta');
         }
     }
 }

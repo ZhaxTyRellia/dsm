@@ -11,6 +11,7 @@ use App\Service\YoutubeEmbedService;
 use App\Support\BasePathDetector;
 use DateTimeImmutable;
 use InvalidArgumentException;
+use PDO;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -131,15 +132,19 @@ final class ServicesTest extends TestCase
             $this->assertTrue($kernel->activate($activateKey)['success']);
             $this->assertTrue($kernel->isActivated());
 
-            // Verify factory seeded default rows
+            // Verify license key is stored in identity.activate_key and system_meta does not exist
             $pdo = $kernel->pdo();
+            $this->assertSame($activateKey, $pdo->query('SELECT activate_key FROM identity WHERE id = 1')->fetchColumn());
+            $this->assertSame(0, (int) $pdo->query("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'system_meta'")->fetchColumn());
+
+            // Verify factory seeded default rows
             $this->assertSame('admin', $pdo->query("SELECT username FROM user LIMIT 1")->fetchColumn());
             $this->assertSame(3, (int) $pdo->query("SELECT COUNT(*) FROM data_rawatib")->fetchColumn());
             $this->assertSame(2, (int) $pdo->query("SELECT COUNT(*) FROM monthly_planner")->fetchColumn());
             $this->assertSame(2, (int) $pdo->query("SELECT COUNT(*) FROM data_list")->fetchColumn());
             $this->assertSame(3, (int) $pdo->query("SELECT COUNT(*) FROM staff")->fetchColumn());
 
-            // Mutate database then factory reset (preserving license)
+            // Mutate database then factory reset (preserving license in identity.activate_key)
             $pdo->exec("DELETE FROM data_rawatib");
             $pdo->exec("UPDATE identity SET tittle = 'Modified Masjid' WHERE id = 1");
 
@@ -147,13 +152,15 @@ final class ServicesTest extends TestCase
             $kernel->factoryReset($uploadService, false);
 
             $this->assertSame('Masjid Agung Al-Ikhlas', $pdo->query("SELECT tittle FROM identity WHERE id = 1")->fetchColumn());
+            $this->assertSame($activateKey, $pdo->query('SELECT activate_key FROM identity WHERE id = 1')->fetchColumn());
             $this->assertSame(3, (int) $pdo->query("SELECT COUNT(*) FROM data_rawatib")->fetchColumn());
             $this->assertFileDoesNotExist($tempUploads . DIRECTORY_SEPARATOR . 'banner' . DIRECTORY_SEPARATOR . 'custom.jpg');
             $this->assertFileExists($tempUploads . DIRECTORY_SEPARATOR . 'audio' . DIRECTORY_SEPARATOR . 'audio.mp3');
             $this->assertTrue($kernel->isActivated());
 
-            // Reset including license
+            // Reset including license clears identity.activate_key
             $kernel->factoryReset($uploadService, true);
+            $this->assertSame('', $pdo->query('SELECT activate_key FROM identity WHERE id = 1')->fetchColumn());
             $this->assertFalse($kernel->isActivated());
         } finally {
             foreach (['banner', 'audio'] as $sub) {
@@ -248,5 +255,48 @@ final class ServicesTest extends TestCase
                 }
             }
         }
+    }
+
+    public function testMigratesLegacySystemMetaLicenseIntoIdentityTable(): void
+    {
+        $cnf = 'C:/WampDock/apache/conf/openssl.cnf';
+        $opts = ['private_key_type' => OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1'];
+        if (is_file($cnf)) {
+            $opts['config'] = $cnf;
+        }
+        $key = openssl_pkey_new($opts);
+        $this->assertNotFalse($key);
+
+        $privatePem = '';
+        openssl_pkey_export($key, $privatePem, null, $opts);
+        $publicPem = (string) openssl_pkey_get_details($key)['key'];
+
+        $derSig = '';
+        openssl_sign('LEGACY-DEVICE-01', $derSig, $privatePem, OPENSSL_ALGO_SHA256);
+        $validKey = rtrim(strtr(base64_encode($derSig), '+/', '-_'), '=');
+
+        $pdo = new PDO('sqlite::memory:', null, null, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]);
+        $pdo->exec('CREATE TABLE system_meta (meta_key TEXT PRIMARY KEY, meta_value TEXT NOT NULL, updated_at TEXT)');
+        $pdo->exec("CREATE TABLE identity (id INTEGER PRIMARY KEY AUTOINCREMENT, logo TEXT, tittle TEXT, name TEXT, background TEXT, audio TEXT, marquee TEXT)");
+        $pdo->exec("INSERT INTO identity (id, logo, tittle, name, background, audio, marquee) VALUES (1, 'default.png', 'Masjid Legacy', 'Jl. Lama', 'bg1.png', 'uploads/audio/audio.mp3', 'Hello')");
+        $stmt = $pdo->prepare("INSERT INTO system_meta (meta_key, meta_value) VALUES ('activate_key', ?)");
+        $stmt->execute([$validKey]);
+
+        $kernel = new Kernel(
+            ':memory:',
+            '/dsm',
+            sys_get_temp_dir(),
+            false,
+            $pdo,
+            $publicPem,
+            static fn (): string => 'legacy-device-01'
+        );
+
+        $this->assertTrue($kernel->isActivated());
+        $this->assertSame($validKey, $pdo->query('SELECT activate_key FROM identity WHERE id = 1')->fetchColumn());
+        $this->assertSame(0, (int) $pdo->query("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'system_meta'")->fetchColumn());
     }
 }
