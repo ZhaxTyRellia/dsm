@@ -148,12 +148,29 @@
         </div>
     </div>
 
-    <?php if (!empty($flash) && !empty($flash['message'])): ?>
-        <div class="toast-banner<?= ($flash['type'] ?? '') === 'error' ? ' toast-error' : '' ?>" id="flashToast">
-            <span><?= $e($flash['message']) ?></span>
-            <button type="button" class="modal-close" onclick="this.parentElement.remove()" style="width:26px;height:26px;font-size:16px;">&times;</button>
-        </div>
-    <?php endif; ?>
+    <div class="toast-container" id="toastContainer" aria-live="polite">
+        <?php if (!empty($flash) && !empty($flash['message'])): ?>
+            <?php
+            $toastType = ($flash['type'] ?? 'success') === 'error' ? 'error' : 'success';
+            $toastTitle = $toastType === 'error' ? 'Error' : 'Success';
+            ?>
+            <div class="toast-banner toast-<?= $toastType ?>" id="flashToast" role="status">
+                <div class="toast-icon">
+                    <?php if ($toastType === 'error'): ?>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    <?php else: ?>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <?php endif; ?>
+                </div>
+                <div class="toast-body">
+                    <div class="toast-title"><?= $toastTitle ?></div>
+                    <div class="toast-message"><?= $e($flash['message']) ?></div>
+                </div>
+                <button type="button" class="toast-close" onclick="this.closest('.toast-banner').remove()" aria-label="Close notification">&times;</button>
+                <div class="toast-progress"></div>
+            </div>
+        <?php endif; ?>
+    </div>
 
     <!-- Restore Defaults Confirmation Dialog -->
     <div id="factoryResetModal" class="modal">
@@ -200,7 +217,7 @@
         </div>
     </div>
 
-    <script src="assets/js/admin.js?v=2"></script>
+    <script src="assets/js/admin.js?v=3"></script>
 </body>
 
 </html>

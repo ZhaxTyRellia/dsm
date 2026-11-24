@@ -139,28 +139,87 @@
             transition: transform 0.15s ease;
         }
         .btn-login:hover { transform: translateY(-1px); }
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 400;
+            max-width: calc(100vw - 32px);
+        }
         #toast {
             display: none;
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #dc2626;
-            padding: 11px 14px;
-            border-radius: 11px;
+            min-width: 280px;
+            max-width: 400px;
+            padding: 14px 16px;
+            border-radius: 14px;
             font-size: 13px;
-            font-weight: 700;
-            margin-bottom: 16px;
+            font-weight: 600;
             position: relative;
             overflow: hidden;
+            align-items: flex-start;
+            gap: 12px;
+            box-shadow: 0 20px 44px rgba(0, 0, 0, 0.35);
+            color: #ffffff;
         }
-        #toast.show { display: block; }
+        #toast.show { display: flex; }
+        #toast.toast-error {
+            background: #7f1d1d;
+            border: 1px solid rgba(252, 165, 165, 0.45);
+            border-left: 4px solid #f87171;
+        }
+        #toast.toast-success {
+            background: #062c24;
+            border: 1px solid rgba(212, 175, 55, 0.45);
+            border-left: 4px solid #10b981;
+        }
+        .toast-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        #toast.toast-error .toast-icon {
+            background: rgba(248, 113, 113, 0.22);
+            color: #fecaca;
+        }
+        #toast.toast-success .toast-icon {
+            background: rgba(16, 185, 129, 0.22);
+            color: #6ee7b7;
+        }
+        .toast-body { flex: 1; min-width: 0; }
+        .toast-title {
+            font-size: 11.5px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        #toast.toast-error .toast-title { color: #fecaca; }
+        #toast.toast-success .toast-title { color: #6ee7b7; }
+        .toast-close {
+            width: 24px;
+            height: 24px;
+            border-radius: 7px;
+            border: none;
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+            font-size: 15px;
+            line-height: 1;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
         #toast-progress {
             position: absolute;
             bottom: 0;
             left: 0;
             height: 3px;
-            background: #dc2626;
             width: 100%;
         }
+        #toast.toast-error #toast-progress { background: #f87171; }
+        #toast.toast-success #toast-progress { background: #10b981; }
         .login-foot {
             margin-top: 20px;
             text-align: center;
@@ -179,6 +238,36 @@
 </head>
 
 <body>
+    <?php
+    $toastMessage = '';
+    $toastType = 'success';
+    if (!empty($error)) {
+        $toastMessage = (string) $error;
+        $toastType = 'error';
+    } elseif (!empty($flash['message'])) {
+        $toastMessage = (string) $flash['message'];
+        $toastType = ($flash['type'] ?? 'success') === 'error' ? 'error' : 'success';
+    }
+    $toastTitle = $toastType === 'error' ? 'Error' : 'Success';
+    ?>
+    <div id="toast-container" aria-live="polite">
+        <div id="toast" class="toast-<?= $toastType ?>" role="status">
+            <div class="toast-icon">
+                <?php if ($toastType === 'error'): ?>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <?php else: ?>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <?php endif; ?>
+            </div>
+            <div class="toast-body">
+                <div class="toast-title"><?= $toastTitle ?></div>
+                <div id="toast-msg"><?= $e($toastMessage) ?></div>
+            </div>
+            <button type="button" class="toast-close" onclick="document.getElementById('toast').classList.remove('show')" aria-label="Close notification">&times;</button>
+            <div id="toast-progress"></div>
+        </div>
+    </div>
+
     <div class="login-card">
         <div class="login-brand">
             <svg class="login-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
@@ -195,11 +284,6 @@
             <div><span class="login-kicker">Management Panel</span></div>
             <h1 class="login-title">Welcome Back</h1>
             <p class="login-sub">Masjid Display</p>
-        </div>
-
-        <div id="toast">
-            <div id="toast-msg"><?= $e($error ?? '') ?></div>
-            <div id="toast-progress"></div>
         </div>
 
         <form action="login" method="post">
@@ -241,7 +325,7 @@
             var input = document.getElementById('password');
             input.type = input.type === 'password' ? 'text' : 'password';
         }
-        <?php if (!empty($error)): ?>
+        <?php if ($toastMessage !== ''): ?>
             (function () {
                 var toast = document.getElementById("toast");
                 var progress = document.getElementById("toast-progress");
@@ -249,12 +333,12 @@
                 progress.style.width = "100%";
                 toast.classList.add("show");
                 setTimeout(function() {
-                    progress.style.transition = "width 5s linear";
+                    progress.style.transition = "width 4.5s linear";
                     progress.style.width = "0%";
                 }, 50);
                 setTimeout(function() {
                     toast.classList.remove("show");
-                }, 5000);
+                }, 4500);
             })();
         <?php endif; ?>
     </script>

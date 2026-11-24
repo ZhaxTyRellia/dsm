@@ -278,7 +278,7 @@
 
         playBtn.addEventListener('click', function () {
             if (!audio.src) {
-                alert('Please choose an audio file first!');
+                window.showToast('error', 'Please choose an audio file first!');
                 return;
             }
             if (audio.paused) {
@@ -315,17 +315,93 @@
         }
     }
 
-    function initFlashToast() {
-        var toast = document.getElementById('flashToast');
-        if (!toast) return;
+    function getToastContainer() {
+        var container = document.getElementById('toastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'toast-container';
+            container.id = 'toastContainer';
+            container.setAttribute('aria-live', 'polite');
+            document.body.appendChild(container);
+        }
+        return container;
+    }
+
+    function bindToastLifecycle(toast) {
+        if (!toast || toast.dataset.toastBound === '1') return;
+        toast.dataset.toastBound = '1';
+        var progress = toast.querySelector('.toast-progress');
+        if (progress) {
+            progress.style.width = '100%';
+            requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
+                    progress.style.width = '0%';
+                });
+            });
+        }
         setTimeout(function () {
-            toast.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
             toast.style.opacity = '0';
             toast.style.transform = 'translateY(-10px)';
             setTimeout(function () {
                 if (toast.parentNode) toast.parentNode.removeChild(toast);
-            }, 350);
-        }, 4200);
+            }, 320);
+        }, 4500);
+    }
+
+    window.showToast = function (type, message) {
+        var toastType = type === 'error' ? 'error' : 'success';
+        var container = getToastContainer();
+        var toast = document.createElement('div');
+        toast.className = 'toast-banner toast-' + toastType + ' toast-entering';
+        toast.setAttribute('role', 'status');
+
+        var iconSvg = toastType === 'error'
+            ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'
+            : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+
+        var iconEl = document.createElement('div');
+        iconEl.className = 'toast-icon';
+        iconEl.innerHTML = iconSvg;
+
+        var bodyEl = document.createElement('div');
+        bodyEl.className = 'toast-body';
+        var titleEl = document.createElement('div');
+        titleEl.className = 'toast-title';
+        titleEl.textContent = toastType === 'error' ? 'Error' : 'Success';
+        var msgEl = document.createElement('div');
+        msgEl.className = 'toast-message';
+        msgEl.textContent = String(message || '');
+        bodyEl.appendChild(titleEl);
+        bodyEl.appendChild(msgEl);
+
+        var closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'toast-close';
+        closeBtn.setAttribute('aria-label', 'Close notification');
+        closeBtn.innerHTML = '&times;';
+        closeBtn.addEventListener('click', function () {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        });
+
+        var progressEl = document.createElement('div');
+        progressEl.className = 'toast-progress';
+
+        toast.appendChild(iconEl);
+        toast.appendChild(bodyEl);
+        toast.appendChild(closeBtn);
+        toast.appendChild(progressEl);
+        container.appendChild(toast);
+
+        requestAnimationFrame(function () {
+            toast.classList.remove('toast-entering');
+        });
+        bindToastLifecycle(toast);
+    };
+
+    function initFlashToast() {
+        document.querySelectorAll('#toastContainer .toast-banner, #flashToast').forEach(function (toast) {
+            bindToastLifecycle(toast);
+        });
     }
 
     document.addEventListener('click', function (event) {

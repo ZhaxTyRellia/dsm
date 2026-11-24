@@ -484,11 +484,17 @@ PEM;
                     if ($submittedKey !== '') {
                         $result = $this->kernel->activate($submittedKey);
                         if ($result['success']) {
+                            $_SESSION['flash'] = [
+                                'type' => 'success',
+                                'message' => 'Application activated successfully.',
+                            ];
                             return $this->responseFactory
                                 ->createResponse(302)
                                 ->withHeader('Location', $this->kernel->baseUrl());
                         }
                         $errorMsg = $result['error'];
+                    } elseif (array_key_exists('activate_key', $body) || array_key_exists('serial_number', $body)) {
+                        $errorMsg = 'Please enter your activation key.';
                     }
                 }
 
@@ -508,8 +514,10 @@ PEM;
         $deviceLabel = $deviceId !== null ? $e($deviceId) : 'Not Detected';
 
         $errorHtml = '';
+        $toastBootJs = '';
         if ($errorMsg !== null && $errorMsg !== '') {
             $errorHtml = '<div class="license-alert">' . $e($errorMsg) . '</div>';
+            $toastBootJs = 'showActivationToast("error", ' . json_encode($errorMsg, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) . ');';
         }
 
         $copyButtonHtml = '';
@@ -710,9 +718,77 @@ HTML;
             font-size: 12px;
             color: var(--text-muted);
         }
+        .act-toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 500;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: calc(100vw - 32px);
+        }
+        .act-toast {
+            position: relative;
+            overflow: hidden;
+            min-width: 280px;
+            max-width: 400px;
+            padding: 13px 16px;
+            border-radius: 14px;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: flex-start;
+            gap: 11px;
+            box-shadow: 0 20px 44px rgba(0, 0, 0, 0.35);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .act-toast.toast-success {
+            background: #062c24;
+            border: 1px solid rgba(212, 175, 55, 0.45);
+            border-left: 4px solid #10b981;
+        }
+        .act-toast.toast-error {
+            background: #7f1d1d;
+            border: 1px solid rgba(252, 165, 165, 0.45);
+            border-left: 4px solid #f87171;
+        }
+        .act-toast-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 2px;
+        }
+        .act-toast.toast-success .act-toast-title { color: #6ee7b7; }
+        .act-toast.toast-error .act-toast-title { color: #fecaca; }
+        .act-toast-close {
+            width: 24px;
+            height: 24px;
+            border-radius: 7px;
+            border: none;
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .act-toast-progress {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            height: 3px;
+            width: 100%;
+            background: #10b981;
+            transition: width 4.5s linear;
+        }
+        .act-toast.toast-error .act-toast-progress {
+            background: #f87171;
+        }
     </style>
 </head>
 <body>
+    <div class="act-toast-container" id="activationToastContainer" aria-live="polite"></div>
     <div class="license-card">
         <div class="license-head">
             <svg class="license-emblem" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
@@ -751,15 +827,52 @@ HTML;
         <p class="license-foot">Built-in offline verification for this device.</p>
     </div>
     <script>
+        function showActivationToast(type, message) {
+            var container = document.getElementById('activationToastContainer');
+            if (!container || !message) return;
+            var isErr = type === 'error';
+            var toast = document.createElement('div');
+            toast.className = 'act-toast ' + (isErr ? 'toast-error' : 'toast-success');
+            var body = document.createElement('div');
+            body.style.flex = '1';
+            var title = document.createElement('div');
+            title.className = 'act-toast-title';
+            title.textContent = isErr ? 'Error' : 'Success';
+            var msg = document.createElement('div');
+            msg.textContent = String(message);
+            body.appendChild(title);
+            body.appendChild(msg);
+            var close = document.createElement('button');
+            close.type = 'button';
+            close.className = 'act-toast-close';
+            close.innerHTML = '&times;';
+            close.onclick = function () { toast.remove(); };
+            var progress = document.createElement('div');
+            progress.className = 'act-toast-progress';
+            toast.appendChild(body);
+            toast.appendChild(close);
+            toast.appendChild(progress);
+            container.appendChild(toast);
+            requestAnimationFrame(function () {
+                requestAnimationFrame(function () { progress.style.width = '0%'; });
+            });
+            setTimeout(function () {
+                toast.style.opacity = '0';
+                setTimeout(function () { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+            }, 4500);
+        }
         function copyDeviceID() {
             var text = document.getElementById('deviceIdText').innerText;
             navigator.clipboard.writeText(text).then(function() {
                 var span = document.querySelector('#copyDeviceBtn span');
-                if (!span) return;
-                span.innerText = 'Copied!';
-                setTimeout(function() { span.innerText = 'Copy'; }, 1500);
+                if (span) {
+                    span.innerText = 'Copied!';
+                    setTimeout(function() { span.innerText = 'Copy'; }, 1500);
+                }
+                showActivationToast('success', 'Device ID copied to clipboard.');
             });
         }
+        {$toastBootJs}
     </script>
 </body>
 </html>
