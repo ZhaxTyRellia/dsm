@@ -21,7 +21,9 @@
         var sections = Array.prototype.slice.call(document.querySelectorAll('.dashboard-section[data-section]'));
         var topbarTitleEl = document.getElementById('topbarPageTitle');
         var navLinks = Array.prototype.slice.call(document.querySelectorAll('.sidebar-nav .nav-item[data-section]'));
-        var sectionTriggers = Array.prototype.slice.call(document.querySelectorAll('[data-section], [data-goto-section]'));
+        var sectionTriggers = Array.prototype.slice.call(
+            document.querySelectorAll('.sidebar-brand[data-section], .sidebar-nav .nav-item[data-section], [data-goto-section]')
+        );
 
         if (sections.length === 0) {
             sectionTriggers.forEach(function (el) {

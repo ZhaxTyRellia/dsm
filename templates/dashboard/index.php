@@ -187,14 +187,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (!empty($currentUrl) && !empty($currentVideoId)): ?>
+                    <?php if (!empty($currentUrl) && !empty($currentEmbedSrc)): ?>
                         <tr>
                             <td>1</td>
                             <td>
-                                <iframe class="video-thumb" src="https://www.youtube.com/embed/<?= $e($currentVideoId) ?>" frameborder="0" allowfullscreen></iframe>
+                                <iframe class="video-thumb" src="<?= $e($currentEmbedSrc) ?>" frameborder="0" allowfullscreen></iframe>
                             </td>
                             <td><?= $e($currentUrl) ?></td>
                             <td><span class="badge">Active</span></td>
+                        </tr>
+                    <?php elseif (!empty($currentUrl)): ?>
+                        <tr>
+                            <td>1</td>
+                            <td><span class="empty-cell" style="padding:0;">Preview unavailable</span></td>
+                            <td><?= $e($currentUrl) ?></td>
+                            <td><span class="badge badge-gold">Saved</span></td>
                         </tr>
                     <?php else: ?>
                         <tr>
@@ -675,8 +682,8 @@ $fridays = $upcomingFridays ?? [];
                         <input type="text" name="name" class="form-control" placeholder="Full name of the imam" required>
                     </div>
                     <div class="form-group">
-                        <label for="profile" class="form-label">Photo</label>
-                        <input type="file" name="profile" id="profile" class="form-control" accept="image/*" required>
+                        <label for="profile" class="form-label">Photo (Optional)</label>
+                        <input type="file" name="profile" id="profile" class="form-control" accept="image/png, image/jpeg">
                     </div>
                     <button type="submit" class="btn btn-primary" style="width:100%;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
@@ -741,7 +748,7 @@ $fridays = $upcomingFridays ?? [];
                 <button type="button" class="modal-close" onclick="closeModal('dataRutinitas')">&times;</button>
             </div>
             <div class="modal-body">
-                <form action="activity" method="POST">
+                <form action="activity" method="POST" onsubmit="autoFillDesc()">
                     <input type="hidden" name="action" value="insert">
                     <div class="form-group">
                         <label class="form-label">Activity Topic</label>

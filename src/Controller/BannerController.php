@@ -6,8 +6,10 @@ namespace App\Controller;
 
 use App\Core\Kernel;
 use App\Service\FileUploadService;
+use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use RuntimeException;
 use Slim\Views\PhpRenderer;
 
 final class BannerController extends AbstractController
@@ -81,11 +83,17 @@ final class BannerController extends AbstractController
             $row = $selectStmt->fetch();
             $oldFile = $row !== false ? (string) ($row[$target] ?? '') : '';
 
-            $newName = $this->fileUploadService->moveUploadedImage(
-                $files[$target],
-                FileUploadService::CATEGORY_BANNER,
-                'image_'
-            );
+            try {
+                $newName = $this->fileUploadService->moveUploadedImage(
+                    $files[$target],
+                    FileUploadService::CATEGORY_BANNER,
+                    'image_'
+                );
+            } catch (InvalidArgumentException|RuntimeException $e) {
+                $this->flash('error', $e->getMessage());
+
+                return $this->redirect($response, '/');
+            }
 
             $updateStmt = $pdo->prepare("UPDATE banner SET {$target} = ? WHERE id = 1");
             $updateStmt->execute([$newName]);
@@ -98,6 +106,8 @@ final class BannerController extends AbstractController
 
             return $this->redirect($response, '/');
         }
+
+        $this->flash('error', 'Please choose an image file first.');
 
         return $this->redirect($response, '/');
     }

@@ -7,7 +7,7 @@
     <title><?= $e($pageTitle ?? 'Overview') ?> | Masjid Display</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-    <link rel="stylesheet" type="text/css" href="assets/css/admin.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/admin.css?v=3">
 </head>
 
 <body>
@@ -149,7 +149,7 @@
     </div>
 
     <?php if (!empty($flash) && !empty($flash['message'])): ?>
-        <div class="toast-banner" id="flashToast">
+        <div class="toast-banner<?= ($flash['type'] ?? '') === 'error' ? ' toast-error' : '' ?>" id="flashToast">
             <span><?= $e($flash['message']) ?></span>
             <button type="button" class="modal-close" onclick="this.parentElement.remove()" style="width:26px;height:26px;font-size:16px;">&times;</button>
         </div>
@@ -200,7 +200,7 @@
         </div>
     </div>
 
-    <script src="assets/js/admin.js"></script>
+    <script src="assets/js/admin.js?v=2"></script>
 </body>
 
 </html>

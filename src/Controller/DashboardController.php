@@ -74,6 +74,7 @@ final class DashboardController extends AbstractController
             [
                 'currentUrl' => $currentUrl,
                 'currentVideoId' => $youtubeParsed['video_id'],
+                'currentEmbedSrc' => $youtubeParsed['embed_src'],
                 'latestCashReport' => $latestCashReport,
                 'latestClosingTotal' => $latestClosingTotal,
                 'rawatibList' => $rawatibList,

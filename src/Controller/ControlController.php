@@ -10,6 +10,7 @@ use App\Service\FileUploadService;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use RuntimeException;
 use Slim\Views\PhpRenderer;
 
 final class ControlController extends AbstractController
@@ -60,13 +61,19 @@ final class ControlController extends AbstractController
 
         $files = $this->files($request);
         if (isset($files['logo']) && $files['logo']->getError() === UPLOAD_ERR_OK) {
-            $logo = $this->fileUploadService->moveUploadedImage(
-                $files['logo'],
-                FileUploadService::CATEGORY_IDENTITY,
-                'Profil_'
-            );
-            if ($oldLogo !== '' && $logo !== $oldLogo) {
-                $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_IDENTITY, $oldLogo);
+            try {
+                $logo = $this->fileUploadService->moveUploadedImage(
+                    $files['logo'],
+                    FileUploadService::CATEGORY_IDENTITY,
+                    'Profil_'
+                );
+                if ($oldLogo !== '' && $logo !== $oldLogo) {
+                    $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_IDENTITY, $oldLogo);
+                }
+            } catch (InvalidArgumentException|RuntimeException $e) {
+                $this->flash('error', $e->getMessage());
+
+                return $this->redirect($response, '/');
             }
         }
 
@@ -124,7 +131,9 @@ final class ControlController extends AbstractController
         $this->assertActivated($request);
         $files = $this->files($request);
         if (!isset($files['audio_file']) || $files['audio_file']->getError() !== UPLOAD_ERR_OK) {
-            return $this->redirect($response, '/control/audio');
+            $this->flash('error', 'Please choose an audio file first.');
+
+            return $this->redirect($response, '/');
         }
 
         $pdo = $this->pdo();
@@ -135,11 +144,18 @@ final class ControlController extends AbstractController
         $row = $selectStmt->fetch();
         $oldAudio = $row !== false ? ($row['audio'] ?? null) : null;
 
+        try {
+            $filename = $this->fileUploadService->moveUploadedAudio($files['audio_file']);
+        } catch (RuntimeException $e) {
+            $this->flash('error', $e->getMessage());
+
+            return $this->redirect($response, '/');
+        }
+
         if ($oldAudio !== null && $oldAudio !== '') {
             $this->fileUploadService->deleteAudio((string) $oldAudio);
         }
 
-        $filename = $this->fileUploadService->moveUploadedAudio($files['audio_file']);
         $relativeDbPath = 'uploads/audio/' . $filename;
 
         $updateStmt = $pdo->prepare('UPDATE identity SET audio = ? WHERE id = ?');

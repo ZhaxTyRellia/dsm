@@ -9,6 +9,7 @@ use App\Service\FileUploadService;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use RuntimeException;
 use Slim\Views\PhpRenderer;
 
 final class RawatibController extends AbstractController
@@ -42,13 +43,19 @@ final class RawatibController extends AbstractController
         $profileFilename = null;
 
         if (isset($files['profile']) && $files['profile']->getError() === UPLOAD_ERR_OK) {
-            $profileFilename = $this->fileUploadService->moveUploadedImage(
-                $files['profile'],
-                FileUploadService::CATEGORY_RAWATIB,
-                'avatar_',
-                null,
-                true
-            );
+            try {
+                $profileFilename = $this->fileUploadService->moveUploadedImage(
+                    $files['profile'],
+                    FileUploadService::CATEGORY_RAWATIB,
+                    'avatar_',
+                    ['jpg', 'jpeg', 'png'],
+                    true
+                );
+            } catch (InvalidArgumentException|RuntimeException $e) {
+                $this->flash('error', $e->getMessage());
+
+                return $this->redirect($response, '/');
+            }
         }
 
         $stmt = $this->pdo()->prepare(

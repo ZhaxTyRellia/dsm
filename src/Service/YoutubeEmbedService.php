@@ -34,8 +34,12 @@ final class YoutubeEmbedService
                 $channelId = (string) $query['channel'];
             } elseif (preg_match('#^live/([^/?]+)#', $path, $m)) {
                 $vidId = $m[1];
+            } elseif (preg_match('#^shorts/([^/?]+)#', $path, $m)) {
+                $vidId = $m[1];
             } elseif (preg_match('#^embed/([^/?]+)#', $path, $m)) {
                 $vidId = $m[1];
+            } elseif (preg_match('#^channel/([^/?]+)#', $path, $m)) {
+                $channelId = $m[1];
             } elseif (strpos($host, 'youtu.be') !== false || ($path !== '' && preg_match('#^[^/]+$#', $path))) {
                 $vidId = basename($path);
             } elseif (preg_match('#^@?([^/?]+)$#', $path, $m)) {
