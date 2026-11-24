@@ -1,7 +1,0 @@
-/vendor/
-/.env
-/.phpunit.result.cache
-/composer.phar
-/storage/database/*.sqlite
-/storage/database/*.sqlite-wal
-/storage/database/*.sqlite-shm

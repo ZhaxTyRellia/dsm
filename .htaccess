@@ -3,8 +3,8 @@ Options -Indexes
 RewriteEngine On
 
 # Route sensitive files and directories through Slim so requests redirect to base URL
-RewriteRule ^(\.env(\.example)?|\.gitignore|composer\.(json|lock)|phpunit\.xml)$ public/index.php [L]
-RewriteRule ^(bin|config|src|storage|templates|tests|vendor)(/.*)?$ public/index.php [L]
+RewriteRule ^(\..*|composer\.(json|lock))$ public/index.php [L]
+RewriteRule ^(bin|config|src|storage|templates|vendor)(/.*)?$ public/index.php [L]
 
 # Allow already-rewritten requests inside public/
 RewriteRule ^public/ - [L]
