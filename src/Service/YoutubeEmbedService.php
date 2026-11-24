@@ -17,7 +17,14 @@ final class YoutubeEmbedService
         $embedSrc = '';
 
         if ($trimmed !== '') {
-            $parsed = parse_url($trimmed);
+            $candidate = $trimmed;
+            if (!preg_match('#^[a-z][a-z0-9+\-.]*://#i', $candidate)
+                && preg_match('#^(?:(?:www\.|m\.)?youtube(?:-nocookie)?\.com|youtu\.be)/#i', $candidate)
+            ) {
+                $candidate = 'https://' . $candidate;
+            }
+
+            $parsed = parse_url($candidate);
             $host = strtolower($parsed['host'] ?? '');
             $path = trim($parsed['path'] ?? '', '/');
             $query = [];
@@ -26,24 +33,34 @@ final class YoutubeEmbedService
                 parse_str($parsed['query'], $query);
             }
 
-            if (!empty($query['v'])) {
-                $vidId = (string) $query['v'];
-            } elseif (!empty($query['video_id'])) {
-                $vidId = (string) $query['video_id'];
-            } elseif (!empty($query['channel'])) {
-                $channelId = (string) $query['channel'];
-            } elseif (preg_match('#^live/([^/?]+)#', $path, $m)) {
-                $vidId = $m[1];
-            } elseif (preg_match('#^shorts/([^/?]+)#', $path, $m)) {
-                $vidId = $m[1];
-            } elseif (preg_match('#^embed/([^/?]+)#', $path, $m)) {
-                $vidId = $m[1];
-            } elseif (preg_match('#^channel/([^/?]+)#', $path, $m)) {
-                $channelId = $m[1];
-            } elseif (strpos($host, 'youtu.be') !== false || ($path !== '' && preg_match('#^[^/]+$#', $path))) {
-                $vidId = basename($path);
-            } elseif (preg_match('#^@?([^/?]+)$#', $path, $m)) {
-                $vidId = $m[1];
+            if ($host === '') {
+                if (preg_match('#^[A-Za-z0-9_-]{11}$#', $trimmed)) {
+                    $vidId = $trimmed;
+                }
+            } elseif (
+                $host === 'youtube.com'
+                || str_ends_with($host, '.youtube.com')
+                || $host === 'youtu.be'
+                || $host === 'youtube-nocookie.com'
+                || str_ends_with($host, '.youtube-nocookie.com')
+            ) {
+                if (!empty($query['v'])) {
+                    $vidId = (string) $query['v'];
+                } elseif (!empty($query['video_id'])) {
+                    $vidId = (string) $query['video_id'];
+                } elseif (!empty($query['channel'])) {
+                    $channelId = (string) $query['channel'];
+                } elseif (preg_match('#^live/([^/?]+)#', $path, $m)) {
+                    $vidId = $m[1];
+                } elseif (preg_match('#^shorts/([^/?]+)#', $path, $m)) {
+                    $vidId = $m[1];
+                } elseif (preg_match('#^embed/([^/?]+)#', $path, $m)) {
+                    $vidId = $m[1];
+                } elseif (preg_match('#^channel/([^/?]+)#', $path, $m)) {
+                    $channelId = $m[1];
+                } elseif ($host === 'youtu.be' && $path !== '' && preg_match('#^([^/]+)$#', $path, $m)) {
+                    $vidId = $m[1];
+                }
             }
 
             if ($channelId !== '') {
