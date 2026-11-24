@@ -11,6 +11,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;
 use Slim\Views\PhpRenderer;
+use Throwable;
 
 final class BannerController extends AbstractController
 {
@@ -41,7 +42,13 @@ final class BannerController extends AbstractController
         $body = $this->body($request);
         $val = (int) ($body['active_slides'] ?? 0);
 
-        if ($val >= 1 && $val <= 9) {
+        if ($val < 1 || $val > 9) {
+            $this->flash('error', 'Please choose between 1 and 9 active slides.');
+
+            return $this->redirect($response, '/');
+        }
+
+        try {
             $pdo = $this->pdo();
             $current = $pdo->query('SELECT * FROM banner WHERE id = 1 LIMIT 1')->fetch();
             $oldLimit = (int) ($current['active_slides'] ?? 0);
@@ -63,6 +70,8 @@ final class BannerController extends AbstractController
             $stmt->execute([$val]);
             $slideWord = $val === 1 ? 'slide.' : 'slides.';
             $this->flash('success', "Active announcement slides set to {$val} {$slideWord}");
+        } catch (Throwable) {
+            $this->flash('error', 'Unable to update active slide count.');
         }
 
         return $this->redirect($response, '/');
@@ -75,8 +84,14 @@ final class BannerController extends AbstractController
         $pdo = $this->pdo();
 
         foreach (self::SLIDE_COLUMNS as $target) {
-            if (!isset($files[$target]) || $files[$target]->getError() !== UPLOAD_ERR_OK) {
+            if (!isset($files[$target]) || $files[$target]->getError() === UPLOAD_ERR_NO_FILE) {
                 continue;
+            }
+
+            if ($files[$target]->getError() !== UPLOAD_ERR_OK) {
+                $this->flash('error', 'Unable to upload the image file.');
+
+                return $this->redirect($response, '/');
             }
 
             $selectStmt = $pdo->query("SELECT {$target} FROM banner WHERE id = 1 LIMIT 1");
@@ -95,14 +110,19 @@ final class BannerController extends AbstractController
                 return $this->redirect($response, '/');
             }
 
-            $updateStmt = $pdo->prepare("UPDATE banner SET {$target} = ? WHERE id = 1");
-            $updateStmt->execute([$newName]);
+            try {
+                $updateStmt = $pdo->prepare("UPDATE banner SET {$target} = ? WHERE id = 1");
+                $updateStmt->execute([$newName]);
 
-            if ($oldFile !== '' && strtolower($oldFile) !== 'default.png') {
-                $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_BANNER, $oldFile);
+                if ($oldFile !== '' && strtolower($oldFile) !== 'default.png') {
+                    $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_BANNER, $oldFile);
+                }
+
+                $this->flash('success', 'Banner image uploaded successfully.');
+            } catch (Throwable) {
+                $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_BANNER, $newName);
+                $this->flash('error', 'Unable to save banner image.');
             }
-
-            $this->flash('success', 'Banner image uploaded successfully.');
 
             return $this->redirect($response, '/');
         }

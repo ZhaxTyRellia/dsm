@@ -12,6 +12,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;
 use Slim\Views\PhpRenderer;
+use Throwable;
 
 final class ControlController extends AbstractController
 {
@@ -54,22 +55,25 @@ final class ControlController extends AbstractController
         $oldLogo = $row !== false ? (string) ($row['logo'] ?? '') : '';
 
         $body = $this->body($request);
-        $tittle = (string) ($body['tittle'] ?? '');
+        $tittle = trim((string) ($body['tittle'] ?? ''));
         $name = (string) ($body['name'] ?? '');
         $marquee = (string) ($body['marquee'] ?? '');
         $logo = $oldLogo;
 
+        if ($tittle === '') {
+            $this->flash('error', 'Masjid name cannot be empty.');
+
+            return $this->redirect($response, '/');
+        }
+
         $files = $this->files($request);
-        if (isset($files['logo']) && $files['logo']->getError() === UPLOAD_ERR_OK) {
+        if (isset($files['logo']) && $files['logo']->getError() !== UPLOAD_ERR_NO_FILE) {
             try {
                 $logo = $this->fileUploadService->moveUploadedImage(
                     $files['logo'],
                     FileUploadService::CATEGORY_IDENTITY,
                     'Profil_'
                 );
-                if ($oldLogo !== '' && $logo !== $oldLogo) {
-                    $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_IDENTITY, $oldLogo);
-                }
             } catch (InvalidArgumentException|RuntimeException $e) {
                 $this->flash('error', $e->getMessage());
 
@@ -77,10 +81,21 @@ final class ControlController extends AbstractController
             }
         }
 
-        $stmt = $pdo->prepare('UPDATE identity SET logo = ?, tittle = ?, name = ?, marquee = ?');
-        $stmt->execute([$logo, $tittle, $name, $marquee]);
+        try {
+            $stmt = $pdo->prepare('UPDATE identity SET logo = ?, tittle = ?, name = ?, marquee = ?');
+            $stmt->execute([$logo, $tittle, $name, $marquee]);
 
-        $this->flash('success', 'Masjid profile updated successfully.');
+            if ($oldLogo !== '' && $logo !== $oldLogo) {
+                $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_IDENTITY, $oldLogo);
+            }
+
+            $this->flash('success', 'Masjid profile updated successfully.');
+        } catch (Throwable) {
+            if ($logo !== $oldLogo) {
+                $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_IDENTITY, $logo);
+            }
+            $this->flash('error', 'Unable to save masjid profile.');
+        }
 
         return $this->redirect($response, '/');
     }
@@ -104,12 +119,23 @@ final class ControlController extends AbstractController
     {
         $this->assertActivated($request);
         $body = $this->body($request);
-        $bg = (string) ($body['background'] ?? '');
+        $bg = trim((string) ($body['background'] ?? ''));
+        $allowedBackgrounds = ['bg1.png', 'bg2.jpg', 'bg3.jpeg', 'bg4.jpg', 'bg5.jpg', 'bg6.jpg'];
 
-        $stmt = $this->pdo()->prepare('UPDATE identity SET background = ? WHERE id = 1');
-        $stmt->execute([$bg]);
+        if (!in_array($bg, $allowedBackgrounds, true)) {
+            $this->flash('error', 'Please choose a valid display background.');
 
-        $this->flash('success', 'Display background updated successfully.');
+            return $this->redirect($response, '/');
+        }
+
+        try {
+            $stmt = $this->pdo()->prepare('UPDATE identity SET background = ? WHERE id = 1');
+            $stmt->execute([$bg]);
+
+            $this->flash('success', 'Display background updated successfully.');
+        } catch (Throwable) {
+            $this->flash('error', 'Unable to save display background.');
+        }
 
         return $this->redirect($response, '/');
     }
@@ -152,16 +178,21 @@ final class ControlController extends AbstractController
             return $this->redirect($response, '/');
         }
 
-        if ($oldAudio !== null && $oldAudio !== '') {
-            $this->fileUploadService->deleteAudio((string) $oldAudio);
-        }
-
         $relativeDbPath = 'uploads/audio/' . $filename;
 
-        $updateStmt = $pdo->prepare('UPDATE identity SET audio = ? WHERE id = ?');
-        $updateStmt->execute([$relativeDbPath, $targetId]);
+        try {
+            $updateStmt = $pdo->prepare('UPDATE identity SET audio = ? WHERE id = ?');
+            $updateStmt->execute([$relativeDbPath, $targetId]);
 
-        $this->flash('success', 'Background audio updated successfully.');
+            if ($oldAudio !== null && $oldAudio !== '') {
+                $this->fileUploadService->deleteAudio((string) $oldAudio);
+            }
+
+            $this->flash('success', 'Background audio updated successfully.');
+        } catch (Throwable) {
+            $this->fileUploadService->deleteAudio($relativeDbPath);
+            $this->flash('error', 'Unable to save background audio.');
+        }
 
         return $this->redirect($response, '/');
     }
@@ -198,23 +229,29 @@ final class ControlController extends AbstractController
         $data = $body['shalat'] ?? null;
 
         if (!is_array($data)) {
+            $this->flash('error', 'Please fill in all prayer times.');
+
             return $this->redirect($response, '/');
         }
 
-        $stmt = $this->pdo()->prepare(
-            'UPDATE shalattime SET subuh = ?, dzuhur = ?, ashar = ?, maghrib = ?, isya = ?, jumat = ? WHERE id = ?'
-        );
-        $stmt->execute([
-            (string) ($data['subuh'] ?? ''),
-            (string) ($data['dzuhur'] ?? ''),
-            (string) ($data['ashar'] ?? ''),
-            (string) ($data['maghrib'] ?? ''),
-            (string) ($data['isya'] ?? ''),
-            (string) ($data['jumat'] ?? ''),
-            1,
-        ]);
+        try {
+            $stmt = $this->pdo()->prepare(
+                'UPDATE shalattime SET subuh = ?, dzuhur = ?, ashar = ?, maghrib = ?, isya = ?, jumat = ? WHERE id = ?'
+            );
+            $stmt->execute([
+                (string) ($data['subuh'] ?? ''),
+                (string) ($data['dzuhur'] ?? ''),
+                (string) ($data['ashar'] ?? ''),
+                (string) ($data['maghrib'] ?? ''),
+                (string) ($data['isya'] ?? ''),
+                (string) ($data['jumat'] ?? ''),
+                1,
+            ]);
 
-        $this->flash('success', 'Prayer times updated successfully.');
+            $this->flash('success', 'Prayer times updated successfully.');
+        } catch (Throwable) {
+            $this->flash('error', 'Unable to save prayer times.');
+        }
 
         return $this->redirect($response, '/');
     }
@@ -231,7 +268,9 @@ final class ControlController extends AbstractController
         $khotbahView = $stmt->fetch();
 
         if ($khotbahView === false) {
-            return $this->text($response, 'The requested Khotbah banner entry was not found.', 404);
+            $this->flash('error', 'The requested Khotbah banner entry was not found.');
+
+            return $this->redirect($response, '/');
         }
 
         $speakers = $pdo->query("SELECT DISTINCT * FROM data_list WHERE identity != ''")->fetchAll();
@@ -257,8 +296,8 @@ final class ControlController extends AbstractController
         $this->assertActivated($request);
         $body = $this->body($request);
         $id = (int) ($body['id'] ?? 1);
-        $name = (string) ($body['speaker'] ?? '');
-        $title = (string) ($body['title'] ?? '');
+        $name = trim((string) ($body['speaker'] ?? ''));
+        $title = trim((string) ($body['title'] ?? ''));
 
         $pdo = $this->pdo();
         $selectStmt = $pdo->prepare('SELECT avatar FROM khotbah_view WHERE id = ? LIMIT 1');
@@ -268,27 +307,36 @@ final class ControlController extends AbstractController
         $avatar = $oldAvatar;
 
         $files = $this->files($request);
-        if (isset($files['avatar']) && $files['avatar']->getError() === UPLOAD_ERR_OK) {
+        if (isset($files['avatar']) && $files['avatar']->getError() !== UPLOAD_ERR_NO_FILE) {
             try {
-                $newAvatar = $this->fileUploadService->moveUploadedImage(
+                $avatar = $this->fileUploadService->moveUploadedImage(
                     $files['avatar'],
                     FileUploadService::CATEGORY_KHOTBAH,
                     'Avatar_',
                     ['png', 'jpg', 'jpeg']
                 );
-                if ($oldAvatar !== '' && $newAvatar !== $oldAvatar) {
-                    $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_KHOTBAH, $oldAvatar);
-                }
-                $avatar = $newAvatar;
-            } catch (InvalidArgumentException) {
-                $avatar = $oldAvatar;
+            } catch (InvalidArgumentException|RuntimeException $e) {
+                $this->flash('error', $e->getMessage());
+
+                return $this->redirect($response, '/');
             }
         }
 
-        $updateStmt = $pdo->prepare('UPDATE khotbah_view SET name = ?, title = ?, avatar = ? WHERE id = ?');
-        $updateStmt->execute([$name, $title, $avatar, $id]);
+        try {
+            $updateStmt = $pdo->prepare('UPDATE khotbah_view SET name = ?, title = ?, avatar = ? WHERE id = ?');
+            $updateStmt->execute([$name, $title, $avatar, $id]);
 
-        $this->flash('success', 'Banner Khotbah Jum\'at updated successfully.');
+            if ($oldAvatar !== '' && $avatar !== $oldAvatar) {
+                $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_KHOTBAH, $oldAvatar);
+            }
+
+            $this->flash('success', 'Banner Khotbah Jum\'at updated successfully.');
+        } catch (Throwable) {
+            if ($avatar !== $oldAvatar) {
+                $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_KHOTBAH, $avatar);
+            }
+            $this->flash('error', 'Unable to update Banner Khotbah Jum\'at.');
+        }
 
         return $this->redirect($response, '/');
     }
@@ -296,8 +344,12 @@ final class ControlController extends AbstractController
     public function factoryReset(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $this->assertActivated($request);
-        $this->kernel->factoryReset($this->fileUploadService, false);
-        $this->flash('success', 'All settings have been restored to their defaults.');
+        try {
+            $this->kernel->factoryReset($this->fileUploadService, false);
+            $this->flash('success', 'All settings have been restored to their defaults.');
+        } catch (Throwable) {
+            $this->flash('error', 'Unable to restore default settings.');
+        }
 
         return $this->redirect($response, '/');
     }

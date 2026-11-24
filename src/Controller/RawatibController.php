@@ -11,6 +11,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;
 use Slim\Views\PhpRenderer;
+use Throwable;
 
 final class RawatibController extends AbstractController
 {
@@ -27,22 +28,26 @@ final class RawatibController extends AbstractController
     {
         $this->assertActivated($request);
         $body = $this->body($request);
-        $dataShalat = (string) ($body['data_shalat'] ?? '');
-        $hari = (string) ($body['hari'] ?? '');
-        $name = (string) ($body['name'] ?? '');
+        $dataShalat = trim((string) ($body['data_shalat'] ?? ''));
+        $hari = trim((string) ($body['hari'] ?? ''));
+        $name = trim((string) ($body['name'] ?? ''));
+
+        if ($dataShalat === '' || $hari === '' || $name === '') {
+            $this->flash('error', 'Please complete all required imam fields.');
+
+            return $this->redirect($response, '/');
+        }
 
         if ($this->rawatibExists($dataShalat, $hari, $name)) {
-            return $this->text(
-                $response,
-                'An Imam Rawatib entry with this prayer, day, and name already exists.',
-                409
-            );
+            $this->flash('error', 'An Imam Rawatib entry with this prayer, day, and name already exists.');
+
+            return $this->redirect($response, '/');
         }
 
         $files = $this->files($request);
         $profileFilename = null;
 
-        if (isset($files['profile']) && $files['profile']->getError() === UPLOAD_ERR_OK) {
+        if (isset($files['profile']) && $files['profile']->getError() !== UPLOAD_ERR_NO_FILE) {
             try {
                 $profileFilename = $this->fileUploadService->moveUploadedImage(
                     $files['profile'],
@@ -58,12 +63,18 @@ final class RawatibController extends AbstractController
             }
         }
 
-        $stmt = $this->pdo()->prepare(
-            'INSERT INTO data_rawatib (data_shalat, hari, name, profile) VALUES (?, ?, ?, ?)'
-        );
-        $stmt->execute([$dataShalat, $hari, $name, $profileFilename]);
-
-        $this->flash('success', 'Imam Rawatib added successfully.');
+        try {
+            $stmt = $this->pdo()->prepare(
+                'INSERT INTO data_rawatib (data_shalat, hari, name, profile) VALUES (?, ?, ?, ?)'
+            );
+            $stmt->execute([$dataShalat, $hari, $name, $profileFilename]);
+            $this->flash('success', 'Imam Rawatib added successfully.');
+        } catch (Throwable) {
+            if ($profileFilename !== null) {
+                $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_RAWATIB, $profileFilename);
+            }
+            $this->flash('error', 'Unable to save Imam Rawatib.');
+        }
 
         return $this->redirect($response, '/');
     }
@@ -73,16 +84,20 @@ final class RawatibController extends AbstractController
         $this->assertActivated($request);
         $body = $this->body($request);
         $id = (int) ($body['id'] ?? 0);
-        $dataShalat = (string) ($body['data_shalat'] ?? '');
-        $hari = (string) ($body['hari'] ?? '');
-        $name = (string) ($body['name'] ?? '');
+        $dataShalat = trim((string) ($body['data_shalat'] ?? ''));
+        $hari = trim((string) ($body['hari'] ?? ''));
+        $name = trim((string) ($body['name'] ?? ''));
+
+        if ($id <= 0 || $dataShalat === '' || $hari === '' || $name === '') {
+            $this->flash('error', 'Please complete all required imam fields.');
+
+            return $this->redirect($response, '/');
+        }
 
         if ($this->rawatibExists($dataShalat, $hari, $name, $id)) {
-            return $this->text(
-                $response,
-                'An Imam Rawatib entry with this prayer, day, and name already exists.',
-                409
-            );
+            $this->flash('error', 'An Imam Rawatib entry with this prayer, day, and name already exists.');
+
+            return $this->redirect($response, '/');
         }
 
         $pdo = $this->pdo();
@@ -91,14 +106,16 @@ final class RawatibController extends AbstractController
         $currentData = $stmtSelect->fetch();
 
         if ($currentData === false) {
-            return $this->text($response, 'Imam record not found.', 404);
+            $this->flash('error', 'Imam record not found.');
+
+            return $this->redirect($response, '/');
         }
 
         $oldProfile = $currentData['profile'] !== null ? (string) $currentData['profile'] : null;
         $profileFilename = $oldProfile;
 
         $files = $this->files($request);
-        if (isset($files['profile']) && $files['profile']->getError() === UPLOAD_ERR_OK) {
+        if (isset($files['profile']) && $files['profile']->getError() !== UPLOAD_ERR_NO_FILE) {
             try {
                 $profileFilename = $this->fileUploadService->moveUploadedImage(
                     $files['profile'],
@@ -107,21 +124,30 @@ final class RawatibController extends AbstractController
                     ['jpg', 'jpeg', 'png'],
                     true
                 );
-            } catch (InvalidArgumentException $e) {
-                return $this->text($response, $e->getMessage(), 422);
+            } catch (InvalidArgumentException|RuntimeException $e) {
+                $this->flash('error', $e->getMessage());
+
+                return $this->redirect($response, '/');
             }
         }
 
-        $stmtUpdate = $pdo->prepare(
-            'UPDATE data_rawatib SET data_shalat = ?, hari = ?, name = ?, profile = ? WHERE id = ?'
-        );
-        $stmtUpdate->execute([$dataShalat, $hari, $name, $profileFilename, $id]);
+        try {
+            $stmtUpdate = $pdo->prepare(
+                'UPDATE data_rawatib SET data_shalat = ?, hari = ?, name = ?, profile = ? WHERE id = ?'
+            );
+            $stmtUpdate->execute([$dataShalat, $hari, $name, $profileFilename, $id]);
 
-        if ($profileFilename !== $oldProfile && $oldProfile !== null && $oldProfile !== '') {
-            $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_RAWATIB, $oldProfile);
+            if ($profileFilename !== $oldProfile && $oldProfile !== null && $oldProfile !== '') {
+                $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_RAWATIB, $oldProfile);
+            }
+
+            $this->flash('success', 'Imam Rawatib updated successfully.');
+        } catch (Throwable) {
+            if ($profileFilename !== $oldProfile && $profileFilename !== null) {
+                $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_RAWATIB, $profileFilename);
+            }
+            $this->flash('error', 'Unable to update Imam Rawatib.');
         }
-
-        $this->flash('success', 'Imam Rawatib updated successfully.');
 
         return $this->redirect($response, '/');
     }
@@ -135,19 +161,33 @@ final class RawatibController extends AbstractController
         $query = $request->getQueryParams();
         $id = (int) ($args['id'] ?? $query['id'] ?? 0);
 
-        if ($id > 0) {
+        if ($id <= 0) {
+            $this->flash('error', 'Imam record not found.');
+
+            return $this->redirect($response, '/');
+        }
+
+        try {
             $pdo = $this->pdo();
             $stmtSelect = $pdo->prepare('SELECT profile FROM data_rawatib WHERE id = ? LIMIT 1');
             $stmtSelect->execute([$id]);
             $row = $stmtSelect->fetch();
 
-            if ($row !== false && !empty($row['profile'])) {
+            if ($row === false) {
+                $this->flash('error', 'Imam record not found.');
+
+                return $this->redirect($response, '/');
+            }
+
+            if (!empty($row['profile'])) {
                 $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_RAWATIB, (string) $row['profile']);
             }
 
             $stmtDelete = $pdo->prepare('DELETE FROM data_rawatib WHERE id = ?');
             $stmtDelete->execute([$id]);
             $this->flash('success', 'Imam Rawatib removed.');
+        } catch (Throwable) {
+            $this->flash('error', 'Unable to remove Imam Rawatib.');
         }
 
         return $this->redirect($response, '/');

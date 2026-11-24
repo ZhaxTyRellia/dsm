@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 
 final class KhotbahListController extends AbstractController
 {
@@ -13,16 +14,26 @@ final class KhotbahListController extends AbstractController
     {
         $this->assertActivated($request);
         $body = $this->body($request);
-        $moon = (string) ($body['moon'] ?? '');
-        $date = (string) ($body['date'] ?? '');
-        $identity = (string) ($body['identity'] ?? '');
+        $moon = trim((string) ($body['moon'] ?? ''));
+        $date = trim((string) ($body['date'] ?? ''));
+        $identity = trim((string) ($body['identity'] ?? ''));
 
-        $stmt = $this->pdo()->prepare(
-            'INSERT INTO data_list (moon, `date`, identity) VALUES (?, ?, ?)'
-        );
-        $stmt->execute([$moon, $date, $identity]);
+        if ($moon === '' || $date === '' || $identity === '') {
+            $this->flash('error', 'Please complete all Friday sermon schedule fields.');
 
-        $this->flash('success', 'Friday sermon schedule added successfully.');
+            return $this->redirect($response, '/');
+        }
+
+        try {
+            $stmt = $this->pdo()->prepare(
+                'INSERT INTO data_list (moon, `date`, identity) VALUES (?, ?, ?)'
+            );
+            $stmt->execute([$moon, $date, $identity]);
+
+            $this->flash('success', 'Friday sermon schedule added successfully.');
+        } catch (Throwable) {
+            $this->flash('error', 'Unable to add Friday sermon schedule.');
+        }
 
         return $this->redirect($response, '/');
     }
@@ -32,16 +43,35 @@ final class KhotbahListController extends AbstractController
         $this->assertActivated($request);
         $body = $this->body($request);
         $id = (int) ($body['id'] ?? 0);
-        $moon = (string) ($body['moon'] ?? '');
-        $date = (string) ($body['date'] ?? '');
-        $identity = (string) ($body['identity'] ?? '');
+        $moon = trim((string) ($body['moon'] ?? ''));
+        $date = trim((string) ($body['date'] ?? ''));
+        $identity = trim((string) ($body['identity'] ?? ''));
 
-        $stmt = $this->pdo()->prepare(
-            'UPDATE data_list SET moon = ?, `date` = ?, identity = ? WHERE id = ?'
-        );
-        $stmt->execute([$moon, $date, $identity, $id]);
+        if ($id <= 0 || $moon === '' || $date === '' || $identity === '') {
+            $this->flash('error', 'Please complete all Friday sermon schedule fields.');
 
-        $this->flash('success', 'Friday sermon schedule updated successfully.');
+            return $this->redirect($response, '/');
+        }
+
+        try {
+            $pdo = $this->pdo();
+            $check = $pdo->prepare('SELECT COUNT(*) FROM data_list WHERE id = ?');
+            $check->execute([$id]);
+            if ((int) $check->fetchColumn() === 0) {
+                $this->flash('error', 'Friday sermon schedule not found.');
+
+                return $this->redirect($response, '/');
+            }
+
+            $stmt = $pdo->prepare(
+                'UPDATE data_list SET moon = ?, `date` = ?, identity = ? WHERE id = ?'
+            );
+            $stmt->execute([$moon, $date, $identity, $id]);
+
+            $this->flash('success', 'Friday sermon schedule updated successfully.');
+        } catch (Throwable) {
+            $this->flash('error', 'Unable to update Friday sermon schedule.');
+        }
 
         return $this->redirect($response, '/');
     }
@@ -55,10 +85,22 @@ final class KhotbahListController extends AbstractController
         $query = $request->getQueryParams();
         $id = (int) ($args['id'] ?? $query['id'] ?? 0);
 
-        if ($id > 0) {
+        if ($id <= 0) {
+            $this->flash('error', 'Friday sermon schedule not found.');
+
+            return $this->redirect($response, '/');
+        }
+
+        try {
             $stmt = $this->pdo()->prepare('DELETE FROM data_list WHERE id = ?');
             $stmt->execute([$id]);
-            $this->flash('success', 'Friday sermon schedule removed.');
+            if ($stmt->rowCount() > 0) {
+                $this->flash('success', 'Friday sermon schedule removed.');
+            } else {
+                $this->flash('error', 'Friday sermon schedule not found.');
+            }
+        } catch (Throwable) {
+            $this->flash('error', 'Unable to remove Friday sermon schedule.');
         }
 
         return $this->redirect($response, '/');

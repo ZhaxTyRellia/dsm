@@ -19,6 +19,7 @@ final class AuthController extends AbstractController
 
         return $this->render($response, 'auth/login.php', [
             'error' => '',
+            'flash' => $this->pullFlash(),
         ]);
     }
 
@@ -31,8 +32,15 @@ final class AuthController extends AbstractController
         }
 
         $body = $this->body($request);
-        $username = (string) ($body['username'] ?? '');
+        $username = trim((string) ($body['username'] ?? ''));
         $password = (string) ($body['password'] ?? '');
+
+        if ($username === '' || $password === '') {
+            return $this->render($response, 'auth/login.php', [
+                'error' => 'Please enter both username and password.',
+                'flash' => null,
+            ]);
+        }
 
         $stmt = $this->pdo()->prepare('SELECT password FROM user WHERE username = ? LIMIT 1');
         $stmt->execute([$username]);
@@ -45,6 +53,7 @@ final class AuthController extends AbstractController
                 if (session_status() === PHP_SESSION_ACTIVE && !headers_sent()) {
                     session_regenerate_id(true);
                 }
+                $this->flash('success', 'Signed in successfully.');
 
                 return $this->redirect($response, '/');
             }
@@ -56,16 +65,20 @@ final class AuthController extends AbstractController
 
         return $this->render($response, 'auth/login.php', [
             'error' => $error,
+            'flash' => null,
         ]);
     }
 
     public function logout(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $_SESSION = [];
-        if (session_status() === PHP_SESSION_ACTIVE && !headers_sent()) {
-            session_unset();
-            session_destroy();
+        unset($_SESSION['logged_in']);
+        foreach (array_keys($_SESSION) as $key) {
+            unset($_SESSION[$key]);
         }
+        if (session_status() === PHP_SESSION_ACTIVE && !headers_sent()) {
+            session_regenerate_id(true);
+        }
+        $this->flash('success', 'You have been signed out.');
 
         return $this->redirect($response, '/login');
     }
