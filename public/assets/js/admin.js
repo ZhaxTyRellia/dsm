@@ -659,6 +659,25 @@
         }
     }
 
+    function initTime24hPickers() {
+        document.querySelectorAll('.time-24h-picker').forEach(function (picker) {
+            var hiddenInput = picker.querySelector('.time-24h-value');
+            var hhSel = picker.querySelector('[data-part="hh"]');
+            var mmSel = picker.querySelector('[data-part="mm"]');
+            var ssSel = picker.querySelector('[data-part="ss"]');
+            if (!hiddenInput || !hhSel || !mmSel || !ssSel) return;
+
+            var sync = function () {
+                hiddenInput.value = hhSel.value + ':' + mmSel.value + ':' + ssSel.value;
+            };
+
+            hhSel.addEventListener('change', sync);
+            mmSel.addEventListener('change', sync);
+            ssSel.addEventListener('change', sync);
+            sync();
+        });
+    }
+
     initSectionNavigation();
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -671,5 +690,6 @@
         initFlashToast();
         initDisplayPreview();
         initInformationControls();
+        initTime24hPickers();
     });
 })();

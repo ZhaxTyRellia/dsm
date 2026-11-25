@@ -1,4 +1,29 @@
-<?php $isEmbedded = !empty($embeddedSection); ?>
+<?php
+$isEmbedded = !empty($embeddedSection);
+$shalatRow = $shalatTimeData ?? $data ?? [];
+
+$prayerSlots = [
+    'subuh' => 'Subuh',
+    'dzuhur' => 'Dzuhur',
+    'jumat' => "Jum'at",
+    'ashar' => 'Ashar',
+    'maghrib' => 'Maghrib',
+    'isya' => 'Isya',
+];
+
+$parse24h = static function (string $raw): array {
+    $parts = explode(':', trim($raw));
+    $hh = max(0, min(23, (int) ($parts[0] ?? 0)));
+    $mm = max(0, min(59, (int) ($parts[1] ?? 0)));
+    $ss = max(0, min(59, (int) ($parts[2] ?? 0)));
+
+    return [
+        str_pad((string) $hh, 2, '0', STR_PAD_LEFT),
+        str_pad((string) $mm, 2, '0', STR_PAD_LEFT),
+        str_pad((string) $ss, 2, '0', STR_PAD_LEFT),
+    ];
+};
+?>
 <?php if (!$isEmbedded): ?><div class="control-wrap"><?php endif; ?>
     <div class="section-card">
         <div class="card-header">
@@ -8,7 +33,7 @@
                 </div>
                 <div>
                     <h2 class="card-title">Jadwal Waktu Shalat</h2>
-                    <p class="card-subtitle">Set daily and Friday prayer times for the on-screen reminder</p>
+                    <p class="card-subtitle">Set daily and Friday prayer times for the on-screen reminder (24-hour format)</p>
                 </div>
             </div>
             <?php if (!$isEmbedded): ?>
@@ -21,30 +46,38 @@
         <div class="card-body">
             <form action="control/shalat-time" method="POST">
                 <div class="shalat-grid">
-                    <div class="shalat-item">
-                        <label class="form-label">Subuh</label>
-                        <input type="time" class="form-control" name="shalat[subuh]" step="1" value="<?= $e($data['subuh'] ?? '') ?>" required>
-                    </div>
-                    <div class="shalat-item">
-                        <label class="form-label">Dzuhur</label>
-                        <input type="time" class="form-control" name="shalat[dzuhur]" step="1" value="<?= $e($data['dzuhur'] ?? '') ?>" required>
-                    </div>
-                    <div class="shalat-item">
-                        <label class="form-label">Jum'at</label>
-                        <input type="time" class="form-control" name="shalat[jumat]" step="1" value="<?= $e($data['jumat'] ?? '') ?>" required>
-                    </div>
-                    <div class="shalat-item">
-                        <label class="form-label">Ashar</label>
-                        <input type="time" class="form-control" name="shalat[ashar]" step="1" value="<?= $e($data['ashar'] ?? '') ?>" required>
-                    </div>
-                    <div class="shalat-item">
-                        <label class="form-label">Maghrib</label>
-                        <input type="time" class="form-control" name="shalat[maghrib]" step="1" value="<?= $e($data['maghrib'] ?? '') ?>" required>
-                    </div>
-                    <div class="shalat-item">
-                        <label class="form-label">Isya</label>
-                        <input type="time" class="form-control" name="shalat[isya]" step="1" value="<?= $e($data['isya'] ?? '') ?>" required>
-                    </div>
+                    <?php foreach ($prayerSlots as $slotKey => $slotLabel): ?>
+                        <?php
+                        [$hh, $mm, $ss] = $parse24h((string) ($shalatRow[$slotKey] ?? '00:00:00'));
+                        $formatted24h = "{$hh}:{$mm}:{$ss}";
+                        ?>
+                        <div class="shalat-item">
+                            <label class="form-label"><?= $e($slotLabel) ?></label>
+                            <div class="time-24h-picker" data-time-slot="<?= $e($slotKey) ?>">
+                                <input type="hidden" name="shalat[<?= $e($slotKey) ?>]" value="<?= $e($formatted24h) ?>" class="time-24h-value">
+                                <select class="time-24h-select" data-part="hh" aria-label="<?= $e($slotLabel) ?> Hour">
+                                    <?php for ($i = 0; $i < 24; $i++): ?>
+                                        <?php $val = str_pad((string) $i, 2, '0', STR_PAD_LEFT); ?>
+                                        <option value="<?= $val ?>" <?= $hh === $val ? 'selected' : '' ?>><?= $val ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                                <span class="time-24h-sep">:</span>
+                                <select class="time-24h-select" data-part="mm" aria-label="<?= $e($slotLabel) ?> Minute">
+                                    <?php for ($i = 0; $i < 60; $i++): ?>
+                                        <?php $val = str_pad((string) $i, 2, '0', STR_PAD_LEFT); ?>
+                                        <option value="<?= $val ?>" <?= $mm === $val ? 'selected' : '' ?>><?= $val ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                                <span class="time-24h-sep">:</span>
+                                <select class="time-24h-select" data-part="ss" aria-label="<?= $e($slotLabel) ?> Second">
+                                    <?php for ($i = 0; $i < 60; $i++): ?>
+                                        <?php $val = str_pad((string) $i, 2, '0', STR_PAD_LEFT); ?>
+                                        <option value="<?= $val ?>" <?= $ss === $val ? 'selected' : '' ?>><?= $val ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
 
                 <div style="display:flex; justify-content:flex-end; gap:10px;">

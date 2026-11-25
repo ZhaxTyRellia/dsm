@@ -7,7 +7,7 @@
     <title><?= $e($pageTitle ?? 'Overview') ?> | Masjid Display</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-    <link rel="stylesheet" type="text/css" href="assets/css/admin.css?v=7">
+    <link rel="stylesheet" type="text/css" href="assets/css/admin.css?v=8">
 </head>
 
 <body>
@@ -180,6 +180,30 @@
         <?php endif; ?>
     </div>
 
+    <!-- Unbind Activation Key Confirmation Dialog -->
+    <div id="unbindKeyModal" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Unbind Activation Key</h4>
+                    <button type="button" class="modal-close" onclick="closeModal('unbindKeyModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p style="margin-bottom: 18px; color: var(--text-muted); font-size: 14px;">
+                        Are you sure you want to unbind the activation key from this device? The panel will return to the activation screen until a valid key is entered again. All masjid data will remain safe.
+                    </p>
+                    <form action="control/unbind-key" method="POST" style="display:flex; gap:10px; justify-content:flex-end;">
+                        <button type="button" class="btn btn-outline" onclick="closeModal('unbindKeyModal')">Cancel</button>
+                        <button type="submit" class="btn btn-danger">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18.84 12.25l1.72-1.71a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M5.17 11.75l-1.71 1.71a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                            <span>Yes, Unbind Key</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Restore Defaults Confirmation Dialog -->
     <div id="factoryResetModal" class="modal">
         <div class="modal-dialog">
@@ -260,7 +284,7 @@
         </div>
     </div>
 
-    <script src="assets/js/admin.js?v=7"></script>
+    <script src="assets/js/admin.js?v=8"></script>
 </body>
 
 </html>

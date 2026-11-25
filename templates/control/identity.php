@@ -19,8 +19,8 @@
             <?php endif; ?>
         </div>
         <div class="card-body">
-            <?php foreach ($identities as $data): ?>
-                <?php $logoUrl = $uploadUrl('identity', $data['logo'] ?? null); ?>
+            <?php foreach ($identities as $identityItem): ?>
+                <?php $logoUrl = $uploadUrl('identity', $identityItem['logo'] ?? null); ?>
                 <form action="control/identity" method="post" enctype="multipart/form-data">
                     <div style="text-align:center; margin-bottom:22px;">
                         <label for="logo" style="cursor:pointer; display:inline-block;">
@@ -34,17 +34,17 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label class="form-label">Masjid Name</label>
-                            <input type="text" name="tittle" class="form-control" value="<?= $e($data['tittle'] ?? '') ?>" placeholder="Enter masjid name">
+                            <input type="text" name="tittle" class="form-control" value="<?= $e($identityItem['tittle'] ?? '') ?>" placeholder="Enter masjid name">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Address / Location</label>
-                            <input type="text" name="name" class="form-control" value="<?= $e($data['name'] ?? '') ?>" placeholder="Enter full address">
+                            <input type="text" name="name" class="form-control" value="<?= $e($identityItem['name'] ?? '') ?>" placeholder="Enter full address">
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Running Text</label>
-                        <input type="text" name="marquee" class="form-control" value="<?= $e($data['marquee'] ?? '') ?>" placeholder="Enter scrolling announcement text">
+                        <input type="text" name="marquee" class="form-control" value="<?= $e($identityItem['marquee'] ?? '') ?>" placeholder="Enter scrolling announcement text">
                     </div>
 
                     <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">

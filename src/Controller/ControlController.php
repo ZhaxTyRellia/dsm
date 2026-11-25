@@ -313,13 +313,13 @@ final class ControlController extends AbstractController
             return $this->redirect($response, '/');
         }
 
-        $normalizeTime = static function (string $raw): string {
+        $normalizeTime = static function (string $raw): ?string {
             $clean = trim($raw);
-            if (preg_match('/^\d{2}:\d{2}$/', $clean) === 1) {
-                return $clean . ':00';
+            if (preg_match('/^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/', $clean, $m) !== 1) {
+                return null;
             }
 
-            return $clean;
+            return $m[1] . ':' . $m[2] . ':' . ($m[3] ?? '00');
         };
 
         $subuh = $normalizeTime((string) ($data['subuh'] ?? ''));
@@ -328,6 +328,12 @@ final class ControlController extends AbstractController
         $maghrib = $normalizeTime((string) ($data['maghrib'] ?? ''));
         $isya = $normalizeTime((string) ($data['isya'] ?? ''));
         $jumat = $normalizeTime((string) ($data['jumat'] ?? ''));
+
+        if ($subuh === null || $dzuhur === null || $ashar === null || $maghrib === null || $isya === null || $jumat === null) {
+            $this->flash('error', 'Please enter valid 24-hour prayer times.');
+
+            return $this->redirect($response, '/');
+        }
 
         try {
             $pdo = $this->pdo();
@@ -530,6 +536,19 @@ final class ControlController extends AbstractController
             $this->flash('success', 'Password updated successfully.');
         } catch (Throwable) {
             $this->flash('error', 'Unable to update password.');
+        }
+
+        return $this->redirect($response, '/');
+    }
+
+    public function unbindActivationKey(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $this->assertActivated($request);
+        try {
+            $this->kernel->deactivate();
+            $this->flash('success', 'Activation key unbound from this device.');
+        } catch (Throwable) {
+            $this->flash('error', 'Unable to unbind activation key.');
         }
 
         return $this->redirect($response, '/');

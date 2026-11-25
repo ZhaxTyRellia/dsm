@@ -148,6 +148,7 @@ return static function (App $app): void {
         $group->post('/control/factory-reset', [ControlController::class, 'factoryReset']);
         $group->get('/control/information', [ControlController::class, 'showInformation']);
         $group->post('/control/password', [ControlController::class, 'updatePassword']);
+        $group->post('/control/unbind-key', [ControlController::class, 'unbindActivationKey']);
 
         $group->map(['GET', 'POST'], '/control/shutdown', [ControlController::class, 'shutdown']);
         $group->map(['GET', 'POST'], '/app/action/shutdown', [ControlController::class, 'shutdown']);

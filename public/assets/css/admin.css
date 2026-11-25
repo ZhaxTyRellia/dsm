@@ -1502,6 +1502,47 @@ body.sidebar-collapsed .nav-item {
     text-decoration: underline;
 }
 
+/* 24-Hour Time Picker */
+.time-24h-picker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 11px;
+    background: #ffffff;
+    gap: 4px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.time-24h-picker:focus-within {
+    border-color: var(--gold-500);
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.16);
+}
+
+.time-24h-select {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    color: var(--emerald-900);
+    font-family: inherit;
+    font-size: 14.5px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    padding: 3px 2px;
+    outline: none;
+    cursor: pointer;
+}
+
+.time-24h-sep {
+    font-weight: 800;
+    color: var(--text-muted);
+    user-select: none;
+}
+
 .audio-preview-card {
     background: var(--emerald-50);
     border: 1px solid var(--border);

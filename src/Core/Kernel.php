@@ -248,6 +248,11 @@ PEM;
         return ['success' => true, 'error' => null];
     }
 
+    public function deactivate(): void
+    {
+        $this->pdo()->exec("UPDATE identity SET activate_key = '' WHERE id = 1");
+    }
+
     public function assertActivated(ServerRequestInterface $request): void
     {
         if (!$this->isActivated()) {
@@ -443,15 +448,27 @@ PEM;
                     }
                 }
 
+                $flash = null;
+                if ($errorMsg === null && isset($_SESSION['flash']) && is_array($_SESSION['flash'])) {
+                    $flash = [
+                        'type' => (string) ($_SESSION['flash']['type'] ?? 'success'),
+                        'message' => (string) ($_SESSION['flash']['message'] ?? ''),
+                    ];
+                    unset($_SESSION['flash']);
+                }
+
                 $response = $this->responseFactory->createResponse(200);
-                $response->getBody()->write($this->kernel->renderActivationHtml($errorMsg));
+                $response->getBody()->write($this->kernel->renderActivationHtml($errorMsg, $flash));
 
                 return $response->withHeader('Content-Type', 'text/html; charset=utf-8');
             }
         };
     }
 
-    public function renderActivationHtml(?string $errorMsg = null): string
+    /**
+     * @param array{type: string, message: string}|null $flash
+     */
+    public function renderActivationHtml(?string $errorMsg = null, ?array $flash = null): string
     {
         $e = static fn (mixed $v): string => htmlspecialchars((string) ($v ?? ''), ENT_QUOTES, 'UTF-8');
         $baseHref = $e($this->baseUrl());
@@ -463,6 +480,9 @@ PEM;
         if ($errorMsg !== null && $errorMsg !== '') {
             $errorHtml = '<div class="license-alert">' . $e($errorMsg) . '</div>';
             $toastBootJs = 'showActivationToast("error", ' . json_encode($errorMsg, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) . ');';
+        } elseif ($flash !== null && ($flash['message'] ?? '') !== '') {
+            $flashType = ($flash['type'] ?? 'success') === 'error' ? 'error' : 'success';
+            $toastBootJs = 'showActivationToast(' . json_encode($flashType) . ', ' . json_encode($flash['message'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) . ');';
         }
 
         $copyButtonHtml = '';
