@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Core\Kernel;
 use App\Service\FileUploadService;
 use InvalidArgumentException;
+use PDO;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;
@@ -50,6 +51,7 @@ final class BannerController extends AbstractController
 
         try {
             $pdo = $this->pdo();
+            $this->ensureBannerRow($pdo);
             $current = $pdo->query('SELECT * FROM banner WHERE id = 1 LIMIT 1')->fetch();
             $oldLimit = (int) ($current['active_slides'] ?? 0);
 
@@ -111,6 +113,7 @@ final class BannerController extends AbstractController
             }
 
             try {
+                $this->ensureBannerRow($pdo);
                 $updateStmt = $pdo->prepare("UPDATE banner SET {$target} = ? WHERE id = 1");
                 $updateStmt->execute([$newName]);
 
@@ -140,5 +143,12 @@ final class BannerController extends AbstractController
         }
 
         return $this->upload($request, $response);
+    }
+
+    private function ensureBannerRow(PDO $pdo): void
+    {
+        if ((int) $pdo->query('SELECT COUNT(*) FROM banner WHERE id = 1')->fetchColumn() === 0) {
+            $pdo->exec('INSERT INTO banner (id, active_slides) VALUES (1, 1)');
+        }
     }
 }

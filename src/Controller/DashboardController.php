@@ -100,6 +100,15 @@ final class DashboardController extends AbstractController
                 'khotbahView' => $khotbahView,
                 'khotbahSpeakers' => $khotbahSpeakers,
                 'upcomingFridays' => $upcomingFridays,
+                'systemInfo' => [
+                    'isActivated' => $this->kernel->isActivated(),
+                    'deviceId' => $this->kernel->getDeviceId(),
+                    'activateKey' => (string) ($identityRow['activate_key'] ?? ''),
+                    'appName' => 'Masjid Display',
+                    'developer' => 'Zhax Ty Rellia',
+                    'brand' => 'Gautavaris DigiSoft HUB',
+                    'website' => 'https://gautavaris.web.id/',
+                ],
                 'kpi' => [
                     'closingTotal' => $latestClosingTotal,
                     'closingDate' => (string) ($latestCashReport['closing_date'] ?? '-'),

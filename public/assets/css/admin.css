@@ -1380,6 +1380,128 @@ body.sidebar-collapsed .nav-item {
     transform: translateX(22px);
 }
 
+/* Information Cards */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 22px;
+}
+
+.info-grid .section-card {
+    margin-bottom: 0;
+}
+
+.info-status-active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.info-status-inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.info-brand-banner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--emerald-900), var(--emerald-800));
+    border: 1px solid rgba(212, 175, 55, 0.45);
+    color: #ffffff;
+}
+
+.info-brand-emblem {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+}
+
+.info-brand-name {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--gold-400);
+}
+
+.info-brand-tagline {
+    font-size: 12.5px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 2px;
+}
+
+.info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.info-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--emerald-50);
+    border: 1px solid var(--border);
+}
+
+.info-label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.info-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--emerald-900);
+}
+
+.info-value-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.info-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--emerald-900);
+    word-break: break-all;
+}
+
+.info-muted {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.info-actions-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.info-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--emerald-800);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.info-link:hover {
+    text-decoration: underline;
+}
+
 .audio-preview-card {
     background: var(--emerald-50);
     border: 1px solid var(--border);

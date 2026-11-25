@@ -313,19 +313,36 @@ final class ControlController extends AbstractController
             return $this->redirect($response, '/');
         }
 
+        $normalizeTime = static function (string $raw): string {
+            $clean = trim($raw);
+            if (preg_match('/^\d{2}:\d{2}$/', $clean) === 1) {
+                return $clean . ':00';
+            }
+
+            return $clean;
+        };
+
+        $subuh = $normalizeTime((string) ($data['subuh'] ?? ''));
+        $dzuhur = $normalizeTime((string) ($data['dzuhur'] ?? ''));
+        $ashar = $normalizeTime((string) ($data['ashar'] ?? ''));
+        $maghrib = $normalizeTime((string) ($data['maghrib'] ?? ''));
+        $isya = $normalizeTime((string) ($data['isya'] ?? ''));
+        $jumat = $normalizeTime((string) ($data['jumat'] ?? ''));
+
         try {
-            $stmt = $this->pdo()->prepare(
-                'UPDATE shalattime SET subuh = ?, dzuhur = ?, ashar = ?, maghrib = ?, isya = ?, jumat = ? WHERE id = ?'
-            );
-            $stmt->execute([
-                (string) ($data['subuh'] ?? ''),
-                (string) ($data['dzuhur'] ?? ''),
-                (string) ($data['ashar'] ?? ''),
-                (string) ($data['maghrib'] ?? ''),
-                (string) ($data['isya'] ?? ''),
-                (string) ($data['jumat'] ?? ''),
-                1,
-            ]);
+            $pdo = $this->pdo();
+            $exists = (int) $pdo->query('SELECT COUNT(*) FROM shalattime WHERE id = 1')->fetchColumn() > 0;
+            if ($exists) {
+                $stmt = $pdo->prepare(
+                    'UPDATE shalattime SET subuh = ?, dzuhur = ?, ashar = ?, maghrib = ?, isya = ?, jumat = ? WHERE id = ?'
+                );
+                $stmt->execute([$subuh, $dzuhur, $ashar, $maghrib, $isya, $jumat, 1]);
+            } else {
+                $stmt = $pdo->prepare(
+                    'INSERT INTO shalattime (id, subuh, dzuhur, ashar, maghrib, isya, jumat) VALUES (?, ?, ?, ?, ?, ?, ?)'
+                );
+                $stmt->execute([1, $subuh, $dzuhur, $ashar, $maghrib, $isya, $jumat]);
+            }
 
             $this->flash('success', 'Prayer times updated successfully.');
         } catch (Throwable) {
@@ -347,9 +364,12 @@ final class ControlController extends AbstractController
         $khotbahView = $stmt->fetch();
 
         if ($khotbahView === false) {
-            $this->flash('error', 'The requested Khotbah banner entry was not found.');
-
-            return $this->redirect($response, '/');
+            $khotbahView = [
+                'id' => $id,
+                'title' => '',
+                'avatar' => 'default.png',
+                'name' => '',
+            ];
         }
 
         $speakers = $pdo->query("SELECT DISTINCT * FROM data_list WHERE identity != ''")->fetchAll();
@@ -402,8 +422,14 @@ final class ControlController extends AbstractController
         }
 
         try {
-            $updateStmt = $pdo->prepare('UPDATE khotbah_view SET name = ?, title = ?, avatar = ? WHERE id = ?');
-            $updateStmt->execute([$name, $title, $avatar, $id]);
+            if ($row !== false) {
+                $updateStmt = $pdo->prepare('UPDATE khotbah_view SET name = ?, title = ?, avatar = ? WHERE id = ?');
+                $updateStmt->execute([$name, $title, $avatar, $id]);
+            } else {
+                $saveAvatar = $avatar !== '' ? $avatar : 'default.png';
+                $insertStmt = $pdo->prepare('INSERT INTO khotbah_view (id, name, title, avatar) VALUES (?, ?, ?, ?)');
+                $insertStmt->execute([$id, $name, $title, $saveAvatar]);
+            }
 
             if ($oldAvatar !== '' && $avatar !== $oldAvatar) {
                 $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_KHOTBAH, $oldAvatar);
@@ -415,6 +441,95 @@ final class ControlController extends AbstractController
                 $this->fileUploadService->deleteImage(FileUploadService::CATEGORY_KHOTBAH, $avatar);
             }
             $this->flash('error', 'Unable to update Banner Khotbah Jum\'at.');
+        }
+
+        return $this->redirect($response, '/');
+    }
+
+    public function showInformation(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $activateKey = (string) ($this->pdo()->query('SELECT activate_key FROM identity WHERE id = 1 LIMIT 1')->fetchColumn() ?: '');
+
+        return $this->renderAdmin(
+            $request,
+            $response,
+            'control/information.php',
+            [
+                'systemInfo' => [
+                    'isActivated' => $this->kernel->isActivated(),
+                    'deviceId' => $this->kernel->getDeviceId(),
+                    'activateKey' => $activateKey,
+                    'appName' => 'Masjid Display',
+                    'developer' => 'Zhax Ty Rellia',
+                    'brand' => 'Gautavaris DigiSoft HUB',
+                    'website' => 'https://gautavaris.web.id/',
+                ],
+            ],
+            'Information',
+            'control-information'
+        );
+    }
+
+    public function updatePassword(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $this->assertActivated($request);
+        $body = $this->body($request);
+
+        $currentPassword = (string) ($body['current_password'] ?? '');
+        $newPassword = (string) ($body['new_password'] ?? '');
+        $confirmPassword = (string) ($body['confirm_password'] ?? '');
+
+        if ($currentPassword === '' || $newPassword === '' || $confirmPassword === '') {
+            $this->flash('error', 'Please fill in all password fields.');
+
+            return $this->redirect($response, '/');
+        }
+
+        if (strlen($newPassword) < 6) {
+            $this->flash('error', 'New password must be at least 6 characters.');
+
+            return $this->redirect($response, '/');
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            $this->flash('error', 'New password and confirmation do not match.');
+
+            return $this->redirect($response, '/');
+        }
+
+        $pdo = $this->pdo();
+        $sessionUser = trim((string) ($_SESSION['username'] ?? ''));
+        if ($sessionUser !== '') {
+            $stmt = $pdo->prepare('SELECT id, username, password FROM user WHERE username = ? LIMIT 1');
+            $stmt->execute([$sessionUser]);
+            $userRow = $stmt->fetch();
+        } else {
+            $userRow = $pdo->query('SELECT id, username, password FROM user ORDER BY id ASC LIMIT 1')->fetch();
+        }
+
+        if ($userRow === false) {
+            $this->flash('error', 'Account record not found.');
+
+            return $this->redirect($response, '/');
+        }
+
+        $storedPassword = (string) ($userRow['password'] ?? '');
+        if (!password_verify($currentPassword, $storedPassword) && !hash_equals($storedPassword, $currentPassword)) {
+            $this->flash('error', 'Current password is incorrect.');
+
+            return $this->redirect($response, '/');
+        }
+
+        try {
+            $updateStmt = $pdo->prepare('UPDATE user SET password = ? WHERE id = ?');
+            $updateStmt->execute([
+                password_hash($newPassword, PASSWORD_DEFAULT),
+                (int) $userRow['id'],
+            ]);
+
+            $this->flash('success', 'Password updated successfully.');
+        } catch (Throwable) {
+            $this->flash('error', 'Unable to update password.');
         }
 
         return $this->redirect($response, '/');

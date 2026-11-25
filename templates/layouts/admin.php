@@ -7,7 +7,7 @@
     <title><?= $e($pageTitle ?? 'Overview') ?> | Masjid Display</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-    <link rel="stylesheet" type="text/css" href="assets/css/admin.css?v=6">
+    <link rel="stylesheet" type="text/css" href="assets/css/admin.css?v=7">
 </head>
 
 <body>
@@ -94,6 +94,14 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                         <span>Open Live Display</span>
                     </a>
+                    <a href="#information" class="nav-item <?= $currentNav === 'control-information' ? 'active' : '' ?>" data-section="information" data-section-title="Information">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        <span>Information</span>
+                    </a>
+                    <button type="button" class="nav-item" onclick="openModal('changePasswordModal')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <span>Change Password</span>
+                    </button>
                     <a href="logout" class="nav-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                         <span>Sign Out</span>
@@ -196,6 +204,41 @@
         </div>
     </div>
 
+    <!-- Change Password Dialog -->
+    <div id="changePasswordModal" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Change Password</h4>
+                    <button type="button" class="modal-close" onclick="closeModal('changePasswordModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form action="control/password" method="POST">
+                        <div class="form-group">
+                            <label class="form-label" for="cp_current">Current Password</label>
+                            <input type="password" id="cp_current" name="current_password" class="form-control" placeholder="Enter your current password" required autocomplete="current-password">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="cp_new">New Password</label>
+                            <input type="password" id="cp_new" name="new_password" class="form-control" placeholder="Minimum 6 characters" minlength="6" required autocomplete="new-password">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="cp_confirm">Confirm New Password</label>
+                            <input type="password" id="cp_confirm" name="confirm_password" class="form-control" placeholder="Re-enter new password" minlength="6" required autocomplete="new-password">
+                        </div>
+                        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:16px;">
+                            <button type="button" class="btn btn-outline" onclick="closeModal('changePasswordModal')">Cancel</button>
+                            <button type="submit" class="btn btn-primary">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+                                <span>Save Password</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Shut Down Confirmation Dialog -->
     <div id="shutdownConfirmModal" class="modal">
         <div class="modal-dialog">
@@ -217,7 +260,7 @@
         </div>
     </div>
 
-    <script src="assets/js/admin.js?v=6"></script>
+    <script src="assets/js/admin.js?v=7"></script>
 </body>
 
 </html>

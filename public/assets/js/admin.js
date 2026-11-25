@@ -629,6 +629,36 @@
         rescaleStage(true);
     }
 
+    function initInformationControls() {
+        document.querySelectorAll('[data-copy-text]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var val = this.getAttribute('data-copy-text') || '';
+                var msg = this.getAttribute('data-copy-label') || 'Copied.';
+                if (!val || !navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
+                    return;
+                }
+                navigator.clipboard.writeText(val).then(function () {
+                    window.showToast('success', msg);
+                }).catch(function () {
+                    window.showToast('error', 'Unable to copy to clipboard.');
+                });
+            });
+        });
+
+        var toggleBtn = document.getElementById('toggleActivationKeyBtn');
+        var keyText = document.getElementById('infoActivationKeyText');
+        if (toggleBtn && keyText) {
+            toggleBtn.addEventListener('click', function () {
+                var isRevealed = keyText.getAttribute('data-revealed') === '1';
+                keyText.textContent = isRevealed
+                    ? (keyText.getAttribute('data-masked') || '')
+                    : (keyText.getAttribute('data-full') || '');
+                keyText.setAttribute('data-revealed', isRevealed ? '0' : '1');
+                this.textContent = isRevealed ? 'Show' : 'Hide';
+            });
+        }
+    }
+
     initSectionNavigation();
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -640,5 +670,6 @@
         initAudioPreview();
         initFlashToast();
         initDisplayPreview();
+        initInformationControls();
     });
 })();

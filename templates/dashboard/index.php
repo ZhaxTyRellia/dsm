@@ -632,6 +632,7 @@ $p = $khotbahView ?? [];
 $speakers = $khotbahSpeakers ?? [];
 $totalRows = count($speakers);
 $fridays = $upcomingFridays ?? [];
+$systemInfo = $systemInfo ?? [];
 ?>
 
 <div class="dashboard-section" data-section="identity" data-section-title="Masjid Profile">
@@ -652,6 +653,10 @@ $fridays = $upcomingFridays ?? [];
 
 <div class="dashboard-section" data-section="khotbah-day" data-section-title="Banner Khotbah Jum'at">
     <?php require __DIR__ . '/../control/khotbah_day.php'; ?>
+</div>
+
+<div class="dashboard-section" data-section="information" data-section-title="Information">
+    <?php require __DIR__ . '/../control/information.php'; ?>
 </div>
 
 <!-- DIALOGS -->

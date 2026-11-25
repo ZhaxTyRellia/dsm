@@ -496,8 +496,10 @@
 
                 if (!shalatSchedule[key]) continue;
 
-                const [h, m, s] = shalatSchedule[key].split(':');
-                const startTime = parseInt(h) * 3600 + parseInt(m) * 60 + parseInt(s);
+                const parts = String(shalatSchedule[key]).split(':');
+                const startTime = (parseInt(parts[0], 10) || 0) * 3600
+                    + (parseInt(parts[1], 10) || 0) * 60
+                    + (parseInt(parts[2], 10) || 0);
                 const duration = (prayerDurations[key] || 2) * 60;
                 const endTime = startTime + duration;
 

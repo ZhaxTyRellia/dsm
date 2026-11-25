@@ -299,8 +299,6 @@ PEM;
     public function seedFactoryData(bool $force = false, string $activateKey = ''): void
     {
         $pdo = $this->pdo();
-        $isFreshInstall = (int) $pdo->query('SELECT COUNT(*) FROM identity')->fetchColumn() === 0;
-        $shouldSeedCollections = $force || $isFreshInstall;
 
         if ((int) $pdo->query('SELECT COUNT(*) FROM user')->fetchColumn() === 0) {
             $stmt = $pdo->prepare('INSERT INTO user (username, password) VALUES (?, ?)');
@@ -324,71 +322,11 @@ PEM;
             ]);
         }
 
-        if ((int) $pdo->query('SELECT COUNT(*) FROM youtube')->fetchColumn() === 0) {
-            $pdo->exec("INSERT INTO youtube (id, url) VALUES (1, '')");
-        }
-
-        if ((int) $pdo->query('SELECT COUNT(*) FROM data_money')->fetchColumn() === 0) {
-            $pdo->exec(
-                "INSERT INTO data_money (
-                    id, opening_date, period_start, opening_umat, opening_masjid, opening_total,
-                    income_umat, income_masjid, income_total, position_date, position_umat, position_masjid, position_total,
-                    expense_date, expense_umat, expense_masjid, expense_total, closing_date, closing_umat, closing_masjid, closing_total
-                ) VALUES (
-                    1, '-', '-', 0, 0, 0,
-                    0, 0, 0, '-', 0, 0, 0,
-                    '-', 0, 0, 0, '-', 0, 0, 0
-                )"
-            );
-        }
-
-        if ((int) $pdo->query('SELECT COUNT(*) FROM banner')->fetchColumn() === 0) {
-            $pdo->exec(
-                "INSERT INTO banner (id, active_slides, pict1, pict2, pict3, pict4, pict5, pict6, pict7, pict8, pict9)
-                 VALUES (1, 1, 'default.png', 'default.png', 'default.png', 'default.png', 'default.png', 'default.png', 'default.png', 'default.png', 'default.png')"
-            );
-        }
-
         if ((int) $pdo->query('SELECT COUNT(*) FROM shalattime')->fetchColumn() === 0) {
             $pdo->exec(
                 "INSERT INTO shalattime (id, subuh, dzuhur, ashar, maghrib, isya, jumat)
-                 VALUES (1, '04:30:00', '12:00:00', '15:15:00', '18:00:00', '19:15:00', '12:00:00')"
+                 VALUES (1, '04:06:00', '11:43:00', '15:06:00', '17:56:00', '19:10:00', '11:43:00')"
             );
-        }
-
-        if ((int) $pdo->query('SELECT COUNT(*) FROM khotbah_view')->fetchColumn() === 0) {
-            $pdo->exec(
-                "INSERT INTO khotbah_view (id, title, avatar, name)
-                 VALUES (1, 'Jumat Pekan Ini', 'default.png', 'Ustadz Ahmad Fauzi')"
-            );
-        }
-
-        if ($shouldSeedCollections) {
-            if ((int) $pdo->query('SELECT COUNT(*) FROM data_rawatib')->fetchColumn() === 0) {
-                $stmt = $pdo->prepare('INSERT INTO data_rawatib (data_shalat, hari, name, profile) VALUES (?, ?, ?, ?)');
-                $stmt->execute(['SUBUH', 'SENIN - MINGGU', 'Ustadz Ahmad Fauzi', 'default.png']);
-                $stmt->execute(['DZUHUR', 'SENIN - KAMIS', 'Ustadz Hasanuddin', 'default.png']);
-                $stmt->execute(['MAGHRIB', 'SENIN - MINGGU', 'Ustadz Abdul Karim', 'default.png']);
-            }
-
-            if ((int) $pdo->query('SELECT COUNT(*) FROM monthly_planner')->fetchColumn() === 0) {
-                $stmt = $pdo->prepare('INSERT INTO monthly_planner (id_desc, `desc`, `time`, speaker) VALUES (?, ?, ?, ?)');
-                $stmt->execute([1, 'KAJIAN HADITS "BULUGHUL MAROM"', "Setiap Ahad Ba'da Subuh", 'Ustadz Ahmad Fauzi']);
-                $stmt->execute([5, 'KAJIAN FIQIH "SAFINATUN NAJAH"', "Setiap Rabu Ba'da Maghrib", 'Ustadz Hasanuddin']);
-            }
-
-            if ((int) $pdo->query('SELECT COUNT(*) FROM data_list')->fetchColumn() === 0) {
-                $stmt = $pdo->prepare('INSERT INTO data_list (moon, `date`, identity) VALUES (?, ?, ?)');
-                $stmt->execute(['Januari', '03', 'Ustadz Ahmad Fauzi']);
-                $stmt->execute(['Januari', '10', 'Ustadz Abdul Karim']);
-            }
-
-            if ((int) $pdo->query('SELECT COUNT(*) FROM staff')->fetchColumn() === 0) {
-                $stmt = $pdo->prepare('INSERT INTO staff (tier, id_no, identity) VALUES (?, ?, ?)');
-                $stmt->execute(['PENASEHAT', 1, 'KH. Abdullah Mansur']);
-                $stmt->execute(['KETUA', 2, 'H. Muhammad Ridwan']);
-                $stmt->execute(['SEKRETARIS', 4, 'Ahmad Syafi\'i, S.Pd']);
-            }
         }
     }
 
@@ -976,12 +914,12 @@ HTML;
             )",
             "CREATE TABLE IF NOT EXISTS shalattime (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                subuh TEXT NOT NULL DEFAULT '04:30:00',
-                dzuhur TEXT NOT NULL DEFAULT '12:00:00',
-                ashar TEXT NOT NULL DEFAULT '15:15:00',
-                maghrib TEXT NOT NULL DEFAULT '18:00:00',
-                isya TEXT NOT NULL DEFAULT '19:15:00',
-                jumat TEXT NOT NULL DEFAULT '12:00:00'
+                subuh TEXT NOT NULL DEFAULT '04:06:00',
+                dzuhur TEXT NOT NULL DEFAULT '11:43:00',
+                ashar TEXT NOT NULL DEFAULT '15:06:00',
+                maghrib TEXT NOT NULL DEFAULT '17:56:00',
+                isya TEXT NOT NULL DEFAULT '19:10:00',
+                jumat TEXT NOT NULL DEFAULT '11:43:00'
             )",
             "CREATE TABLE IF NOT EXISTS khotbah_view (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1028,6 +966,14 @@ HTML;
                 $bgStmt->execute([$normalizedBg]);
             }
         }
+
+        $pdo->exec(
+            "UPDATE shalattime
+             SET subuh = '04:06:00', dzuhur = '11:43:00', ashar = '15:06:00', maghrib = '17:56:00', isya = '19:10:00', jumat = '11:43:00'
+             WHERE id = 1
+               AND subuh = '04:30:00' AND dzuhur = '12:00:00' AND ashar = '15:15:00'
+               AND maghrib = '18:00:00' AND isya = '19:15:00' AND jumat = '12:00:00'"
+        );
 
         $hasLegacyMeta = (int) $pdo->query(
             "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'system_meta'"

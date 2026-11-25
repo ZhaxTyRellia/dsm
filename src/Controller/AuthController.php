@@ -50,6 +50,7 @@ final class AuthController extends AbstractController
             $storedPassword = (string) ($row['password'] ?? '');
             if (password_verify($password, $storedPassword) || hash_equals($storedPassword, $password)) {
                 $_SESSION['logged_in'] = true;
+                $_SESSION['username'] = $username;
                 if (session_status() === PHP_SESSION_ACTIVE && !headers_sent()) {
                     session_regenerate_id(true);
                 }
