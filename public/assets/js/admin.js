@@ -510,9 +510,6 @@
             modeBtns.forEach(function (btn) {
                 btn.classList.toggle('is-active', btn.getAttribute('data-preview-mode') === currentMode);
             });
-            modeRadios.forEach(function (radio) {
-                radio.checked = radio.value === currentMode;
-            });
             if (resBadge) {
                 resBadge.textContent = currentMode === 'landscape'
                     ? 'Landscape Screen'
@@ -578,10 +575,12 @@
         modeRadios.forEach(function (radio) {
             radio.addEventListener('change', function () {
                 if (!this.checked) return;
-                currentMode = this.value === 'landscape' ? 'landscape' : 'portrait';
-                updateUiState();
-                rescaleStage(true);
-                postPreviewMessage({ type: 'dsm:preview-mode', mode: currentMode });
+                if (this.value === 'portrait' || this.value === 'landscape') {
+                    currentMode = this.value;
+                    updateUiState();
+                    rescaleStage(true);
+                    postPreviewMessage({ type: 'dsm:preview-mode', mode: currentMode });
+                }
             });
         });
 

@@ -6,6 +6,7 @@ namespace App\Core;
 
 use App\Middleware\SessionMiddleware;
 use App\Service\FileUploadService;
+use App\Support\DisplaySlideConfig;
 use App\Support\DisplayThemeCatalog;
 use PDO;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -51,6 +52,7 @@ PEM;
         '/scene_plus_update.php',
         '/api/time',
         '/api/audio',
+        '/api/display-config',
         '/app/control/get_time',
         '/app/control/get_time.php',
     ];
@@ -312,17 +314,18 @@ PEM;
 
         if ((int) $pdo->query('SELECT COUNT(*) FROM identity')->fetchColumn() === 0) {
             $stmt = $pdo->prepare(
-                'INSERT INTO identity (id, logo, tittle, name, background, display_mode, audio, audio_enabled, marquee, activate_key) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                'INSERT INTO identity (id, logo, tittle, name, background, display_mode, audio, audio_enabled, marquee, slide_settings, activate_key) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
             $stmt->execute([
                 'default.png',
                 'Masjid Agung Al-Ikhlas',
                 'Jl. Masjid Raya No. 1',
                 DisplayThemeCatalog::DEFAULT_FILE,
-                'portrait',
+                'auto',
                 'uploads/audio/audio.mp3',
                 0,
                 'Selamat datang di Masjid Agung Al-Ikhlas — Luruskan dan rapatkan shaf sebelum menunaikan shalat berjamaah.',
+                DisplaySlideConfig::defaultJson(),
                 $activateKey,
             ]);
         }
@@ -858,10 +861,11 @@ HTML;
                 tittle TEXT NOT NULL DEFAULT '',
                 name TEXT NOT NULL DEFAULT '',
                 background TEXT NOT NULL DEFAULT 'emerald-gold.svg',
-                display_mode TEXT NOT NULL DEFAULT 'portrait',
+                display_mode TEXT NOT NULL DEFAULT 'auto',
                 audio TEXT NOT NULL DEFAULT 'uploads/audio/audio.mp3',
                 audio_enabled INTEGER NOT NULL DEFAULT 0,
                 marquee TEXT NOT NULL DEFAULT '',
+                slide_settings TEXT NOT NULL DEFAULT '',
                 activate_key TEXT NOT NULL DEFAULT ''
             )",
             "CREATE TABLE IF NOT EXISTS youtube (
@@ -957,6 +961,7 @@ HTML;
         $hasActivateKeyCol = false;
         $hasDisplayModeCol = false;
         $hasAudioEnabledCol = false;
+        $hasSlideSettingsCol = false;
         foreach ($identityCols as $col) {
             $colName = (string) ($col['name'] ?? '');
             if ($colName === 'activate_key') {
@@ -965,25 +970,34 @@ HTML;
                 $hasDisplayModeCol = true;
             } elseif ($colName === 'audio_enabled') {
                 $hasAudioEnabledCol = true;
+            } elseif ($colName === 'slide_settings') {
+                $hasSlideSettingsCol = true;
             }
         }
         if (!$hasActivateKeyCol) {
             $pdo->exec("ALTER TABLE identity ADD COLUMN activate_key TEXT NOT NULL DEFAULT ''");
         }
         if (!$hasDisplayModeCol) {
-            $pdo->exec("ALTER TABLE identity ADD COLUMN display_mode TEXT NOT NULL DEFAULT 'portrait'");
+            $pdo->exec("ALTER TABLE identity ADD COLUMN display_mode TEXT NOT NULL DEFAULT 'auto'");
         }
         if (!$hasAudioEnabledCol) {
             $pdo->exec("ALTER TABLE identity ADD COLUMN audio_enabled INTEGER NOT NULL DEFAULT 0");
         }
+        if (!$hasSlideSettingsCol) {
+            $pdo->exec("ALTER TABLE identity ADD COLUMN slide_settings TEXT NOT NULL DEFAULT ''");
+        }
 
-        $identityBg = $pdo->query('SELECT background FROM identity WHERE id = 1 LIMIT 1')->fetchColumn();
-        if ($identityBg !== false) {
-            $currentBg = (string) $identityBg;
+        $identityRow = $pdo->query('SELECT background, slide_settings FROM identity WHERE id = 1 LIMIT 1')->fetch();
+        if ($identityRow !== false) {
+            $currentBg = (string) ($identityRow['background'] ?? '');
             if (!DisplayThemeCatalog::isValidFile($currentBg)) {
                 $normalizedBg = DisplayThemeCatalog::normalize($currentBg);
                 $bgStmt = $pdo->prepare('UPDATE identity SET background = ? WHERE id = 1');
                 $bgStmt->execute([$normalizedBg]);
+            }
+            if (trim((string) ($identityRow['slide_settings'] ?? '')) === '') {
+                $slStmt = $pdo->prepare('UPDATE identity SET slide_settings = ? WHERE id = 1');
+                $slStmt->execute([DisplaySlideConfig::defaultJson()]);
             }
         }
 

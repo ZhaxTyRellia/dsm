@@ -1,34 +1,3 @@
-<style>
-    .video-responsive {
-        position: relative;
-        width: 100%;
-        padding-bottom: 56.25%;
-        height: 0;
-        overflow: hidden;
-    }
-
-    .video-responsive iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border: 0;
-    }
-
-    .video-responsive::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 60px;
-        background: transparent;
-        z-index: 1;
-        pointer-events: none;
-    }
-</style>
-
 <?php
 $ytMute = !empty($isPreview) ? '1' : '0';
 ?>
@@ -41,8 +10,15 @@ $ytMute = !empty($isPreview) ? '1' : '0';
         </iframe>
     </div>
 <?php else: ?>
-    <div class="video-responsive" style="display:flex;align-items:center;justify-content:center;background:#111;color:#fff;font-size:18px;">
-        YouTube video is not available yet.
+    <div class="video-responsive video-empty-state">
+        <div class="video-empty-inner">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                <polygon points="23 7 16 12 23 17 23 7"/>
+                <rect x="1" y="5" width="15" height="14" rx="2"/>
+            </svg>
+            <div class="video-empty-title">Video / Siaran Langsung</div>
+            <div class="video-empty-sub">Belum ada tautan video yang diatur</div>
+        </div>
     </div>
 <?php endif; ?>
 

@@ -8,6 +8,7 @@ use App\Core\Kernel;
 use App\Service\DateTimeService;
 use App\Service\FileUploadService;
 use App\Service\YoutubeEmbedService;
+use App\Support\DisplaySlideConfig;
 use App\Support\DisplayThemeCatalog;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -15,7 +16,7 @@ use Slim\Views\PhpRenderer;
 
 final class DisplayController extends AbstractController
 {
-    private const ALLOWED_MODES = ['portrait', 'landscape'];
+    private const ALLOWED_MODES = ['auto', 'portrait', 'landscape'];
 
     private const MONTHS = [
         'Januari',
@@ -54,10 +55,11 @@ final class DisplayController extends AbstractController
                 'tittle' => 'Title',
                 'name' => 'Name',
                 'background' => DisplayThemeCatalog::DEFAULT_FILE,
-                'display_mode' => 'portrait',
+                'display_mode' => 'auto',
                 'audio' => 'uploads/audio/audio.mp3',
                 'audio_enabled' => 0,
                 'marquee' => '',
+                'slide_settings' => '',
             ];
         }
 
@@ -69,9 +71,9 @@ final class DisplayController extends AbstractController
         }
         $theme = DisplayThemeCatalog::findByFile($bgImage);
 
-        $displayMode = strtolower(trim((string) ($identity['display_mode'] ?? 'portrait')));
+        $displayMode = strtolower(trim((string) ($identity['display_mode'] ?? 'auto')));
         if (!in_array($displayMode, self::ALLOWED_MODES, true)) {
-            $displayMode = 'portrait';
+            $displayMode = 'auto';
         }
         if (isset($query['mode'])) {
             $requestedMode = strtolower(trim((string) $query['mode']));
@@ -79,6 +81,8 @@ final class DisplayController extends AbstractController
                 $displayMode = $requestedMode;
             }
         }
+
+        $slideConfig = DisplaySlideConfig::parse($identity['slide_settings'] ?? null);
 
         $isPreview = isset($query['preview']) && (string) $query['preview'] === '1';
 
@@ -148,6 +152,7 @@ final class DisplayController extends AbstractController
             'theme' => $theme,
             'allowedThemes' => DisplayThemeCatalog::all(),
             'displayMode' => $displayMode,
+            'slideConfig' => $slideConfig,
             'isPreview' => $isPreview,
             'initialScene' => $initialScene,
             'audioPath' => ltrim((string) ($identity['audio'] ?? 'uploads/audio/audio.mp3'), '/'),
@@ -219,10 +224,7 @@ final class DisplayController extends AbstractController
                 $imageName = trim((string) ($banner['pict' . $i] ?? ''));
                 if (
                     $imageName !== ''
-                    && (
-                        in_array(strtolower($imageName), ['default.png', 'default.svg'], true)
-                        || $this->fileUploadService->imageExists(FileUploadService::CATEGORY_BANNER, $imageName)
-                    )
+                    && $this->fileUploadService->imageExists(FileUploadService::CATEGORY_BANNER, $imageName)
                 ) {
                     $images[] = $imageName;
                     $imageUrls[] = $this->fileUploadService->publicImageUrl(FileUploadService::CATEGORY_BANNER, $imageName);
@@ -249,6 +251,25 @@ final class DisplayController extends AbstractController
         return $this->json($response, [
             'enabled' => (int) ($row !== false ? ($row['audio_enabled'] ?? 0) : 0) === 1,
             'src' => ltrim((string) ($row !== false ? ($row['audio'] ?? 'uploads/audio/audio.mp3') : 'uploads/audio/audio.mp3'), '/'),
+        ]);
+    }
+
+    public function displayConfigJson(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $row = $this->pdo()->query('SELECT background, display_mode, slide_settings FROM identity WHERE id = 1 LIMIT 1')->fetch();
+        $bgImage = DisplayThemeCatalog::normalize($row !== false ? ($row['background'] ?? null) : null);
+        $theme = DisplayThemeCatalog::findByFile($bgImage);
+        $mode = strtolower(trim((string) ($row !== false ? ($row['display_mode'] ?? 'auto') : 'auto')));
+        if (!in_array($mode, self::ALLOWED_MODES, true)) {
+            $mode = 'auto';
+        }
+
+        return $this->json($response, [
+            'mode' => $mode,
+            'background' => $bgImage,
+            'theme' => $theme['id'],
+            'tone' => $theme['tone'],
+            'slides' => DisplaySlideConfig::parse($row !== false ? ($row['slide_settings'] ?? null) : null),
         ]);
     }
 }

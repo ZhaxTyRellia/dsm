@@ -977,8 +977,8 @@ body.sidebar-collapsed .nav-item {
 
 .orientation-picker {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
 }
 
 .orientation-option {
@@ -1030,6 +1030,86 @@ body.sidebar-collapsed .nav-item {
 .orientation-icon-landscape {
     width: 28px;
     height: 18px;
+}
+
+.orientation-icon-auto {
+    width: 24px;
+    height: 24px;
+    border-style: dashed;
+}
+
+/* Slide Rotation & Duration */
+.slide-config-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.slide-config-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 13px 15px;
+    border-radius: 13px;
+    background: var(--emerald-50);
+    border: 1px solid var(--border);
+}
+
+.slide-config-info {
+    min-width: 0;
+}
+
+.slide-config-title {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: var(--emerald-900);
+}
+
+.slide-config-desc {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.slide-config-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.slide-duration-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.slide-duration-input {
+    width: 78px;
+    padding: 7px 10px;
+    text-align: center;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.slide-duration-unit {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.slide-config-note {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+@media (max-width: 960px) {
+    .slide-config-list {
+        grid-template-columns: 1fr;
+    }
 }
 
 .orientation-meta {

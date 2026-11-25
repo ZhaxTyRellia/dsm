@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Core\Kernel;
 use App\Service\DateTimeService;
 use App\Service\FileUploadService;
+use App\Support\DisplaySlideConfig;
 use App\Support\DisplayThemeCatalog;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
@@ -103,11 +104,11 @@ final class ControlController extends AbstractController
 
     public function showBackground(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $row = $this->pdo()->query('SELECT background, display_mode FROM identity WHERE id = 1 LIMIT 1')->fetch();
+        $row = $this->pdo()->query('SELECT background, display_mode, slide_settings FROM identity WHERE id = 1 LIMIT 1')->fetch();
         $currentBackground = DisplayThemeCatalog::normalize($row !== false ? ($row['background'] ?? null) : null);
-        $currentDisplayMode = strtolower(trim((string) ($row !== false ? ($row['display_mode'] ?? 'portrait') : 'portrait')));
-        if (!in_array($currentDisplayMode, ['portrait', 'landscape'], true)) {
-            $currentDisplayMode = 'portrait';
+        $currentDisplayMode = strtolower(trim((string) ($row !== false ? ($row['display_mode'] ?? 'auto') : 'auto')));
+        if (!in_array($currentDisplayMode, ['auto', 'portrait', 'landscape'], true)) {
+            $currentDisplayMode = 'auto';
         }
 
         return $this->renderAdmin(
@@ -118,6 +119,8 @@ final class ControlController extends AbstractController
                 'themes' => DisplayThemeCatalog::all(),
                 'currentBackground' => $currentBackground,
                 'currentDisplayMode' => $currentDisplayMode,
+                'slideConfig' => DisplaySlideConfig::parse($row !== false ? ($row['slide_settings'] ?? null) : null),
+                'slideDefinitions' => DisplaySlideConfig::definitions(),
             ],
             'Display Theme',
             'control-background'
@@ -129,8 +132,8 @@ final class ControlController extends AbstractController
         $this->assertActivated($request);
         $body = $this->body($request);
         $bg = trim((string) ($body['background'] ?? ''));
-        $mode = strtolower(trim((string) ($body['display_mode'] ?? 'portrait')));
-        $allowedModes = ['portrait', 'landscape'];
+        $mode = strtolower(trim((string) ($body['display_mode'] ?? 'auto')));
+        $allowedModes = ['auto', 'portrait', 'landscape'];
 
         if (!DisplayThemeCatalog::isValidFile($bg)) {
             $this->flash('error', 'Please choose a valid display theme.');
@@ -151,6 +154,29 @@ final class ControlController extends AbstractController
             $this->flash('success', 'Display theme and orientation updated successfully.');
         } catch (Throwable) {
             $this->flash('error', 'Unable to save display theme.');
+        }
+
+        return $this->redirect($response, '/');
+    }
+
+    public function updateSlides(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $this->assertActivated($request);
+        $body = $this->body($request);
+        $rawSlides = isset($body['slides']) && is_array($body['slides']) ? $body['slides'] : [];
+
+        try {
+            $parsed = DisplaySlideConfig::fromFormInput($rawSlides);
+            $encoded = (string) json_encode($parsed, JSON_UNESCAPED_UNICODE);
+
+            $stmt = $this->pdo()->prepare('UPDATE identity SET slide_settings = ? WHERE id = 1');
+            $stmt->execute([$encoded]);
+
+            $this->flash('success', 'Slide rotation settings updated successfully.');
+        } catch (InvalidArgumentException $e) {
+            $this->flash('error', $e->getMessage());
+        } catch (Throwable) {
+            $this->flash('error', 'Unable to save slide rotation settings.');
         }
 
         return $this->redirect($response, '/');

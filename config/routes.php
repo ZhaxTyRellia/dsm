@@ -47,6 +47,7 @@ return static function (App $app): void {
 
     $app->get('/api/time', [DisplayController::class, 'currentTime']);
     $app->get('/api/audio', [DisplayController::class, 'audioJson']);
+    $app->get('/api/display-config', [DisplayController::class, 'displayConfigJson']);
     $app->get('/app/control/get_time', [DisplayController::class, 'currentTime']);
     $app->get('/app/control/get_time.php', [DisplayController::class, 'currentTime']);
 
@@ -121,6 +122,7 @@ return static function (App $app): void {
 
         $group->get('/control/background', [ControlController::class, 'showBackground']);
         $group->post('/control/background', [ControlController::class, 'updateBackground']);
+        $group->post('/control/slides', [ControlController::class, 'updateSlides']);
         $group->get('/app/control/background', [ControlController::class, 'showBackground']);
         $group->get('/app/control/Background', [ControlController::class, 'showBackground']);
         $group->get('/app/control/background.php', [ControlController::class, 'showBackground']);

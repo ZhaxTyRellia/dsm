@@ -2,10 +2,13 @@
 $isEmbedded = !empty($embeddedSection);
 $themeList = $themes ?? \App\Support\DisplayThemeCatalog::all();
 $currentBg = \App\Support\DisplayThemeCatalog::normalize((string) ($currentBackground ?? ''));
-$currentMode = strtolower(trim((string) ($currentDisplayMode ?? 'portrait')));
-if (!in_array($currentMode, ['portrait', 'landscape'], true)) {
-    $currentMode = 'portrait';
+$currentMode = strtolower(trim((string) ($currentDisplayMode ?? 'auto')));
+if (!in_array($currentMode, ['auto', 'portrait', 'landscape'], true)) {
+    $currentMode = 'auto';
 }
+$previewInitialMode = $currentMode === 'landscape' ? 'landscape' : 'portrait';
+$slidesCfg = $slideConfig ?? \App\Support\DisplaySlideConfig::defaults();
+$slidesDefs = $slideDefinitions ?? \App\Support\DisplaySlideConfig::definitions();
 ?>
 <?php if (!$isEmbedded): ?><div class="control-wrap control-wrap-wide"><?php endif; ?>
     <div class="section-card">
@@ -33,6 +36,16 @@ if (!in_array($currentMode, ['portrait', 'landscape'], true)) {
                         <div class="form-group">
                             <span class="form-label">Screen Orientation</span>
                             <div class="orientation-picker">
+                                <label class="orientation-option">
+                                    <input type="radio" name="display_mode" value="auto" <?= $currentMode === 'auto' ? 'checked' : '' ?> required>
+                                    <div class="orientation-card">
+                                        <span class="orientation-icon orientation-icon-auto" aria-hidden="true"></span>
+                                        <span class="orientation-meta">
+                                            <strong>Auto</strong>
+                                            <small>Follows TV screen</small>
+                                        </span>
+                                    </div>
+                                </label>
                                 <label class="orientation-option">
                                     <input type="radio" name="display_mode" value="portrait" <?= $currentMode === 'portrait' ? 'checked' : '' ?> required>
                                     <div class="orientation-card">
@@ -105,7 +118,7 @@ if (!in_array($currentMode, ['portrait', 'landscape'], true)) {
                 <div class="bg-studio-preview" id="displayPreviewPanel"
                     data-base-url="display"
                     data-initial-bg="<?= $e($currentBg) ?>"
-                    data-initial-mode="<?= $e($currentMode) ?>">
+                    data-initial-mode="<?= $e($previewInitialMode) ?>">
                     <div class="preview-toolbar">
                         <div class="preview-toolbar-left">
                             <span class="preview-live-badge">
@@ -113,15 +126,15 @@ if (!in_array($currentMode, ['portrait', 'landscape'], true)) {
                                 <span>Live Preview</span>
                             </span>
                             <span class="preview-res-badge" id="previewResolutionBadge">
-                                <?= $currentMode === 'landscape' ? 'Landscape Screen' : 'Portrait Screen' ?>
+                                <?= $previewInitialMode === 'landscape' ? 'Landscape Screen' : 'Portrait Screen' ?>
                             </span>
                         </div>
                         <div class="preview-toolbar-right">
                             <div class="preview-mode-switch" role="group" aria-label="Preview Orientation">
-                                <button type="button" class="preview-mode-btn <?= $currentMode === 'portrait' ? 'is-active' : '' ?>" data-preview-mode="portrait">
+                                <button type="button" class="preview-mode-btn <?= $previewInitialMode === 'portrait' ? 'is-active' : '' ?>" data-preview-mode="portrait">
                                     Portrait
                                 </button>
-                                <button type="button" class="preview-mode-btn <?= $currentMode === 'landscape' ? 'is-active' : '' ?>" data-preview-mode="landscape">
+                                <button type="button" class="preview-mode-btn <?= $previewInitialMode === 'landscape' ? 'is-active' : '' ?>" data-preview-mode="landscape">
                                     Landscape
                                 </button>
                             </div>
@@ -138,7 +151,7 @@ if (!in_array($currentMode, ['portrait', 'landscape'], true)) {
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
                                 <span>Reload</span>
                             </button>
-                            <a href="display?mode=<?= $e($currentMode) ?>&amp;bg=<?= $e($currentBg) ?>"
+                            <a href="display?mode=<?= $e($previewInitialMode) ?>&amp;bg=<?= $e($currentBg) ?>"
                                 target="_blank"
                                 rel="noopener"
                                 class="btn btn-gold btn-sm"
@@ -161,6 +174,69 @@ if (!in_array($currentMode, ['portrait', 'landscape'], true)) {
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <div class="card-header">
+            <div class="card-header-left">
+                <div class="card-badge-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div>
+                    <h2 class="card-title">Slide Rotation &amp; Duration</h2>
+                    <p class="card-subtitle">Choose which pages appear on the display and how long each stays on screen (default 60 seconds / 1 minute)</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <form action="control/slides" method="POST">
+                <div class="slide-config-list">
+                    <?php foreach ($slidesDefs as $def): ?>
+                        <?php
+                        $sKey = (string) $def['key'];
+                        $sEntry = $slidesCfg[$sKey] ?? ['enabled' => true, 'duration' => 60];
+                        $sEnabled = !empty($sEntry['enabled']);
+                        $sDuration = (int) ($sEntry['duration'] ?? 60);
+                        ?>
+                        <div class="slide-config-row">
+                            <div class="slide-config-info">
+                                <div class="slide-config-title"><?= $e($def['label']) ?></div>
+                                <div class="slide-config-desc"><?= $e($def['description']) ?></div>
+                            </div>
+                            <div class="slide-config-controls">
+                                <div class="slide-duration-wrap">
+                                    <input type="number"
+                                        name="slides[<?= $e($sKey) ?>][duration]"
+                                        class="form-control slide-duration-input"
+                                        min="5"
+                                        max="3600"
+                                        value="<?= $sDuration ?>"
+                                        required
+                                        aria-label="<?= $e($def['label']) ?> duration in seconds">
+                                    <span class="slide-duration-unit">sec</span>
+                                </div>
+                                <input type="hidden" name="slides[<?= $e($sKey) ?>][enabled]" value="0">
+                                <label class="toggle-switch" title="Show or Hide Page">
+                                    <input type="checkbox"
+                                        name="slides[<?= $e($sKey) ?>][enabled]"
+                                        value="1"
+                                        <?= $sEnabled ? 'checked' : '' ?>
+                                        aria-label="Enable <?= $e($def['label']) ?>">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <p class="slide-config-note">Pages that have no data yet are skipped automatically even when enabled.</p>
+                <div class="bg-studio-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>Save Slide Settings</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 <?php if (!$isEmbedded): ?></div><?php endif; ?>

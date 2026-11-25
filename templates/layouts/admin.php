@@ -7,7 +7,7 @@
     <title><?= $e($pageTitle ?? 'Overview') ?> | Masjid Display</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-    <link rel="stylesheet" type="text/css" href="assets/css/admin.css?v=8">
+    <link rel="stylesheet" type="text/css" href="assets/css/admin.css?v=9">
 </head>
 
 <body>
@@ -284,7 +284,7 @@
         </div>
     </div>
 
-    <script src="assets/js/admin.js?v=8"></script>
+    <script src="assets/js/admin.js?v=9"></script>
 </body>
 
 </html>

@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Service\DateTimeService;
 use App\Service\YoutubeEmbedService;
+use App\Support\DisplaySlideConfig;
 use App\Support\DisplayThemeCatalog;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -49,10 +50,11 @@ final class DashboardController extends AbstractController
         $identities = $pdo->query('SELECT * FROM identity')->fetchAll();
         $identityRow = $identities[0] ?? [];
         $currentBackground = DisplayThemeCatalog::normalize($identityRow['background'] ?? null);
-        $currentDisplayMode = strtolower(trim((string) ($identityRow['display_mode'] ?? 'portrait')));
-        if (!in_array($currentDisplayMode, ['portrait', 'landscape'], true)) {
-            $currentDisplayMode = 'portrait';
+        $currentDisplayMode = strtolower(trim((string) ($identityRow['display_mode'] ?? 'auto')));
+        if (!in_array($currentDisplayMode, ['auto', 'portrait', 'landscape'], true)) {
+            $currentDisplayMode = 'auto';
         }
+        $slideConfig = DisplaySlideConfig::parse($identityRow['slide_settings'] ?? null);
         $audioEnabled = (int) ($identityRow['audio_enabled'] ?? 0) === 1;
         $currentAudioPath = ltrim((string) ($identityRow['audio'] ?? 'uploads/audio/audio.mp3'), '/');
 
@@ -94,6 +96,8 @@ final class DashboardController extends AbstractController
                 'themes' => DisplayThemeCatalog::all(),
                 'currentBackground' => $currentBackground,
                 'currentDisplayMode' => $currentDisplayMode,
+                'slideConfig' => $slideConfig,
+                'slideDefinitions' => DisplaySlideConfig::definitions(),
                 'audioEnabled' => $audioEnabled,
                 'currentAudioPath' => $currentAudioPath,
                 'shalatTimeData' => $shalatTimeData,
