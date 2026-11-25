@@ -65,6 +65,12 @@ final class DashboardController extends AbstractController
             'maghrib' => '',
             'isya' => '',
             'jumat' => '',
+            'subuh_duration' => 25,
+            'dzuhur_duration' => 30,
+            'ashar_duration' => 30,
+            'maghrib_duration' => 35,
+            'isya_duration' => 30,
+            'jumat_duration' => 95,
         ];
 
         $khotbahView = $pdo->query('SELECT * FROM khotbah_view WHERE id = 1 LIMIT 1')->fetch() ?: [

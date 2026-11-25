@@ -47,6 +47,120 @@ body {
     overflow-x: hidden;
 }
 
+/* Admin Preloader */
+.admin-preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(212, 175, 55, 0.18), transparent 45%),
+        radial-gradient(circle at 82% 82%, rgba(16, 185, 129, 0.18), transparent 45%),
+        linear-gradient(135deg, var(--emerald-950), var(--emerald-900) 58%, var(--emerald-800));
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.admin-preloader.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.admin-preloader-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 340px;
+}
+
+.admin-preloader-emblem {
+    position: relative;
+    width: 78px;
+    height: 78px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.admin-preloader-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 3px solid rgba(212, 175, 55, 0.22);
+    border-top-color: var(--gold-500);
+    border-right-color: var(--gold-400);
+    animation: adminSpin 1.05s linear infinite;
+}
+
+.admin-preloader-logo {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #ffffff;
+    padding: 4px;
+    border: 2px solid rgba(212, 175, 55, 0.45);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+.admin-preloader-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: #fef3c7;
+    letter-spacing: 0.01em;
+}
+
+.admin-preloader-track {
+    width: 170px;
+    height: 4px;
+    margin-top: 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    overflow: hidden;
+    position: relative;
+}
+
+.admin-preloader-fill {
+    position: absolute;
+    top: 0;
+    left: -45%;
+    width: 45%;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, var(--gold-500), #fde68a, transparent);
+    animation: adminShimmer 1.2s ease-in-out infinite;
+}
+
+.admin-preloader-text {
+    margin-top: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold-400);
+    letter-spacing: 0.04em;
+}
+
+@keyframes adminSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes adminShimmer {
+    0% {
+        left: -45%;
+    }
+    100% {
+        left: 105%;
+    }
+}
+
 a {
     color: inherit;
     text-decoration: none;
@@ -1670,6 +1784,70 @@ body.sidebar-collapsed .nav-item {
     padding: 16px;
 }
 
+.shalat-duration-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+}
+
+.shalat-duration-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.shalat-duration-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.shalat-duration-input {
+    width: 74px;
+    padding: 6px 8px;
+    text-align: center;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.shalat-duration-unit {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.test-modal-bar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.test-modal-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(170px, 1fr));
+    gap: 14px;
+    flex: 1;
+    min-width: 280px;
+}
+
+.test-modal-controls .form-group {
+    margin-bottom: 0;
+}
+
+.test-modal-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 /* Flash Toast Container & Notifications */
 .toast-container {
     position: fixed;
@@ -1854,7 +2032,8 @@ body.sidebar-collapsed .nav-item {
     .form-grid-3,
     .bg-gallery,
     .orientation-picker,
-    .shalat-grid {
+    .shalat-grid,
+    .test-modal-controls {
         grid-template-columns: 1fr;
     }
     .preview-stage {

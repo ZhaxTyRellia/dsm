@@ -153,6 +153,8 @@ final class DisplayController extends AbstractController
             'allowedThemes' => DisplayThemeCatalog::all(),
             'displayMode' => $displayMode,
             'slideConfig' => $slideConfig,
+            'reloadToken' => (int) ($identity['display_reload_token'] ?? 0),
+            'initialTestToken' => (int) (($this->parseTestTrigger($identity['display_test_trigger'] ?? null)['token']) ?? 0),
             'isPreview' => $isPreview,
             'initialScene' => $initialScene,
             'audioPath' => ltrim((string) ($identity['audio'] ?? 'uploads/audio/audio.mp3'), '/'),
@@ -256,7 +258,9 @@ final class DisplayController extends AbstractController
 
     public function displayConfigJson(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $row = $this->pdo()->query('SELECT background, display_mode, slide_settings FROM identity WHERE id = 1 LIMIT 1')->fetch();
+        $row = $this->pdo()->query(
+            'SELECT background, display_mode, slide_settings, display_reload_token, display_test_trigger FROM identity WHERE id = 1 LIMIT 1'
+        )->fetch();
         $bgImage = DisplayThemeCatalog::normalize($row !== false ? ($row['background'] ?? null) : null);
         $theme = DisplayThemeCatalog::findByFile($bgImage);
         $mode = strtolower(trim((string) ($row !== false ? ($row['display_mode'] ?? 'auto') : 'auto')));
@@ -270,6 +274,46 @@ final class DisplayController extends AbstractController
             'theme' => $theme['id'],
             'tone' => $theme['tone'],
             'slides' => DisplaySlideConfig::parse($row !== false ? ($row['slide_settings'] ?? null) : null),
+            'reload_token' => (int) ($row !== false ? ($row['display_reload_token'] ?? 0) : 0),
+            'test_trigger' => $this->parseTestTrigger($row !== false ? ($row['display_test_trigger'] ?? null) : null),
         ]);
+    }
+
+    /**
+     * @return array{token: int, type: string, label: string, duration: int}|null
+     */
+    private function parseTestTrigger(mixed $raw): ?array
+    {
+        if (!is_string($raw) || trim($raw) === '') {
+            return null;
+        }
+
+        $decoded = json_decode($raw, true);
+        if (!is_array($decoded)) {
+            return null;
+        }
+
+        $token = (int) ($decoded['token'] ?? 0);
+        if ($token <= 0) {
+            return null;
+        }
+
+        $type = strtolower(trim((string) ($decoded['type'] ?? '')));
+        if (!in_array($type, ['prayer', 'jumat'], true)) {
+            return null;
+        }
+
+        $duration = max(3, min(60, (int) ($decoded['duration'] ?? 10)));
+        $label = trim((string) ($decoded['label'] ?? ($type === 'jumat' ? "JUM'AT" : 'DZUHUR')));
+        if ($label === '') {
+            $label = $type === 'jumat' ? "JUM'AT" : 'DZUHUR';
+        }
+
+        return [
+            'token' => $token,
+            'type' => $type,
+            'label' => $label,
+            'duration' => $duration,
+        ];
     }
 }

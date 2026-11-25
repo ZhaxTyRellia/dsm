@@ -63,10 +63,14 @@
                     </div>
                 </div>
 
-                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">
+                <div style="display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap; margin-top:8px;">
                     <?php if (!$isEmbedded): ?>
                         <a href="" class="btn btn-outline">Cancel</a>
                     <?php endif; ?>
+                    <button type="button" class="btn btn-gold" data-test-modal-type="jumat" data-test-duration="10">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <span>Test Banner (10s)</span>
+                    </button>
                     <button type="submit" name="submit" class="btn btn-primary">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
                         <span>Save Khotbah Banner</span>

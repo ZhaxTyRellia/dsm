@@ -123,6 +123,8 @@ return static function (App $app): void {
         $group->get('/control/background', [ControlController::class, 'showBackground']);
         $group->post('/control/background', [ControlController::class, 'updateBackground']);
         $group->post('/control/slides', [ControlController::class, 'updateSlides']);
+        $group->post('/control/reload-display', [ControlController::class, 'reloadDisplay']);
+        $group->post('/control/test-modal', [ControlController::class, 'triggerModalTest']);
         $group->get('/app/control/background', [ControlController::class, 'showBackground']);
         $group->get('/app/control/Background', [ControlController::class, 'showBackground']);
         $group->get('/app/control/background.php', [ControlController::class, 'showBackground']);

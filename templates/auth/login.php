@@ -29,6 +29,86 @@
             justify-content: center;
             padding: 20px;
         }
+        .login-preloader {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: radial-gradient(circle at 20% 18%, rgba(212, 175, 55, 0.18), transparent 42%),
+                        radial-gradient(circle at 82% 82%, rgba(16, 185, 129, 0.18), transparent 42%),
+                        linear-gradient(135deg, var(--emerald-950), var(--emerald-900) 58%, var(--emerald-800));
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+        .login-preloader.is-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .login-preloader-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .login-preloader-emblem {
+            position: relative;
+            width: 74px;
+            height: 74px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+        }
+        .login-preloader-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 3px solid rgba(212, 175, 55, 0.22);
+            border-top-color: var(--gold-500);
+            border-right-color: var(--gold-400);
+            animation: loginSpin 1.05s linear infinite;
+        }
+        .login-preloader-svg {
+            width: 50px;
+            height: 50px;
+        }
+        .login-preloader-track {
+            width: 150px;
+            height: 4px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.14);
+            overflow: hidden;
+            position: relative;
+        }
+        .login-preloader-fill {
+            position: absolute;
+            top: 0;
+            left: -45%;
+            width: 45%;
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, transparent, var(--gold-500), #fde68a, transparent);
+            animation: loginShimmer 1.2s ease-in-out infinite;
+        }
+        .login-preloader-text {
+            margin-top: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gold-400);
+            letter-spacing: 0.04em;
+        }
+        @keyframes loginSpin {
+            to { transform: rotate(360deg); }
+        }
+        @keyframes loginShimmer {
+            0% { left: -45%; }
+            100% { left: 105%; }
+        }
         .login-card {
             width: 100%;
             max-width: 410px;
@@ -238,6 +318,28 @@
 </head>
 
 <body>
+    <div id="loginPreloader" class="login-preloader" aria-live="polite" aria-label="Loading">
+        <div class="login-preloader-card">
+            <div class="login-preloader-emblem">
+                <div class="login-preloader-ring" aria-hidden="true"></div>
+                <svg class="login-preloader-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+                    <rect width="64" height="64" rx="16" fill="#062c24"/>
+                    <rect x="3" y="3" width="58" height="58" rx="14" fill="none" stroke="#d4af37" stroke-width="2" opacity="0.65"/>
+                    <path d="M34.5 11.5a6 6 0 1 0 5.7 7.9 4.7 4.7 0 1 1-5.7-7.9z" fill="#d4af37"/>
+                    <path d="M32 20c-6.5 4.2-10 8.8-10 14v2h20v-2c0-5.2-3.5-9.8-10-14z" fill="#d4af37"/>
+                    <rect x="14" y="26" width="5" height="24" rx="1.5" fill="#d4af37"/>
+                    <rect x="45" y="26" width="5" height="24" rx="1.5" fill="#d4af37"/>
+                    <rect x="19" y="36" width="26" height="14" fill="#d4af37"/>
+                    <path d="M28 50v-6.5a4 4 0 0 1 8 0V50z" fill="#062c24"/>
+                    <rect x="11" y="49" width="42" height="3.5" rx="1.75" fill="#d4af37"/>
+                </svg>
+            </div>
+            <div class="login-preloader-track" aria-hidden="true">
+                <div class="login-preloader-fill"></div>
+            </div>
+            <div class="login-preloader-text">Loading...</div>
+        </div>
+    </div>
     <?php
     $toastMessage = '';
     $toastType = 'success';
@@ -321,6 +423,30 @@
     </div>
 
     <script>
+        (function () {
+            var preloader = document.getElementById('loginPreloader');
+            var startedAt = Date.now();
+            var done = false;
+            function hideLoginPreloader() {
+                if (done || !preloader) return;
+                done = true;
+                var delay = Math.max(0, 260 - (Date.now() - startedAt));
+                setTimeout(function () {
+                    preloader.classList.add('is-hidden');
+                    setTimeout(function () {
+                        if (preloader.classList.contains('is-hidden')) {
+                            preloader.style.display = 'none';
+                        }
+                    }, 420);
+                }, delay);
+            }
+            if (document.readyState === 'complete') {
+                hideLoginPreloader();
+            } else {
+                window.addEventListener('load', hideLoginPreloader, { once: true });
+            }
+            setTimeout(hideLoginPreloader, 1400);
+        })();
         function togglePassword() {
             var input = document.getElementById('password');
             input.type = input.type === 'password' ? 'text' : 'password';

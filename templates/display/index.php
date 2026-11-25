@@ -7,7 +7,7 @@
     <title><?= $e(!empty($identity['tittle']) ? $identity['tittle'] : 'Masjid Display') ?></title>
     <meta name="description" content="Masjid Display">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="assets/css/show.css?v=5">
+    <link rel="stylesheet" type="text/css" href="assets/css/show.css?v=6">
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
 </head>
 
@@ -19,6 +19,63 @@ $initialBodyMode = ($displayMode ?? 'auto') === 'landscape' ? 'landscape' : 'por
     data-tone="<?= $e($theme['tone'] ?? 'dark') ?>"
     data-configured-mode="<?= $e($displayMode ?? 'auto') ?>"
     style="background-image: url('assets/img/background/<?= $e($bgImage) ?>?v=<?= time() ?>');">
+
+    <?php if (empty($isPreview)): ?>
+    <!-- PRELOADER -->
+    <div id="displayPreloader" class="display-preloader" aria-live="polite" aria-label="Memuat tampilan masjid">
+        <div class="display-preloader-card">
+            <div class="display-preloader-emblem">
+                <div class="display-preloader-ring" aria-hidden="true"></div>
+                <img src="<?= $e($uploadUrl('identity', $identity['logo'] ?? null)) ?>" alt="Logo Masjid" class="display-preloader-logo">
+            </div>
+            <div class="display-preloader-title"><?= $e(!empty($identity['tittle']) ? $identity['tittle'] : 'Masjid Display') ?></div>
+            <?php if (!empty($identity['name'])): ?>
+                <div class="display-preloader-sub"><?= $e($identity['name']) ?></div>
+            <?php endif; ?>
+            <div class="display-preloader-track" aria-hidden="true">
+                <div class="display-preloader-bar"></div>
+            </div>
+            <div class="display-preloader-status">Memuat tampilan masjid...</div>
+        </div>
+    </div>
+    <script>
+        (function() {
+            var startedAt = Date.now();
+            var hidden = false;
+            var hideTimer = null;
+
+            window.hideDisplayPreloader = function() {
+                if (hidden) return;
+                hidden = true;
+                var el = document.getElementById('displayPreloader');
+                if (!el) return;
+                var elapsed = Date.now() - startedAt;
+                var delay = Math.max(0, 550 - elapsed);
+                setTimeout(function() {
+                    el.classList.add('is-hidden');
+                    setTimeout(function() {
+                        if (el.classList.contains('is-hidden')) {
+                            el.style.display = 'none';
+                        }
+                    }, 600);
+                }, delay);
+            };
+
+            window.showDisplayPreloader = function() {
+                var el = document.getElementById('displayPreloader');
+                if (!el) return;
+                hidden = false;
+                el.style.display = 'flex';
+                requestAnimationFrame(function() {
+                    el.classList.remove('is-hidden');
+                });
+            };
+
+            window.addEventListener('load', window.hideDisplayPreloader, { once: true });
+            hideTimer = setTimeout(window.hideDisplayPreloader, 2500);
+        })();
+    </script>
+    <?php endif; ?>
 
     <div id="display-stage">
     <!-- MODAL PENGINGAT WAKTU SHALAT -->
@@ -469,7 +526,10 @@ $initialBodyMode = ($displayMode ?? 'auto') === 'landscape' ? 'landscape' : 'por
     <script>
         let shalatSchedule = <?= json_encode($shalatTimes ?: null) ?>;
         let prayerEndTime = 0;
-        const prayerDurations = {
+        let testModalEndAt = 0;
+        let testModalInterval = null;
+        const prayerSlotKeys = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya', 'jumat'];
+        const defaultPrayerDurations = {
             subuh: 25,
             dzuhur: 30,
             ashar: 30,
@@ -477,6 +537,20 @@ $initialBodyMode = ($displayMode ?? 'auto') === 'landscape' ? 'landscape' : 'por
             isya: 30,
             jumat: 95
         };
+
+        window.isDisplayTestActive = function() {
+            return testModalEndAt > Date.now();
+        };
+
+        function getPrayerDurationMinutes(key) {
+            const fallback = defaultPrayerDurations[key] || 30;
+            if (!shalatSchedule) return fallback;
+            const raw = parseInt(shalatSchedule[key + '_duration'], 10);
+            if (isNaN(raw) || raw < 1 || raw > 180) {
+                return fallback;
+            }
+            return raw;
+        }
 
         function muteYouTubeVideo() {
             const iframe = document.getElementById("youtube-player");
@@ -553,7 +627,7 @@ $initialBodyMode = ($displayMode ?? 'auto') === 'landscape' ? 'landscape' : 'por
 
                 const startSec = parseSeconds(shalatSchedule[item.key]);
                 if (startSec !== null) {
-                    const dur = (prayerDurations[item.key] || 20) * 60;
+                    const dur = getPrayerDurationMinutes(item.key) * 60;
                     if (currentTime >= startSec && currentTime < startSec + dur) {
                         chip.classList.add('is-active-prayer');
                     }
@@ -580,7 +654,73 @@ $initialBodyMode = ($displayMode ?? 'auto') === 'landscape' ? 'landscape' : 'por
             }
         }
 
+        window.runDisplayModalTest = function(type, label, durationSec) {
+            const sec = Math.max(3, Math.min(60, parseInt(durationSec, 10) || 10));
+            if (testModalInterval) {
+                clearInterval(testModalInterval);
+                testModalInterval = null;
+            }
+
+            testModalEndAt = Date.now() + sec * 1000;
+            const modalReguler = document.getElementById("prayerModal");
+            const modalJumat = document.getElementById("jumatModal");
+            const labelEl = document.getElementById("prayerTimeLabel");
+            const remainEl = document.getElementById("prayerRemainingTimer");
+
+            if (modalReguler) modalReguler.style.display = 'none';
+            if (modalJumat) modalJumat.style.display = 'none';
+
+            muteYouTubeVideo();
+            if (typeof window.syncBgAudioPlayback === 'function') {
+                window.syncBgAudioPlayback();
+            }
+
+            if (type === 'jumat') {
+                if (typeof refreshJumatData === 'function') {
+                    refreshJumatData();
+                }
+                if (modalJumat) modalJumat.style.display = 'flex';
+            } else {
+                if (labelEl) {
+                    labelEl.textContent = String(label || 'DZUHUR').toUpperCase();
+                }
+                if (modalReguler) modalReguler.style.display = 'flex';
+            }
+
+            const tickTest = function() {
+                const remainMs = testModalEndAt - Date.now();
+                if (remainMs <= 0) {
+                    if (testModalInterval) {
+                        clearInterval(testModalInterval);
+                        testModalInterval = null;
+                    }
+                    testModalEndAt = 0;
+                    if (prayerEndTime === 0) {
+                        if (modalReguler) modalReguler.style.display = 'none';
+                        if (modalJumat) modalJumat.style.display = 'none';
+                        unmuteYouTubeVideo();
+                        if (typeof window.syncBgAudioPlayback === 'function') {
+                            window.syncBgAudioPlayback();
+                        }
+                    }
+                    return;
+                }
+                if (remainEl) {
+                    remainEl.textContent = 'Sisa waktu ' + formatCountdown(Math.ceil(remainMs / 1000));
+                }
+            };
+
+            tickTest();
+            testModalInterval = setInterval(tickTest, 250);
+        };
+
         function checkPrayerTime() {
+            updatePrayerStripUI();
+
+            if (testModalEndAt > Date.now()) {
+                return;
+            }
+
             const now = new Date();
             const day = now.getDay();
             const currentTime = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
@@ -605,19 +745,17 @@ $initialBodyMode = ($displayMode ?? 'auto') === 'landscape' ? 'landscape' : 'por
                 }
             }
 
-            updatePrayerStripUI();
-
             if (prayerEndTime > 0 || !shalatSchedule) return;
 
-            for (let key in shalatSchedule) {
-                if (key === 'id') continue;
+            for (let i = 0; i < prayerSlotKeys.length; i++) {
+                const key = prayerSlotKeys[i];
                 if (day === 5 && key === 'dzuhur') continue;
                 if (day !== 5 && key === 'jumat') continue;
                 if (!shalatSchedule[key]) continue;
 
                 const startTime = parseSeconds(shalatSchedule[key]);
                 if (startTime === null) continue;
-                const duration = (prayerDurations[key] || 2) * 60;
+                const duration = getPrayerDurationMinutes(key) * 60;
                 const endTime = startTime + duration;
 
                 if (currentTime >= startTime && currentTime < endTime) {
@@ -671,6 +809,8 @@ $initialBodyMode = ($displayMode ?? 'auto') === 'landscape' ? 'landscape' : 'por
             const initialSceneParam = <?= $initialScene !== null ? (int) $initialScene : 'null' ?>;
             let configuredMode = <?= json_encode((string) ($displayMode ?? 'auto')) ?>;
             let slideConfig = <?= json_encode($slideConfig ?? \App\Support\DisplaySlideConfig::defaults(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+            let currentReloadToken = <?= (int) ($reloadToken ?? 0) ?>;
+            let currentTestToken = <?= (int) ($initialTestToken ?? 0) ?>;
             let manualPreviewScene = initialSceneParam;
             let scenes = [];
             let currentScene = 0;
@@ -795,6 +935,20 @@ $initialBodyMode = ($displayMode ?? 'auto') === 'landscape' ? 'landscape' : 'por
                     .then(function(resp) { return resp.ok ? resp.json() : null; })
                     .then(function(cfg) {
                         if (!cfg) return;
+                        if (typeof cfg.reload_token === 'number' && cfg.reload_token > currentReloadToken) {
+                            currentReloadToken = cfg.reload_token;
+                            if (typeof window.showDisplayPreloader === 'function') {
+                                window.showDisplayPreloader();
+                            }
+                            window.location.reload();
+                            return;
+                        }
+                        if (cfg.test_trigger && typeof cfg.test_trigger.token === 'number' && cfg.test_trigger.token > currentTestToken) {
+                            currentTestToken = cfg.test_trigger.token;
+                            if (typeof window.runDisplayModalTest === 'function') {
+                                window.runDisplayModalTest(cfg.test_trigger.type, cfg.test_trigger.label, cfg.test_trigger.duration);
+                            }
+                        }
                         if (cfg.mode && cfg.mode !== configuredMode) {
                             configuredMode = cfg.mode;
                             applyDisplayLayout();
@@ -835,7 +989,17 @@ $initialBodyMode = ($displayMode ?? 'auto') === 'landscape' ? 'landscape' : 'por
                     startSceneAuto();
                 }
                 if (!isPreviewMode) {
-                    setInterval(pollDisplayConfig, 10000);
+                    setInterval(pollDisplayConfig, 3000);
+                }
+
+                const searchParams = new URLSearchParams(window.location.search);
+                const queryTestType = searchParams.get('test_modal');
+                if ((queryTestType === 'prayer' || queryTestType === 'jumat') && typeof window.runDisplayModalTest === 'function') {
+                    window.runDisplayModalTest(
+                        queryTestType,
+                        searchParams.get('test_label') || 'DZUHUR',
+                        searchParams.get('test_sec') || '10'
+                    );
                 }
             });
 
@@ -993,7 +1157,8 @@ $initialBodyMode = ($displayMode ?? 'auto') === 'landscape' ? 'landscape' : 'por
             let bgAudioSrc = <?= json_encode((string) ($audioPath ?? 'uploads/audio/audio.mp3'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
 
             window.syncBgAudioPlayback = function() {
-                if (!bgAudioEnabled || !bgAudioSrc || prayerEndTime > 0) {
+                const isTest = typeof window.isDisplayTestActive === 'function' && window.isDisplayTestActive();
+                if (!bgAudioEnabled || !bgAudioSrc || prayerEndTime > 0 || isTest) {
                     if (!player.paused) {
                         player.pause();
                     }

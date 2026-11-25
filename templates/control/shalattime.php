@@ -11,6 +11,15 @@ $prayerSlots = [
     'isya' => 'Isya',
 ];
 
+$defaultDurations = [
+    'subuh' => 25,
+    'dzuhur' => 30,
+    'jumat' => 95,
+    'ashar' => 30,
+    'maghrib' => 35,
+    'isya' => 30,
+];
+
 $parse24h = static function (string $raw): array {
     $parts = explode(':', trim($raw));
     $hh = max(0, min(23, (int) ($parts[0] ?? 0)));
@@ -50,6 +59,10 @@ $parse24h = static function (string $raw): array {
                         <?php
                         [$hh, $mm, $ss] = $parse24h((string) ($shalatRow[$slotKey] ?? '00:00:00'));
                         $formatted24h = "{$hh}:{$mm}:{$ss}";
+                        $durVal = (int) ($shalatRow[$slotKey . '_duration'] ?? $defaultDurations[$slotKey]);
+                        if ($durVal < 1 || $durVal > 180) {
+                            $durVal = $defaultDurations[$slotKey];
+                        }
                         ?>
                         <div class="shalat-item">
                             <label class="form-label"><?= $e($slotLabel) ?></label>
@@ -76,6 +89,21 @@ $parse24h = static function (string $raw): array {
                                     <?php endfor; ?>
                                 </select>
                             </div>
+                            <div class="shalat-duration-row">
+                                <label class="shalat-duration-label" for="dur_<?= $e($slotKey) ?>">Reminder Duration</label>
+                                <div class="shalat-duration-field">
+                                    <input type="number"
+                                        id="dur_<?= $e($slotKey) ?>"
+                                        name="shalat_duration[<?= $e($slotKey) ?>]"
+                                        class="form-control shalat-duration-input"
+                                        min="1"
+                                        max="180"
+                                        step="1"
+                                        required
+                                        value="<?= (int) $durVal ?>">
+                                    <span class="shalat-duration-unit">min</span>
+                                </div>
+                            </div>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -90,6 +118,62 @@ $parse24h = static function (string $raw): array {
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <div class="card-header">
+            <div class="card-header-left">
+                <div class="card-badge-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                </div>
+                <div>
+                    <h2 class="card-title">Test Reminder on Display</h2>
+                    <p class="card-subtitle">Show the prayer reminder or Friday sermon banner on the live display for a few seconds</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="test-modal-bar">
+                <div class="test-modal-controls">
+                    <div class="form-group">
+                        <label class="form-label" for="testPrayerNameSelect">Prayer Label (Regular Test)</label>
+                        <select id="testPrayerNameSelect" class="form-control">
+                            <option value="SUBUH">Subuh</option>
+                            <option value="DZUHUR" selected>Dzuhur</option>
+                            <option value="ASHAR">Ashar</option>
+                            <option value="MAGHRIB">Maghrib</option>
+                            <option value="ISYA">Isya</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="testModalDurationSelect">Test Duration</label>
+                        <select id="testModalDurationSelect" class="form-control">
+                            <option value="5">5 seconds</option>
+                            <option value="10" selected>10 seconds</option>
+                            <option value="15">15 seconds</option>
+                            <option value="30">30 seconds</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="test-modal-actions">
+                    <button type="button"
+                        class="btn btn-primary"
+                        data-test-modal-type="prayer"
+                        data-prayer-select="testPrayerNameSelect"
+                        data-duration-select="testModalDurationSelect">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <span>Test Prayer Reminder</span>
+                    </button>
+                    <button type="button"
+                        class="btn btn-gold"
+                        data-test-modal-type="jumat"
+                        data-duration-select="testModalDurationSelect">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <span>Test Khotbah Jum'at Banner</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 <?php if (!$isEmbedded): ?></div><?php endif; ?>

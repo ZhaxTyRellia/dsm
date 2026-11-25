@@ -7,7 +7,7 @@
     <title><?= $e($pageTitle ?? 'Overview') ?> | Masjid Display</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-    <link rel="stylesheet" type="text/css" href="assets/css/admin.css?v=9">
+    <link rel="stylesheet" type="text/css" href="assets/css/admin.css?v=11">
 </head>
 
 <body>
@@ -17,6 +17,19 @@
     $brandSub = !empty($brandIdentity['name']) ? $brandIdentity['name'] : 'Management Panel';
     $currentNav = (string) ($activeNav ?? 'dashboard');
     ?>
+    <div id="adminPreloader" class="admin-preloader" aria-live="polite" aria-label="Loading panel">
+        <div class="admin-preloader-card">
+            <div class="admin-preloader-emblem">
+                <div class="admin-preloader-ring" aria-hidden="true"></div>
+                <img src="<?= $e($uploadUrl('identity', $brandLogo)) ?>" alt="Logo" class="admin-preloader-logo">
+            </div>
+            <div class="admin-preloader-title"><?= $e($brandTitle) ?></div>
+            <div class="admin-preloader-track" aria-hidden="true">
+                <div class="admin-preloader-fill"></div>
+            </div>
+            <div class="admin-preloader-text">Loading...</div>
+        </div>
+    </div>
     <div class="app-shell">
         <aside class="sidebar" id="appSidebar" aria-label="Main Navigation">
             <a href="#overview" class="sidebar-brand" data-section="overview" data-section-title="Overview">
@@ -141,6 +154,10 @@
                         <span class="live-dot"></span>
                         <span id="topbarLiveClock">Loading time...</span>
                     </div>
+                    <button type="button" class="btn btn-outline topbar-display-btn" data-remote-reload-display title="Refresh Live Display Screen">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        <span>Reload Display</span>
+                    </button>
                     <a href="display" class="btn btn-gold topbar-display-btn" title="Open Live Display">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="6" y="2" width="12" height="20" rx="2"></rect>
@@ -284,7 +301,7 @@
         </div>
     </div>
 
-    <script src="assets/js/admin.js?v=9"></script>
+    <script src="assets/js/admin.js?v=12"></script>
 </body>
 
 </html>

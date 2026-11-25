@@ -109,6 +109,130 @@ body {
   color: var(--text-main);
 }
 
+/* =========================================================
+ * DISPLAY PRELOADER
+ * ========================================================= */
+.display-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(20px, 4vw, 48px);
+  background:
+    radial-gradient(circle at 22% 20%, rgba(212, 175, 55, 0.2), transparent 46%),
+    radial-gradient(circle at 80% 82%, rgba(16, 185, 129, 0.2), transparent 46%),
+    linear-gradient(135deg, #041d17 0%, #062c24 55%, #0c4438 100%);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.55s ease, visibility 0.55s ease;
+}
+
+.display-preloader.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.display-preloader-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: min(90vw, 560px);
+}
+
+.display-preloader-emblem {
+  position: relative;
+  width: clamp(92px, 12vmin, 148px);
+  height: clamp(92px, 12vmin, 148px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: clamp(18px, 2.8vmin, 28px);
+}
+
+.display-preloader-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid rgba(212, 175, 55, 0.22);
+  border-top-color: #d4af37;
+  border-right-color: #f3d26b;
+  animation: dsmSpin 1.15s linear infinite;
+}
+
+.display-preloader-logo {
+  width: 74%;
+  height: 74%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ffffff;
+  padding: 5px;
+  border: 2px solid rgba(212, 175, 55, 0.45);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.display-preloader-title {
+  font-size: clamp(22px, 3.2vmin, 38px);
+  font-weight: 800;
+  color: #fef3c7;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+}
+
+.display-preloader-sub {
+  margin-top: 6px;
+  font-size: clamp(13px, 1.8vmin, 19px);
+  font-weight: 500;
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.display-preloader-track {
+  width: clamp(180px, 28vmin, 320px);
+  height: 5px;
+  margin-top: clamp(20px, 3vmin, 30px);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+  position: relative;
+}
+
+.display-preloader-bar {
+  position: absolute;
+  top: 0;
+  left: -45%;
+  width: 45%;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #d4af37, #fde68a, transparent);
+  animation: dsmShimmer 1.3s ease-in-out infinite;
+}
+
+.display-preloader-status {
+  margin-top: 12px;
+  font-size: clamp(12px, 1.5vmin, 16px);
+  font-weight: 600;
+  color: #e5c663;
+  letter-spacing: 0.03em;
+}
+
+@keyframes dsmSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dsmShimmer {
+  0% {
+    left: -45%;
+  }
+  100% {
+    left: 105%;
+  }
+}
+
 #display-stage {
   position: relative;
   width: 100%;

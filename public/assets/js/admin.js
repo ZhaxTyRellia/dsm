@@ -677,6 +677,123 @@
         });
     }
 
+    function initRemoteReloadButtons() {
+        document.querySelectorAll('[data-remote-reload-display]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                btn.disabled = true;
+                fetch('control/reload-display', { method: 'POST' })
+                    .then(function (resp) {
+                        if (!resp.ok) throw new Error('Unable to send display refresh signal.');
+                        return resp.json();
+                    })
+                    .then(function (data) {
+                        if (!data || !data.success) {
+                            throw new Error((data && data.message) || 'Unable to send display refresh signal.');
+                        }
+                        window.showToast('success', data.message);
+                    })
+                    .catch(function (err) {
+                        window.showToast('error', err.message || 'Unable to send display refresh signal.');
+                    })
+                    .finally(function () {
+                        btn.disabled = false;
+                    });
+            });
+        });
+    }
+
+    function initTestModalButtons() {
+        document.querySelectorAll('[data-test-modal-type]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var type = btn.getAttribute('data-test-modal-type') || 'prayer';
+                var prayerSelectId = btn.getAttribute('data-prayer-select');
+                var durationSelectId = btn.getAttribute('data-duration-select');
+                var prayerEl = prayerSelectId ? document.getElementById(prayerSelectId) : null;
+                var durationEl = durationSelectId ? document.getElementById(durationSelectId) : null;
+                var duration = (durationEl && durationEl.value) || btn.getAttribute('data-test-duration') || '10';
+
+                var params = new URLSearchParams();
+                params.append('type', type);
+                params.append('duration', duration);
+                if (type === 'prayer' && prayerEl && prayerEl.value) {
+                    params.append('prayer_name', prayerEl.value);
+                }
+
+                btn.disabled = true;
+                fetch('control/test-modal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                    body: params.toString()
+                })
+                    .then(function (resp) {
+                        return resp.json().then(function (data) {
+                            if (!resp.ok || !data || !data.success) {
+                                throw new Error((data && data.message) || 'Unable to send test signal to the live display.');
+                            }
+                            return data;
+                        });
+                    })
+                    .then(function (data) {
+                        window.showToast('success', data.message);
+                    })
+                    .catch(function (err) {
+                        window.showToast('error', err.message || 'Unable to send test signal to the live display.');
+                    })
+                    .finally(function () {
+                        btn.disabled = false;
+                    });
+            });
+        });
+    }
+
+    function initPreloader() {
+        var preloader = document.getElementById('adminPreloader');
+        var startedAt = Date.now();
+        var hidden = false;
+
+        window.hideAdminPreloader = function () {
+            if (hidden || !preloader) return;
+            hidden = true;
+            var elapsed = Date.now() - startedAt;
+            var delay = Math.max(0, 300 - elapsed);
+            setTimeout(function () {
+                preloader.classList.add('is-hidden');
+                setTimeout(function () {
+                    if (preloader.classList.contains('is-hidden')) {
+                        preloader.style.display = 'none';
+                    }
+                }, 420);
+            }, delay);
+        };
+
+        window.showAdminPreloader = function () {
+            if (!preloader) return;
+            hidden = false;
+            preloader.style.display = 'flex';
+            requestAnimationFrame(function () {
+                preloader.classList.remove('is-hidden');
+            });
+        };
+
+        if (document.readyState === 'complete') {
+            window.hideAdminPreloader();
+        } else {
+            window.addEventListener('load', window.hideAdminPreloader, { once: true });
+        }
+        setTimeout(window.hideAdminPreloader, 1800);
+
+        document.addEventListener('submit', function (event) {
+            var form = event.target;
+            if (!form || form.tagName !== 'FORM') return;
+            if (event.defaultPrevented) return;
+            if ((form.getAttribute('target') || '') === '_blank') return;
+            if (form.hasAttribute('data-no-preloader')) return;
+            if ((form.getAttribute('method') || 'get').toLowerCase() !== 'post') return;
+            window.showAdminPreloader();
+        });
+    }
+
+    initPreloader();
     initSectionNavigation();
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -690,5 +807,7 @@
         initDisplayPreview();
         initInformationControls();
         initTime24hPickers();
+        initRemoteReloadButtons();
+        initTestModalButtons();
     });
 })();

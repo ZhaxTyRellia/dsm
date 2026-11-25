@@ -147,7 +147,7 @@ $slidesDefs = $slideDefinitions ?? \App\Support\DisplaySlideConfig::definitions(
                                 <option value="4">Susunan Pengurus</option>
                                 <option value="5">Imam Rawatib</option>
                             </select>
-                            <button type="button" class="btn btn-outline btn-sm" id="reloadPreviewBtn" title="Reload Live Preview">
+                            <button type="button" class="btn btn-outline btn-sm" id="reloadPreviewBtn" data-remote-reload-display title="Reload Preview &amp; Live Display">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
                                 <span>Reload</span>
                             </button>

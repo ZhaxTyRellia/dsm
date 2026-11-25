@@ -332,8 +332,8 @@ PEM;
 
         if ((int) $pdo->query('SELECT COUNT(*) FROM shalattime')->fetchColumn() === 0) {
             $pdo->exec(
-                "INSERT INTO shalattime (id, subuh, dzuhur, ashar, maghrib, isya, jumat)
-                 VALUES (1, '04:06:00', '11:43:00', '15:06:00', '17:56:00', '19:10:00', '11:43:00')"
+                "INSERT INTO shalattime (id, subuh, dzuhur, ashar, maghrib, isya, jumat, subuh_duration, dzuhur_duration, ashar_duration, maghrib_duration, isya_duration, jumat_duration)
+                 VALUES (1, '04:06:00', '11:43:00', '15:06:00', '17:56:00', '19:10:00', '11:43:00', 25, 30, 30, 35, 30, 95)"
             );
         }
     }
@@ -866,6 +866,8 @@ HTML;
                 audio_enabled INTEGER NOT NULL DEFAULT 0,
                 marquee TEXT NOT NULL DEFAULT '',
                 slide_settings TEXT NOT NULL DEFAULT '',
+                display_reload_token INTEGER NOT NULL DEFAULT 0,
+                display_test_trigger TEXT NOT NULL DEFAULT '',
                 activate_key TEXT NOT NULL DEFAULT ''
             )",
             "CREATE TABLE IF NOT EXISTS youtube (
@@ -943,7 +945,13 @@ HTML;
                 ashar TEXT NOT NULL DEFAULT '15:06:00',
                 maghrib TEXT NOT NULL DEFAULT '17:56:00',
                 isya TEXT NOT NULL DEFAULT '19:10:00',
-                jumat TEXT NOT NULL DEFAULT '11:43:00'
+                jumat TEXT NOT NULL DEFAULT '11:43:00',
+                subuh_duration INTEGER NOT NULL DEFAULT 25,
+                dzuhur_duration INTEGER NOT NULL DEFAULT 30,
+                ashar_duration INTEGER NOT NULL DEFAULT 30,
+                maghrib_duration INTEGER NOT NULL DEFAULT 35,
+                isya_duration INTEGER NOT NULL DEFAULT 30,
+                jumat_duration INTEGER NOT NULL DEFAULT 95
             )",
             "CREATE TABLE IF NOT EXISTS khotbah_view (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -962,6 +970,8 @@ HTML;
         $hasDisplayModeCol = false;
         $hasAudioEnabledCol = false;
         $hasSlideSettingsCol = false;
+        $hasReloadTokenCol = false;
+        $hasTestTriggerCol = false;
         foreach ($identityCols as $col) {
             $colName = (string) ($col['name'] ?? '');
             if ($colName === 'activate_key') {
@@ -972,6 +982,10 @@ HTML;
                 $hasAudioEnabledCol = true;
             } elseif ($colName === 'slide_settings') {
                 $hasSlideSettingsCol = true;
+            } elseif ($colName === 'display_reload_token') {
+                $hasReloadTokenCol = true;
+            } elseif ($colName === 'display_test_trigger') {
+                $hasTestTriggerCol = true;
             }
         }
         if (!$hasActivateKeyCol) {
@@ -985,6 +999,31 @@ HTML;
         }
         if (!$hasSlideSettingsCol) {
             $pdo->exec("ALTER TABLE identity ADD COLUMN slide_settings TEXT NOT NULL DEFAULT ''");
+        }
+        if (!$hasReloadTokenCol) {
+            $pdo->exec("ALTER TABLE identity ADD COLUMN display_reload_token INTEGER NOT NULL DEFAULT 0");
+        }
+        if (!$hasTestTriggerCol) {
+            $pdo->exec("ALTER TABLE identity ADD COLUMN display_test_trigger TEXT NOT NULL DEFAULT ''");
+        }
+
+        $shalatCols = $pdo->query('PRAGMA table_info(shalattime)')->fetchAll();
+        $existingShalatCols = [];
+        foreach ($shalatCols as $col) {
+            $existingShalatCols[(string) ($col['name'] ?? '')] = true;
+        }
+        $shalatDurationDefaults = [
+            'subuh_duration' => 25,
+            'dzuhur_duration' => 30,
+            'ashar_duration' => 30,
+            'maghrib_duration' => 35,
+            'isya_duration' => 30,
+            'jumat_duration' => 95,
+        ];
+        foreach ($shalatDurationDefaults as $durCol => $durDefault) {
+            if (!isset($existingShalatCols[$durCol])) {
+                $pdo->exec("ALTER TABLE shalattime ADD COLUMN {$durCol} INTEGER NOT NULL DEFAULT {$durDefault}");
+            }
         }
 
         $identityRow = $pdo->query('SELECT background, slide_settings FROM identity WHERE id = 1 LIMIT 1')->fetch();

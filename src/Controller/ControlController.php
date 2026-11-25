@@ -18,6 +18,15 @@ use Throwable;
 
 final class ControlController extends AbstractController
 {
+    private const DEFAULT_PRAYER_DURATIONS = [
+        'subuh' => 25,
+        'dzuhur' => 30,
+        'ashar' => 30,
+        'maghrib' => 35,
+        'isya' => 30,
+        'jumat' => 95,
+    ];
+
     /** @var callable */
     private $shutdownRunner;
 
@@ -182,6 +191,28 @@ final class ControlController extends AbstractController
         return $this->redirect($response, '/');
     }
 
+    public function reloadDisplay(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $this->assertActivated($request);
+
+        try {
+            $pdo = $this->pdo();
+            $pdo->exec('UPDATE identity SET display_reload_token = COALESCE(display_reload_token, 0) + 1 WHERE id = 1');
+            $newToken = (int) ($pdo->query('SELECT display_reload_token FROM identity WHERE id = 1 LIMIT 1')->fetchColumn() ?: 0);
+
+            return $this->json($response, [
+                'success' => true,
+                'reload_token' => $newToken,
+                'message' => 'Live display refresh signal sent.',
+            ]);
+        } catch (Throwable) {
+            return $this->json($response, [
+                'success' => false,
+                'message' => 'Unable to send display refresh signal.',
+            ], 500);
+        }
+    }
+
     public function showAudio(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $row = $this->pdo()->query('SELECT audio, audio_enabled FROM identity WHERE id = 1 LIMIT 1')->fetch();
@@ -315,6 +346,12 @@ final class ControlController extends AbstractController
             'maghrib' => '',
             'isya' => '',
             'jumat' => '',
+            'subuh_duration' => self::DEFAULT_PRAYER_DURATIONS['subuh'],
+            'dzuhur_duration' => self::DEFAULT_PRAYER_DURATIONS['dzuhur'],
+            'ashar_duration' => self::DEFAULT_PRAYER_DURATIONS['ashar'],
+            'maghrib_duration' => self::DEFAULT_PRAYER_DURATIONS['maghrib'],
+            'isya_duration' => self::DEFAULT_PRAYER_DURATIONS['isya'],
+            'jumat_duration' => self::DEFAULT_PRAYER_DURATIONS['jumat'],
         ];
 
         return $this->renderAdmin(
@@ -361,27 +398,155 @@ final class ControlController extends AbstractController
             return $this->redirect($response, '/');
         }
 
+        $pdo = $this->pdo();
+        $existingRow = $pdo->query('SELECT * FROM shalattime WHERE id = 1 LIMIT 1')->fetch();
+        $durationsInput = isset($body['shalat_duration']) && is_array($body['shalat_duration'])
+            ? $body['shalat_duration']
+            : null;
+
+        $durations = [];
+        foreach (self::DEFAULT_PRAYER_DURATIONS as $slot => $defaultMin) {
+            if ($durationsInput !== null && array_key_exists($slot, $durationsInput)) {
+                $rawDur = trim((string) $durationsInput[$slot]);
+                if (preg_match('/^\d+$/', $rawDur) !== 1) {
+                    $this->flash('error', 'Reminder duration must be between 1 and 180 minutes.');
+
+                    return $this->redirect($response, '/');
+                }
+                $parsedDur = (int) $rawDur;
+                if ($parsedDur < 1 || $parsedDur > 180) {
+                    $this->flash('error', 'Reminder duration must be between 1 and 180 minutes.');
+
+                    return $this->redirect($response, '/');
+                }
+                $durations[$slot] = $parsedDur;
+            } else {
+                $existingVal = is_array($existingRow) ? (int) ($existingRow[$slot . '_duration'] ?? $defaultMin) : $defaultMin;
+                $durations[$slot] = ($existingVal >= 1 && $existingVal <= 180) ? $existingVal : $defaultMin;
+            }
+        }
+
         try {
-            $pdo = $this->pdo();
-            $exists = (int) $pdo->query('SELECT COUNT(*) FROM shalattime WHERE id = 1')->fetchColumn() > 0;
-            if ($exists) {
+            if ($existingRow !== false) {
                 $stmt = $pdo->prepare(
-                    'UPDATE shalattime SET subuh = ?, dzuhur = ?, ashar = ?, maghrib = ?, isya = ?, jumat = ? WHERE id = ?'
+                    'UPDATE shalattime SET subuh = ?, dzuhur = ?, ashar = ?, maghrib = ?, isya = ?, jumat = ?, '
+                    . 'subuh_duration = ?, dzuhur_duration = ?, ashar_duration = ?, maghrib_duration = ?, isya_duration = ?, jumat_duration = ? '
+                    . 'WHERE id = ?'
                 );
-                $stmt->execute([$subuh, $dzuhur, $ashar, $maghrib, $isya, $jumat, 1]);
+                $stmt->execute([
+                    $subuh,
+                    $dzuhur,
+                    $ashar,
+                    $maghrib,
+                    $isya,
+                    $jumat,
+                    $durations['subuh'],
+                    $durations['dzuhur'],
+                    $durations['ashar'],
+                    $durations['maghrib'],
+                    $durations['isya'],
+                    $durations['jumat'],
+                    1,
+                ]);
             } else {
                 $stmt = $pdo->prepare(
-                    'INSERT INTO shalattime (id, subuh, dzuhur, ashar, maghrib, isya, jumat) VALUES (?, ?, ?, ?, ?, ?, ?)'
+                    'INSERT INTO shalattime (id, subuh, dzuhur, ashar, maghrib, isya, jumat, '
+                    . 'subuh_duration, dzuhur_duration, ashar_duration, maghrib_duration, isya_duration, jumat_duration) '
+                    . 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
                 );
-                $stmt->execute([1, $subuh, $dzuhur, $ashar, $maghrib, $isya, $jumat]);
+                $stmt->execute([
+                    1,
+                    $subuh,
+                    $dzuhur,
+                    $ashar,
+                    $maghrib,
+                    $isya,
+                    $jumat,
+                    $durations['subuh'],
+                    $durations['dzuhur'],
+                    $durations['ashar'],
+                    $durations['maghrib'],
+                    $durations['isya'],
+                    $durations['jumat'],
+                ]);
             }
 
-            $this->flash('success', 'Prayer times updated successfully.');
+            $this->flash('success', 'Prayer times and reminder durations updated successfully.');
         } catch (Throwable) {
             $this->flash('error', 'Unable to save prayer times.');
         }
 
         return $this->redirect($response, '/');
+    }
+
+    public function triggerModalTest(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $this->assertActivated($request);
+        $body = $this->body($request);
+
+        $type = strtolower(trim((string) ($body['type'] ?? 'prayer')));
+        if (!in_array($type, ['prayer', 'jumat'], true)) {
+            return $this->json($response, [
+                'success' => false,
+                'message' => 'Invalid test display type.',
+            ], 400);
+        }
+
+        $durationRaw = trim((string) ($body['duration'] ?? '10'));
+        if (preg_match('/^\d+$/', $durationRaw) !== 1) {
+            return $this->json($response, [
+                'success' => false,
+                'message' => 'Test duration must be between 3 and 60 seconds.',
+            ], 400);
+        }
+        $durationSec = (int) $durationRaw;
+        if ($durationSec < 3 || $durationSec > 60) {
+            return $this->json($response, [
+                'success' => false,
+                'message' => 'Test duration must be between 3 and 60 seconds.',
+            ], 400);
+        }
+
+        if ($type === 'jumat') {
+            $label = "JUM'AT";
+        } else {
+            $prayerName = strtoupper(trim((string) ($body['prayer_name'] ?? 'DZUHUR')));
+            $allowedPrayers = ['SUBUH', 'DZUHUR', 'ASHAR', 'MAGHRIB', 'ISYA'];
+            $label = in_array($prayerName, $allowedPrayers, true) ? $prayerName : 'DZUHUR';
+        }
+
+        try {
+            $pdo = $this->pdo();
+            $rawPrev = (string) ($pdo->query('SELECT display_test_trigger FROM identity WHERE id = 1 LIMIT 1')->fetchColumn() ?: '');
+            $prevData = json_decode($rawPrev, true);
+            $prevToken = is_array($prevData) ? max(0, (int) ($prevData['token'] ?? 0)) : 0;
+            $nextToken = $prevToken + 1;
+
+            $payload = [
+                'token' => $nextToken,
+                'type' => $type,
+                'label' => $label,
+                'duration' => $durationSec,
+            ];
+
+            $stmt = $pdo->prepare('UPDATE identity SET display_test_trigger = ? WHERE id = 1');
+            $stmt->execute([(string) json_encode($payload, JSON_UNESCAPED_UNICODE)]);
+
+            $message = $type === 'jumat'
+                ? "Friday banner test sent to live display for {$durationSec} seconds."
+                : "Prayer reminder ({$label}) test sent to live display for {$durationSec} seconds.";
+
+            return $this->json($response, [
+                'success' => true,
+                'trigger' => $payload,
+                'message' => $message,
+            ]);
+        } catch (Throwable) {
+            return $this->json($response, [
+                'success' => false,
+                'message' => 'Unable to send test signal to the live display.',
+            ], 500);
+        }
     }
 
     public function showKhotbahDay(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
