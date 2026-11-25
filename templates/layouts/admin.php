@@ -7,7 +7,7 @@
     <title><?= $e($pageTitle ?? 'Overview') ?> | Masjid Display</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
-    <link rel="stylesheet" type="text/css" href="assets/css/admin.css?v=3">
+    <link rel="stylesheet" type="text/css" href="assets/css/admin.css?v=6">
 </head>
 
 <body>
@@ -34,9 +34,9 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
                         <span>Overview</span>
                     </a>
-                    <a href="#video" class="nav-item" data-section="video" data-section-title="Video Banner">
+                    <a href="#video" class="nav-item" data-section="video" data-section-title="Video Ads">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-                        <span>Video Banner</span>
+                        <span>Video Ads</span>
                     </a>
                     <a href="#keuangan" class="nav-item" data-section="keuangan" data-section-title="Laporan Kas Masjid">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
@@ -70,9 +70,9 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
                         <span>Masjid Profile</span>
                     </a>
-                    <a href="#background" class="nav-item <?= $currentNav === 'control-background' ? 'active' : '' ?>" data-section="background" data-section-title="Display Background">
+                    <a href="#background" class="nav-item <?= $currentNav === 'control-background' ? 'active' : '' ?>" data-section="background" data-section-title="Display Theme">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/></svg>
-                        <span>Display Background</span>
+                        <span>Display Theme</span>
                     </a>
                     <a href="#audio" class="nav-item <?= $currentNav === 'control-audio' ? 'active' : '' ?>" data-section="audio" data-section-title="Background Music">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
@@ -90,7 +90,7 @@
 
                 <div class="nav-group">
                     <div class="nav-group-label">System</div>
-                    <a href="potrait" class="nav-item nav-cta" title="Open Live Display">
+                    <a href="display" class="nav-item nav-cta" title="Open Live Display">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                         <span>Open Live Display</span>
                     </a>
@@ -133,7 +133,7 @@
                         <span class="live-dot"></span>
                         <span id="topbarLiveClock">Loading time...</span>
                     </div>
-                    <a href="potrait" class="btn btn-gold topbar-display-btn" title="Open Live Display">
+                    <a href="display" class="btn btn-gold topbar-display-btn" title="Open Live Display">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="6" y="2" width="12" height="20" rx="2"></rect>
                         </svg>
@@ -217,7 +217,7 @@
         </div>
     </div>
 
-    <script src="assets/js/admin.js?v=3"></script>
+    <script src="assets/js/admin.js?v=6"></script>
 </body>
 
 </html>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="ia-bg" cx="50%" cy="24%" r="85%">
+      <stop offset="0%" stop-color="#fdfbf6"/>
+      <stop offset="55%" stop-color="#f3ecde"/>
+      <stop offset="100%" stop-color="#e5dac3"/>
+    </radialGradient>
+    <linearGradient id="ia-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d4af37"/>
+      <stop offset="55%" stop-color="#b48a28"/>
+      <stop offset="100%" stop-color="#876314"/>
+    </linearGradient>
+    <pattern id="ia-tile" width="128" height="128" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="#9b7924" stroke-opacity="0.16" stroke-width="1.3">
+        <polygon points="64,10 82,46 118,64 82,82 64,118 46,82 10,64 46,46"/>
+        <circle cx="64" cy="64" r="24" stroke="#0c4438" stroke-opacity="0.1"/>
+        <path d="M0 64 H128 M64 0 V128" stroke-opacity="0.06"/>
+      </g>
+    </pattern>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#ia-bg)"/>
+  <rect width="1080" height="1920" fill="url(#ia-tile)"/>
+  <path d="M120 1920 L120 590 Q120 260 540 120 Q960 260 960 590 L960 1920" fill="none" stroke="url(#ia-gold)" stroke-opacity="0.28" stroke-width="4"/>
+  <rect x="28" y="28" width="1024" height="1864" rx="28" fill="none" stroke="url(#ia-gold)" stroke-opacity="0.55" stroke-width="3"/>
+  <rect x="42" y="42" width="996" height="1836" rx="20" fill="none" stroke="#0c4438" stroke-opacity="0.18" stroke-width="1.5"/>
+  <g stroke="url(#ia-gold)" stroke-width="2.5" fill="none" opacity="0.7">
+    <path d="M28 124 Q124 124 124 28 M1052 124 Q956 124 956 28"/>
+    <path d="M28 1796 Q124 1796 124 1892 M1052 1796 Q956 1796 956 1892"/>
+  </g>
+</svg>

@@ -29,10 +29,13 @@
     }
 </style>
 
+<?php
+$ytMute = !empty($isPreview) ? '1' : '0';
+?>
 <?php if (!empty($embedSrc)): ?>
     <div class="video-responsive">
         <iframe id="youtube-player"
-            src="<?= $e($embedSrc) ?>?autoplay=1&mute=0&controls=0&playsinline=1&rel=0&modestbranding=1&enablejsapi=1"
+            src="<?= $e($embedSrc) ?>?autoplay=1&mute=<?= $ytMute ?>&controls=0&playsinline=1&rel=0&modestbranding=1&enablejsapi=1"
             allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
             referrerpolicy="strict-origin-when-cross-origin">
         </iframe>
@@ -45,10 +48,11 @@
 
 <script>
     var videoSource = <?= json_encode((string) ($embedSrc ?? ''), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+    var videoMute = <?= json_encode($ytMute) ?>;
 
     function nextVideo() {
         var player = document.getElementById("youtube-player");
         if (!player || !videoSource) return;
-        player.src = videoSource + "?autoplay=1&mute=0&controls=0&playsinline=1&rel=0&modestbranding=1&enablejsapi=1";
+        player.src = videoSource + "?autoplay=1&mute=" + videoMute + "&controls=0&playsinline=1&rel=0&modestbranding=1&enablejsapi=1";
     }
 </script>

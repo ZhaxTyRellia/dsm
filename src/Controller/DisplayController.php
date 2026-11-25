@@ -8,12 +8,15 @@ use App\Core\Kernel;
 use App\Service\DateTimeService;
 use App\Service\FileUploadService;
 use App\Service\YoutubeEmbedService;
+use App\Support\DisplayThemeCatalog;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Views\PhpRenderer;
 
 final class DisplayController extends AbstractController
 {
+    private const ALLOWED_MODES = ['portrait', 'landscape'];
+
     private const MONTHS = [
         'Januari',
         'Februari',
@@ -40,7 +43,7 @@ final class DisplayController extends AbstractController
         parent::__construct($kernel, $view, $basePath);
     }
 
-    public function portrait(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    public function index(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $pdo = $this->pdo();
 
@@ -50,10 +53,38 @@ final class DisplayController extends AbstractController
                 'logo' => 'default.png',
                 'tittle' => 'Title',
                 'name' => 'Name',
-                'background' => 'bg1.png',
+                'background' => DisplayThemeCatalog::DEFAULT_FILE,
+                'display_mode' => 'portrait',
                 'audio' => 'uploads/audio/audio.mp3',
+                'audio_enabled' => 0,
                 'marquee' => '',
             ];
+        }
+
+        $query = $request->getQueryParams();
+
+        $bgImage = DisplayThemeCatalog::normalize($identity['background'] ?? null);
+        if (isset($query['bg']) && DisplayThemeCatalog::isValidFile((string) $query['bg'])) {
+            $bgImage = (string) $query['bg'];
+        }
+        $theme = DisplayThemeCatalog::findByFile($bgImage);
+
+        $displayMode = strtolower(trim((string) ($identity['display_mode'] ?? 'portrait')));
+        if (!in_array($displayMode, self::ALLOWED_MODES, true)) {
+            $displayMode = 'portrait';
+        }
+        if (isset($query['mode'])) {
+            $requestedMode = strtolower(trim((string) $query['mode']));
+            if (in_array($requestedMode, self::ALLOWED_MODES, true)) {
+                $displayMode = $requestedMode;
+            }
+        }
+
+        $isPreview = isset($query['preview']) && (string) $query['preview'] === '1';
+
+        $initialScene = null;
+        if (isset($query['scene']) && is_numeric($query['scene'])) {
+            $initialScene = max(0, min(5, (int) $query['scene']));
         }
 
         $shalatTimes = $pdo->query('SELECT * FROM shalattime WHERE id = 1 LIMIT 1')->fetch() ?: [];
@@ -110,11 +141,17 @@ final class DisplayController extends AbstractController
         $bannerRow = $pdo->query('SELECT * FROM banner WHERE id = 1 LIMIT 1')->fetch();
         $limit = $bannerRow !== false ? (int) ($bannerRow['active_slides'] ?? 0) : 0;
 
-        return $this->render($response, 'display/portrait.php', [
+        return $this->render($response, 'display/index.php', [
             'identity' => $identity,
             'profil' => $identity,
-            'bgImage' => (string) ($identity['background'] ?? 'bg1.png'),
+            'bgImage' => $bgImage,
+            'theme' => $theme,
+            'allowedThemes' => DisplayThemeCatalog::all(),
+            'displayMode' => $displayMode,
+            'isPreview' => $isPreview,
+            'initialScene' => $initialScene,
             'audioPath' => ltrim((string) ($identity['audio'] ?? 'uploads/audio/audio.mp3'), '/'),
+            'audioEnabled' => (int) ($identity['audio_enabled'] ?? 0) === 1,
             'shalatTimes' => $shalatTimes,
             'view' => $khotbahView,
             'embedSrc' => $videoData['embed_src'],
@@ -128,6 +165,11 @@ final class DisplayController extends AbstractController
             'rawatibGrouped' => $rawatibGrouped,
             'limit' => $limit,
         ]);
+    }
+
+    public function portrait(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        return $this->index($request, $response);
     }
 
     public function moneyRows(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
@@ -178,7 +220,7 @@ final class DisplayController extends AbstractController
                 if (
                     $imageName !== ''
                     && (
-                        strtolower($imageName) === 'default.png'
+                        in_array(strtolower($imageName), ['default.png', 'default.svg'], true)
                         || $this->fileUploadService->imageExists(FileUploadService::CATEGORY_BANNER, $imageName)
                     )
                 ) {
@@ -198,5 +240,15 @@ final class DisplayController extends AbstractController
     public function currentTime(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         return $this->html($response, $this->dateTimeService->formatCurrentDateHtml());
+    }
+
+    public function audioJson(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $row = $this->pdo()->query('SELECT audio, audio_enabled FROM identity WHERE id = 1 LIMIT 1')->fetch();
+
+        return $this->json($response, [
+            'enabled' => (int) ($row !== false ? ($row['audio_enabled'] ?? 0) : 0) === 1,
+            'src' => ltrim((string) ($row !== false ? ($row['audio'] ?? 'uploads/audio/audio.mp3') : 'uploads/audio/audio.mp3'), '/'),
+        ]);
     }
 }

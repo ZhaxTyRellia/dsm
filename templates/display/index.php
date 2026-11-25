@@ -7,11 +7,14 @@
     <title>Masjid Display</title>
     <meta name="description" content="Masjid Display">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="assets/css/show.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/show.css?v=3">
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
 </head>
 
-<body style="background-image: url('assets/img/background/<?= $e($bgImage) ?>?v=<?= time() ?>');">
+<body class="display-mode-<?= $e($displayMode ?? 'portrait') ?><?= !empty($isPreview) ? ' is-preview-mode' : '' ?>"
+    data-theme="<?= $e($theme['id'] ?? 'emerald-gold') ?>"
+    data-tone="<?= $e($theme['tone'] ?? 'dark') ?>"
+    style="background-image: url('assets/img/background/<?= $e($bgImage) ?>?v=<?= time() ?>');">
     <!--- MODAL SHALAT TIME & JUMAT --->
     <div id="prayerModal" class="prayer-modal-overlay">
         <div class="prayer-modal-content">
@@ -26,10 +29,10 @@
     </div>
     <div id="jumatModal" class="prayer-modal-overlay">
         <div class="full-screen-container">
-            <img src="assets/img/frame.png" class="corner top-left">
-            <img src="assets/img/frame.png" class="corner top-right">
-            <img src="assets/img/frame.png" class="corner bottom-left">
-            <img src="assets/img/frame.png" class="corner bottom-right">
+            <img src="assets/img/frame.svg" class="corner top-left">
+            <img src="assets/img/frame.svg" class="corner top-right">
+            <img src="assets/img/frame.svg" class="corner bottom-left">
+            <img src="assets/img/frame.svg" class="corner bottom-right">
 
             <div class="bismillah">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
 
@@ -61,25 +64,27 @@
 
         <!--- SCENE 1 --->
         <div class="scene active">
-            <!--- HEADER --->
-            <div class="container-header">
-                <div class="logo-header">
-                    <img src="<?= $e($uploadUrl('identity', $identity['logo'] ?? null)) ?>" alt="Logo">
+            <div class="scene1-top">
+                <!--- HEADER --->
+                <div class="container-header">
+                    <div class="logo-header">
+                        <img src="<?= $e($uploadUrl('identity', $identity['logo'] ?? null)) ?>" alt="Logo">
+                    </div>
+                    <div class="block-tittle">
+                        <br class="portrait-only-br"><br class="portrait-only-br"><br class="portrait-only-br">
+                        <p class="tittle-sign">
+                            <?= $e($identity['tittle'] ?? '') ?>
+                        </p>
+                        <p class="name-sign">
+                            <?= $e($identity['name'] ?? '') ?>
+                        </p>
+                    </div>
                 </div>
-                <div class="block-tittle">
-                    <br><br><br>
-                    <p class="tittle-sign">
-                        <?= $e($identity['tittle'] ?? '') ?>
-                    </p>
-                    <p class="name-sign">
-                        <?= $e($identity['name'] ?? '') ?>
-                    </p>
-                </div>
-            </div>
 
-            <!--- DATE --->
-            <div class="date" id="date-container">
-                <?= $currentDateHtml ?>
+                <!--- DATE --->
+                <div class="date" id="date-container">
+                    <?= $currentDateHtml ?>
+                </div>
             </div>
 
             <script>
@@ -93,28 +98,33 @@
 
                 setInterval(refreshDate, 10000);
             </script>
-            <br>
-            <!--- MEDIA --->
-            <?php require __DIR__ . '/partials/video.php'; ?>
+            <br class="portrait-only-br">
 
-            <!--- DATA KEUANGAN --->
-            <div class="data-keuangan-wrapper">
-                <div class="table-title">LAPORAN KAS MASJID</div>
-                <table class="custom-table">
-                    <thead>
-                        <tr>
-                            <th>Keterangan</th>
-                            <th>Tanggal</th>
-                            <th>Kemaslahatan Umat</th>
-                            <th>Kemakmuran Masjid</th>
-                        </tr>
-                    </thead>
-                    <tbody id="kas-table-body">
-                        <tr>
-                            <td colspan="4" style="text-align:center;">Memuat laporan kas masjid...</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="scene1-body">
+                <!--- MEDIA --->
+                <div class="scene1-media">
+                    <?php require __DIR__ . '/partials/video.php'; ?>
+                </div>
+
+                <!--- DATA KEUANGAN --->
+                <div class="data-keuangan-wrapper">
+                    <div class="table-title">LAPORAN KAS MASJID</div>
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Keterangan</th>
+                                <th>Tanggal</th>
+                                <th>Kemaslahatan Umat</th>
+                                <th>Kemakmuran Masjid</th>
+                            </tr>
+                        </thead>
+                        <tbody id="kas-table-body">
+                            <tr>
+                                <td colspan="4" style="text-align:center;">Memuat laporan kas masjid...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -327,6 +337,10 @@
     </div>
 
     <!--- FOOTER --->
+    <audio id="bgAudioPlayer"
+        class="audio-player"
+        loop
+        preload="auto"<?= (!empty($audioEnabled) && empty($isPreview)) ? ' src="' . $e($audioPath) . '"' : '' ?>></audio>
     <div class="marquee-wrapper">
         <marquee behavior="scroll" direction="left" scrollamount="10" onmouseover="this.stop();"
             onmouseleave="this.start();">
@@ -467,6 +481,9 @@
 
                 unmuteYouTubeVideo();
                 prayerEndTime = 0;
+                if (typeof window.syncBgAudioPlayback === 'function') {
+                    window.syncBgAudioPlayback();
+                }
             }
 
             if (prayerEndTime > 0 || typeof shalatSchedule === 'undefined' || !shalatSchedule) return;
@@ -487,6 +504,9 @@
                 if (currentTime >= startTime && currentTime < endTime) {
                     prayerEndTime = endTime;
                     muteYouTubeVideo();
+                    if (typeof window.syncBgAudioPlayback === 'function') {
+                        window.syncBgAudioPlayback();
+                    }
 
                     if (key === 'jumat') {
                         if (modalJumat) modalJumat.style.display = 'flex';
@@ -501,20 +521,79 @@
 
         setInterval(checkPrayerTime, 1000);
     </script>
-    <!--- Fade Content --->
+    <!--- Fade Content & Live Preview Messaging --->
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const scenes = document.querySelectorAll('.scene');
+        (function() {
+            const themeMap = <?= json_encode(
+                array_column($allowedThemes ?? [], null, 'file'),
+                JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
+            ) ?>;
+            const initialSceneParam = <?= $initialScene !== null ? (int) $initialScene : 'null' ?>;
+            const sceneIntervalMs = 59000;
+            let scenes = [];
             let currentScene = 0;
-            const sceneInterval = 59000;
+            let sceneTimer = null;
 
-            function changeScene() {
-                scenes[currentScene].classList.remove('active');
-                currentScene = (currentScene + 1) % scenes.length;
-                scenes[currentScene].classList.add('active');
+            function stopSceneAuto() {
+                if (sceneTimer) {
+                    clearInterval(sceneTimer);
+                    sceneTimer = null;
+                }
             }
-            setInterval(changeScene, sceneInterval);
-        });
+
+            function startSceneAuto() {
+                stopSceneAuto();
+                if (!scenes.length) return;
+                sceneTimer = setInterval(function() {
+                    scenes[currentScene].classList.remove('active');
+                    currentScene = (currentScene + 1) % scenes.length;
+                    scenes[currentScene].classList.add('active');
+                }, sceneIntervalMs);
+            }
+
+            window.dsmSetScene = function(sceneVal) {
+                if (!scenes.length) return;
+                if (sceneVal === 'auto' || sceneVal === null || sceneVal === undefined || sceneVal === '') {
+                    startSceneAuto();
+                    return;
+                }
+                const idx = parseInt(sceneVal, 10);
+                if (isNaN(idx) || idx < 0 || idx >= scenes.length) return;
+                stopSceneAuto();
+                scenes.forEach(function(sc, i) {
+                    sc.classList.toggle('active', i === idx);
+                });
+                currentScene = idx;
+            };
+
+            document.addEventListener("DOMContentLoaded", function() {
+                scenes = Array.prototype.slice.call(document.querySelectorAll('.scene'));
+                if (initialSceneParam !== null) {
+                    window.dsmSetScene(initialSceneParam);
+                } else {
+                    startSceneAuto();
+                }
+            });
+
+            window.addEventListener('message', function(event) {
+                if (event.origin !== window.location.origin) return;
+                const data = event.data;
+                if (!data || typeof data !== 'object') return;
+
+                if (data.type === 'dsm:preview-bg' && Object.prototype.hasOwnProperty.call(themeMap, data.bg)) {
+                    const meta = themeMap[data.bg];
+                    document.body.style.backgroundImage = "url('assets/img/background/" + meta.file + "')";
+                    document.body.setAttribute('data-theme', meta.id);
+                    document.body.setAttribute('data-tone', meta.tone);
+                } else if (data.type === 'dsm:preview-mode') {
+                    const isLandscape = data.mode === 'landscape';
+                    document.body.classList.toggle('display-mode-landscape', isLandscape);
+                    document.body.classList.toggle('display-mode-portrait', !isLandscape);
+                } else if (data.type === 'dsm:preview-scene') {
+                    window.dsmSetScene(data.scene);
+                }
+            });
+        })();
     </script>
     <!--- Shalat Time --->
     <script>
@@ -549,9 +628,9 @@
                         if (data.avatar_url) {
                             img.src = data.avatar_url;
                         } else {
-                            var avatarFile = (data.avatar && data.avatar.trim() !== '') ? data.avatar : 'default.png';
-                            img.src = avatarFile.toLowerCase() === 'default.png'
-                                ? 'assets/img/default.png'
+                            var avatarFile = (data.avatar && data.avatar.trim() !== '') ? data.avatar : 'default.svg';
+                            img.src = (avatarFile.toLowerCase() === 'default.png' || avatarFile.toLowerCase() === 'default.svg')
+                                ? 'assets/img/default.svg'
                                 : 'uploads/khotbah/' + avatarFile;
                         }
                     });
@@ -604,8 +683,8 @@
                 img.className = 'scene-plus-img' + (index === 0 ? ' active' : '');
                 if (imgPath.indexOf('/') !== -1) {
                     img.src = imgPath + '?v=' + cacheBuster;
-                } else if (imgPath.toLowerCase() === 'default.png') {
-                    img.src = 'assets/img/default.png?v=' + cacheBuster;
+                } else if (imgPath.toLowerCase() === 'default.png' || imgPath.toLowerCase() === 'default.svg') {
+                    img.src = 'assets/img/default.svg?v=' + cacheBuster;
                 } else {
                     img.src = 'uploads/banner/' + imgPath + '?v=' + cacheBuster;
                 }
@@ -641,6 +720,57 @@
             }, 3000);
         });
     </script>
+    <?php if (empty($isPreview)): ?>
+    <!--- Background Music Controller --->
+    <script>
+        (function() {
+            const player = document.getElementById('bgAudioPlayer');
+            if (!player) return;
+
+            let bgAudioEnabled = <?= !empty($audioEnabled) ? 'true' : 'false' ?>;
+            let bgAudioSrc = <?= json_encode((string) ($audioPath ?? 'uploads/audio/audio.mp3'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+
+            window.syncBgAudioPlayback = function() {
+                if (!bgAudioEnabled || !bgAudioSrc || prayerEndTime > 0) {
+                    if (!player.paused) {
+                        player.pause();
+                    }
+                    return;
+                }
+                if (player.getAttribute('src') !== bgAudioSrc) {
+                    player.setAttribute('src', bgAudioSrc);
+                    player.load();
+                }
+                const playPromise = player.play();
+                if (playPromise && typeof playPromise.catch === 'function') {
+                    playPromise.catch(function() {});
+                }
+            };
+
+            function pollAudioConfig() {
+                fetch('api/audio', { cache: 'no-store' })
+                    .then(function(r) { return r.ok ? r.json() : null; })
+                    .then(function(data) {
+                        if (!data) return;
+                        bgAudioEnabled = Boolean(data.enabled);
+                        if (data.src) {
+                            bgAudioSrc = data.src;
+                        }
+                        window.syncBgAudioPlayback();
+                    })
+                    .catch(function() {});
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                window.syncBgAudioPlayback();
+                setInterval(pollAudioConfig, 5000);
+            });
+            document.addEventListener('click', function() {
+                window.syncBgAudioPlayback();
+            }, { once: true });
+        })();
+    </script>
+    <?php endif; ?>
 </body>
 
 </html>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="ss-bg" cx="50%" cy="22%" r="85%">
+      <stop offset="0%" stop-color="#f2faf5"/>
+      <stop offset="52%" stop-color="#daece1"/>
+      <stop offset="100%" stop-color="#bedbc9"/>
+    </radialGradient>
+    <linearGradient id="ss-accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2d6a4f"/>
+      <stop offset="55%" stop-color="#1b4332"/>
+      <stop offset="100%" stop-color="#c69c2b"/>
+    </linearGradient>
+    <pattern id="ss-pattern" width="120" height="120" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="#1b4332" stroke-opacity="0.12" stroke-width="1.2">
+        <circle cx="60" cy="60" r="44"/>
+        <circle cx="60" cy="60" r="22" stroke="#b68d23" stroke-opacity="0.18"/>
+        <polygon points="60,12 75,45 108,60 75,75 60,108 45,75 12,60 45,45"/>
+      </g>
+    </pattern>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#ss-bg)"/>
+  <rect width="1080" height="1920" fill="url(#ss-pattern)"/>
+  <path d="M135 1920 L135 615 Q135 280 540 140 Q945 280 945 615 L945 1920" fill="none" stroke="url(#ss-accent)" stroke-opacity="0.24" stroke-width="4"/>
+  <rect x="28" y="28" width="1024" height="1864" rx="28" fill="none" stroke="#1b4332" stroke-opacity="0.4" stroke-width="3"/>
+  <rect x="42" y="42" width="996" height="1836" rx="20" fill="none" stroke="#c69c2b" stroke-opacity="0.45" stroke-width="2"/>
+  <g stroke="#c69c2b" stroke-width="2.5" fill="none" opacity="0.72">
+    <path d="M28 118 Q118 118 118 28 M1052 118 Q962 118 962 28"/>
+    <path d="M28 1802 Q118 1802 118 1892 M1052 1802 Q962 1802 962 1892"/>
+  </g>
+</svg>

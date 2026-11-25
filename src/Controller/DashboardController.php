@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Service\DateTimeService;
 use App\Service\YoutubeEmbedService;
+use App\Support\DisplayThemeCatalog;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -47,7 +48,13 @@ final class DashboardController extends AbstractController
 
         $identities = $pdo->query('SELECT * FROM identity')->fetchAll();
         $identityRow = $identities[0] ?? [];
-        $currentBackground = (string) ($identityRow['background'] ?? 'bg1.png');
+        $currentBackground = DisplayThemeCatalog::normalize($identityRow['background'] ?? null);
+        $currentDisplayMode = strtolower(trim((string) ($identityRow['display_mode'] ?? 'portrait')));
+        if (!in_array($currentDisplayMode, ['portrait', 'landscape'], true)) {
+            $currentDisplayMode = 'portrait';
+        }
+        $audioEnabled = (int) ($identityRow['audio_enabled'] ?? 0) === 1;
+        $currentAudioPath = ltrim((string) ($identityRow['audio'] ?? 'uploads/audio/audio.mp3'), '/');
 
         $shalatTimeData = $pdo->query('SELECT * FROM shalattime WHERE id = 1 LIMIT 1')->fetch() ?: [
             'subuh' => '',
@@ -84,7 +91,11 @@ final class DashboardController extends AbstractController
                 'bannerData' => $bannerData,
                 'limit' => $limit,
                 'identities' => $identities,
+                'themes' => DisplayThemeCatalog::all(),
                 'currentBackground' => $currentBackground,
+                'currentDisplayMode' => $currentDisplayMode,
+                'audioEnabled' => $audioEnabled,
+                'currentAudioPath' => $currentAudioPath,
                 'shalatTimeData' => $shalatTimeData,
                 'khotbahView' => $khotbahView,
                 'khotbahSpeakers' => $khotbahSpeakers,

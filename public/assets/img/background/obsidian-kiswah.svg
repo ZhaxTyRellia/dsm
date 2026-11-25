@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="ok-bg" cx="50%" cy="22%" r="85%">
+      <stop offset="0%" stop-color="#222733"/>
+      <stop offset="50%" stop-color="#11151d"/>
+      <stop offset="100%" stop-color="#07090d"/>
+    </radialGradient>
+    <linearGradient id="ok-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f6e3a1"/>
+      <stop offset="50%" stop-color="#d4af37"/>
+      <stop offset="100%" stop-color="#8f6b18"/>
+    </linearGradient>
+    <pattern id="ok-kiswah" width="120" height="120" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="#d4af37" stroke-opacity="0.16" stroke-width="1.2">
+        <path d="M60 0 L120 60 L60 120 L0 60 Z"/>
+        <path d="M60 20 L100 60 L60 100 L20 60 Z" stroke-opacity="0.22"/>
+        <circle cx="60" cy="60" r="10"/>
+      </g>
+    </pattern>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#ok-bg)"/>
+  <rect width="1080" height="1920" fill="url(#ok-kiswah)"/>
+  <path d="M135 1920 L135 610 Q135 280 540 140 Q945 280 945 610 L945 1920" fill="none" stroke="url(#ok-gold)" stroke-opacity="0.28" stroke-width="4"/>
+  <rect x="28" y="28" width="1024" height="1864" rx="28" fill="none" stroke="url(#ok-gold)" stroke-opacity="0.58" stroke-width="3.5"/>
+  <rect x="44" y="44" width="992" height="1832" rx="20" fill="none" stroke="url(#ok-gold)" stroke-opacity="0.28" stroke-width="1.5"/>
+  <g stroke="url(#ok-gold)" stroke-width="2.5" fill="none" opacity="0.75">
+    <path d="M28 118 Q118 118 118 28 M1052 118 Q962 118 962 28"/>
+    <path d="M28 1802 Q118 1802 118 1892 M1052 1802 Q962 1802 962 1892"/>
+  </g>
+</svg>

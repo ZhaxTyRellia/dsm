@@ -96,7 +96,7 @@ body {
   flex: 1;
   width: 100%;
   text-align: center;
-  background-image: url("../img/clockbg.png");
+  background-image: url("../img/clockbg.svg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -150,7 +150,7 @@ body {
   font-weight: 600;
   text-align: center;
   color: burlywood;
-  background-image: url("../img/clockbg.png");
+  background-image: url("../img/clockbg.svg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -653,7 +653,7 @@ marquee {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  background-image: url("../img/background/bg4.jpg");
+  background-image: url("../img/background/emerald-gold.svg");
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -667,7 +667,7 @@ marquee {
   font-size: 40px;
   margin-top: 40px;
   position: absolute;
-  background-image: url("../img/header.png");
+  background-image: url("../img/header.svg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -730,7 +730,7 @@ marquee {
   font-weight: bold;
   color: #fff;
   text-align: center;
-  background-image: url("../img/clockbg.png");
+  background-image: url("../img/clockbg.svg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -1051,4 +1051,398 @@ marquee {
   .jadwal-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+}
+
+/* =========================================================
+ * LANDSCAPE (16:9 WIDESCREEN) DISPLAY MODE
+ * ========================================================= */
+body.display-mode-landscape {
+  overflow: hidden;
+  background-size: cover;
+}
+
+body.display-mode-landscape #scene-container {
+  height: calc(100vh - 68px);
+}
+
+body.display-mode-landscape .portrait-only-br {
+  display: none;
+}
+
+body.display-mode-landscape .scene > br {
+  display: none;
+}
+
+body.display-mode-landscape .scene1-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 12px 28px 6px;
+}
+
+body.display-mode-landscape .scene1-top .container-header {
+  flex: 1;
+  min-width: 0;
+  gap: 16px;
+}
+
+body.display-mode-landscape .scene1-top .logo-header {
+  width: auto;
+}
+
+body.display-mode-landscape .scene1-top .logo-header img {
+  width: 82px;
+  height: 82px;
+  object-fit: contain;
+  left: 0;
+  top: 0;
+}
+
+body.display-mode-landscape .scene1-top .block-tittle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: left;
+}
+
+body.display-mode-landscape .scene1-top .tittle-sign {
+  text-align: left;
+  font-size: 32px;
+  line-height: 1.15;
+  margin-bottom: 4px;
+}
+
+body.display-mode-landscape .scene1-top .name-sign {
+  text-align: left;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+body.display-mode-landscape .scene1-top .date {
+  flex-shrink: 0;
+  min-width: 320px;
+  padding: 12px 22px;
+  border-radius: 12px;
+}
+
+body.display-mode-landscape .scene1-body {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 22px;
+  padding: 8px 28px 16px;
+  height: calc(100% - 114px);
+  align-items: stretch;
+}
+
+body.display-mode-landscape .scene1-media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 4px solid #ffc107;
+  background: #0d1613;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+body.display-mode-landscape .scene1-media .video-responsive {
+  width: 100%;
+  height: 100%;
+  padding-bottom: 0;
+}
+
+body.display-mode-landscape .data-keuangan-wrapper {
+  margin: 0;
+  width: 100%;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+body.display-mode-landscape .table-title {
+  margin-bottom: 8px;
+  font-size: 20px;
+  padding: 5px;
+}
+
+body.display-mode-landscape .custom-table {
+  border-spacing: 0 6px;
+}
+
+body.display-mode-landscape .custom-table th {
+  padding: 10px 8px;
+  font-size: 0.88rem;
+}
+
+body.display-mode-landscape .custom-table td {
+  padding: 8px 10px;
+  font-size: 0.92rem;
+}
+
+body.display-mode-landscape .kas-total-summary {
+  margin-top: 6px;
+  padding: 10px 14px;
+  font-size: 1.05em;
+}
+
+/* Scenes 2-5 Landscape Headers */
+body.display-mode-landscape .container-header:not(.scene1-top .container-header) {
+  padding: 10px 28px 6px;
+  gap: 16px;
+}
+
+body.display-mode-landscape .logo-header-slide {
+  width: auto;
+}
+
+body.display-mode-landscape .logo-header-slide img {
+  width: 84px !important;
+  height: 84px !important;
+  object-fit: contain;
+  left: 0;
+  top: 0;
+}
+
+body.display-mode-landscape .block-tittle-slide {
+  min-height: 76px;
+  border-radius: 14px;
+}
+
+body.display-mode-landscape .slide-text {
+  font-size: 2rem;
+  padding: 8px 16px;
+}
+
+/* Scenes 2 & 4 Tables in Landscape */
+body.display-mode-landscape .table-container {
+  width: calc(100% - 56px);
+  margin: 10px auto 0;
+  max-height: calc(100% - 114px);
+  overflow: hidden;
+}
+
+body.display-mode-landscape .modern-table th,
+body.display-mode-landscape .modern-table-4 th {
+  font-size: 1.2rem;
+  padding: 10px 14px;
+}
+
+body.display-mode-landscape .modern-table td,
+body.display-mode-landscape .modern-table-4 td {
+  font-size: 1.05rem;
+  padding: 8px 14px;
+}
+
+/* Scene 3 12-Month Grid in Landscape (4x3) */
+body.display-mode-landscape .grid-container {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 8px 28px 12px;
+}
+
+body.display-mode-landscape .month-card {
+  border-width: 3px;
+}
+
+body.display-mode-landscape .month-title {
+  padding: 5px 8px;
+  font-size: 0.92rem;
+}
+
+body.display-mode-landscape .month-card table {
+  font-size: 0.78rem;
+}
+
+body.display-mode-landscape .month-card th,
+body.display-mode-landscape .month-card td {
+  padding: 4px 6px;
+}
+
+/* Scene 5 Imam Rawatib Grid in Landscape (3x2) */
+body.display-mode-landscape .signage-container {
+  padding: 8px 28px 12px;
+}
+
+body.display-mode-landscape .jadwal-grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+body.display-mode-landscape .card-header {
+  padding: 9px 14px;
+  font-size: 1.1rem;
+}
+
+body.display-mode-landscape .img-avatar {
+  width: 34px;
+  height: 34px;
+}
+
+body.display-mode-landscape .nama-imam {
+  font-size: 0.9rem;
+}
+
+/* Bottom Marquee Bar in Landscape */
+body.display-mode-landscape .marquee-wrapper {
+  height: 68px;
+  align-items: center;
+}
+
+body.display-mode-landscape marquee {
+  font-size: 34px;
+  padding-bottom: 0;
+  top: 0;
+  line-height: 68px;
+}
+
+body.display-mode-landscape .clock {
+  font-size: 165%;
+  padding-left: 16px;
+  padding-right: 20px;
+}
+
+/* Friday & Prayer Reminder Overlays in Landscape */
+body.display-mode-landscape .corner {
+  width: 110px;
+}
+
+body.display-mode-landscape .bismillah {
+  font-size: 28px;
+  margin-top: 16px;
+  padding: 16px 56px;
+}
+
+body.display-mode-landscape .title {
+  font-size: 2.3rem;
+  margin-bottom: 12px;
+  padding: 6px 48px;
+}
+
+body.display-mode-landscape .avatar-frame {
+  width: 240px;
+  height: 240px;
+  margin-bottom: 10px;
+}
+
+body.display-mode-landscape .khotib-label {
+  font-size: 1.15rem;
+}
+
+body.display-mode-landscape .khotib-name {
+  font-size: 1.7rem;
+  padding: 16px 110px;
+}
+
+body.display-mode-landscape .lokasi-box {
+  margin-bottom: 20px;
+}
+
+body.display-mode-landscape .lokasi-title {
+  font-size: 1.35rem;
+}
+
+body.display-mode-landscape .lokasi-detail {
+  font-size: 1.1rem;
+}
+
+/* =========================================================
+ * CURATED SVG DISPLAY THEMES (DARK & LIGHT TONES)
+ * ========================================================= */
+body[data-tone="dark"] .tittle-sign {
+  color: #fef3c7;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.65);
+}
+
+body[data-tone="dark"] .name-sign {
+  color: #e2e8f0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+}
+
+body[data-tone="light"] .tittle-sign {
+  color: #062c24;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+body[data-tone="light"] .name-sign {
+  color: #1f4b3f;
+}
+
+/* Emerald Gold (Default Dark) */
+body[data-theme="emerald-gold"] {
+  --theme-accent: #d4af37;
+  --theme-grad: linear-gradient(135deg, #062c24, #0f5645);
+  --theme-marquee: linear-gradient(45deg, #d4af37, #b88a24, #8b6513);
+}
+
+/* Ivory Andalusia (Light) */
+body[data-theme="ivory-andalusia"] {
+  --theme-accent: #c59b27;
+  --theme-grad: linear-gradient(135deg, #0e4c3f, #1d6b57);
+  --theme-marquee: linear-gradient(45deg, #c59b27, #9e771b, #0c4438);
+}
+
+/* Midnight Nabawi (Dark Sapphire) */
+body[data-theme="midnight-nabawi"] {
+  --theme-accent: #f3c950;
+  --theme-grad: linear-gradient(135deg, #0c1f4a, #1d3f82);
+  --theme-marquee: linear-gradient(45deg, #1d3f82, #0f2554, #b6891f);
+}
+
+body[data-theme="midnight-nabawi"] .tittle-sign {
+  color: #fde68a;
+}
+
+/* Sandstone Haramain (Warm Light) */
+body[data-theme="sandstone-haramain"] {
+  --theme-accent: #a87424;
+  --theme-grad: linear-gradient(135deg, #5e3b10, #9b6a1e);
+  --theme-marquee: linear-gradient(45deg, #a87424, #7c5115, #4d300a);
+}
+
+body[data-theme="sandstone-haramain"] .tittle-sign {
+  color: #4a2d0a;
+}
+
+body[data-theme="sandstone-haramain"] .name-sign {
+  color: #6b4616;
+}
+
+/* Sage Sanctuary (Botanical Mint Light) */
+body[data-theme="sage-sanctuary"] {
+  --theme-accent: #2d6a4f;
+  --theme-grad: linear-gradient(135deg, #1b4332, #2d6a4f);
+  --theme-marquee: linear-gradient(45deg, #2d6a4f, #1b4332, #9b7924);
+}
+
+/* Obsidian Kiswah (Charcoal & Gold Dark) */
+body[data-theme="obsidian-kiswah"] {
+  --theme-accent: #e5c158;
+  --theme-grad: linear-gradient(135deg, #141821, #272f40);
+  --theme-marquee: linear-gradient(45deg, #c59b27, #8b6813, #171c26);
+}
+
+body[data-theme="obsidian-kiswah"] .tittle-sign {
+  color: #f6e3a1;
+}
+
+body[data-theme] .modern-table thead,
+body[data-theme] .modern-table-4 thead,
+body[data-theme] .month-title,
+body[data-theme] .card-header {
+  background: var(--theme-grad);
+}
+
+body[data-theme] .data-keuangan-wrapper,
+body[data-theme] .table-container,
+body[data-theme] .month-card,
+body[data-theme] .jadwal-container-vertical,
+body[data-theme] .scene1-media {
+  border-color: var(--theme-accent);
+}
+
+body[data-theme] marquee {
+  background: var(--theme-marquee);
 }

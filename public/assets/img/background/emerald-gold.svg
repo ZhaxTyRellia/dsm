@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="eg-bg" cx="50%" cy="22%" r="85%">
+      <stop offset="0%" stop-color="#0e5242"/>
+      <stop offset="48%" stop-color="#062c24"/>
+      <stop offset="100%" stop-color="#031611"/>
+    </radialGradient>
+    <linearGradient id="eg-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f3df9b"/>
+      <stop offset="50%" stop-color="#d4af37"/>
+      <stop offset="100%" stop-color="#9e7b1c"/>
+    </linearGradient>
+    <pattern id="eg-girih" width="120" height="120" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="#d4af37" stroke-opacity="0.14" stroke-width="1.2">
+        <polygon points="60,8 76,44 112,60 76,76 60,112 44,76 8,60 44,44"/>
+        <rect x="24" y="24" width="72" height="72" transform="rotate(45 60 60)"/>
+        <circle cx="60" cy="60" r="18" stroke-opacity="0.18"/>
+        <circle cx="0" cy="0" r="14"/>
+        <circle cx="120" cy="0" r="14"/>
+        <circle cx="0" cy="120" r="14"/>
+        <circle cx="120" cy="120" r="14"/>
+      </g>
+    </pattern>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#eg-bg)"/>
+  <rect width="1080" height="1920" fill="url(#eg-girih)"/>
+  <path d="M140 1920 L140 620 Q140 280 540 140 Q940 280 940 620 L940 1920" fill="none" stroke="url(#eg-gold)" stroke-opacity="0.22" stroke-width="4"/>
+  <path d="M175 1920 L175 635 Q175 315 540 185 Q905 315 905 635 L905 1920" fill="none" stroke="url(#eg-gold)" stroke-opacity="0.12" stroke-width="2"/>
+  <rect x="28" y="28" width="1024" height="1864" rx="28" fill="none" stroke="url(#eg-gold)" stroke-opacity="0.45" stroke-width="3"/>
+  <rect x="42" y="42" width="996" height="1836" rx="20" fill="none" stroke="url(#eg-gold)" stroke-opacity="0.22" stroke-width="1.5"/>
+  <g stroke="url(#eg-gold)" stroke-width="2.5" fill="none" opacity="0.65">
+    <path d="M28 118 Q118 118 118 28 M1052 118 Q962 118 962 28"/>
+    <path d="M28 1802 Q118 1802 118 1892 M1052 1802 Q962 1802 962 1892"/>
+  </g>
+</svg>

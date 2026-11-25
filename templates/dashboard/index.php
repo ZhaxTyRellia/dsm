@@ -63,7 +63,7 @@
                 <button type="button" class="quick-nav-tile" data-goto-section="video">
                     <div class="quick-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
                     <div>
-                        <div class="quick-nav-title">Video Banner</div>
+                        <div class="quick-nav-title">Video Ads</div>
                         <div class="quick-nav-desc">YouTube live stream &amp; video</div>
                     </div>
                 </button>
@@ -119,15 +119,15 @@
                 <button type="button" class="quick-nav-tile" data-goto-section="background">
                     <div class="quick-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/></svg></div>
                     <div>
-                        <div class="quick-nav-title">Display Background</div>
-                        <div class="quick-nav-desc">Screen theme selector</div>
+                        <div class="quick-nav-title">Display Theme</div>
+                        <div class="quick-nav-desc">Screen theme &amp; orientation</div>
                     </div>
                 </button>
                 <button type="button" class="quick-nav-tile" data-goto-section="audio">
                     <div class="quick-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
                     <div>
                         <div class="quick-nav-title">Background Music</div>
-                        <div class="quick-nav-desc">Audio track &amp; preview</div>
+                        <div class="quick-nav-desc">Turn background audio on or off</div>
                     </div>
                 </button>
                 <button type="button" class="quick-nav-tile" data-goto-section="shalat">
@@ -149,8 +149,8 @@
     </section>
 </div>
 
-<div class="dashboard-section" data-section="video" data-section-title="Video Banner">
-<!-- VIDEO BANNER -->
+<div class="dashboard-section" data-section="video" data-section-title="Video Ads">
+<!-- VIDEO ADS -->
 <section class="section-card" id="sec-video">
     <div class="card-header">
         <div class="card-header-left">
@@ -158,7 +158,7 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
             </div>
             <div>
-                <h2 class="card-title">Video Banner</h2>
+                <h2 class="card-title">Video Ads</h2>
                 <p class="card-subtitle">Set the YouTube video or live stream shown on the main display</p>
             </div>
         </div>
@@ -622,7 +622,11 @@
 <?php
 $embeddedSection = true;
 $identities = $identities ?? [];
-$currentBackground = $currentBackground ?? 'bg1.png';
+$themes = $themes ?? \App\Support\DisplayThemeCatalog::all();
+$currentBackground = \App\Support\DisplayThemeCatalog::normalize($currentBackground ?? null);
+$currentDisplayMode = $currentDisplayMode ?? 'portrait';
+$audioEnabled = !empty($audioEnabled);
+$currentAudioPath = (string) ($currentAudioPath ?? 'uploads/audio/audio.mp3');
 $data = $shalatTimeData ?? [];
 $p = $khotbahView ?? [];
 $speakers = $khotbahSpeakers ?? [];
@@ -634,7 +638,7 @@ $fridays = $upcomingFridays ?? [];
     <?php require __DIR__ . '/../control/identity.php'; ?>
 </div>
 
-<div class="dashboard-section" data-section="background" data-section-title="Display Background">
+<div class="dashboard-section" data-section="background" data-section-title="Display Theme">
     <?php require __DIR__ . '/../control/background.php'; ?>
 </div>
 
@@ -706,7 +710,7 @@ $fridays = $upcomingFridays ?? [];
                 <form action="rawatib/update" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="id" id="edit-rawatib-id">
-                    <img id="edit-rawatib-preview" src="assets/img/default.png" alt="Imam Photo" class="preview-circle">
+                    <img id="edit-rawatib-preview" src="assets/img/default.svg" alt="Imam Photo" class="preview-circle">
                     <div class="form-group">
                         <label class="form-label">Prayer Category</label>
                         <select name="data_shalat" id="edit-rawatib-shalat" class="form-control" required>

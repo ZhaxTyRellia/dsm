@@ -6,6 +6,7 @@ namespace App\Core;
 
 use App\Middleware\SessionMiddleware;
 use App\Service\FileUploadService;
+use App\Support\DisplayThemeCatalog;
 use PDO;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -30,6 +31,9 @@ dOOKynJavjU3HKpOBkr/xaPCGJTwm0wiBNTcnboSDFz6SXgsI6b21XwTmg==
 PEM;
 
     private const PUBLIC_DISPLAY_PATHS = [
+        '/display',
+        '/display/',
+        '/display/index.php',
         '/potrait',
         '/portrait',
         '/potrait.php',
@@ -46,6 +50,7 @@ PEM;
         '/scene_plus_update',
         '/scene_plus_update.php',
         '/api/time',
+        '/api/audio',
         '/app/control/get_time',
         '/app/control/get_time.php',
     ];
@@ -304,14 +309,16 @@ PEM;
 
         if ((int) $pdo->query('SELECT COUNT(*) FROM identity')->fetchColumn() === 0) {
             $stmt = $pdo->prepare(
-                'INSERT INTO identity (id, logo, tittle, name, background, audio, marquee, activate_key) VALUES (1, ?, ?, ?, ?, ?, ?, ?)'
+                'INSERT INTO identity (id, logo, tittle, name, background, display_mode, audio, audio_enabled, marquee, activate_key) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
             $stmt->execute([
                 'default.png',
                 'Masjid Agung Al-Ikhlas',
                 'Jl. Masjid Raya No. 1',
-                'bg1.png',
+                DisplayThemeCatalog::DEFAULT_FILE,
+                'portrait',
                 'uploads/audio/audio.mp3',
+                0,
                 'Selamat datang di Masjid Agung Al-Ikhlas — Luruskan dan rapatkan shaf sebelum menunaikan shalat berjamaah.',
                 $activateKey,
             ]);
@@ -803,7 +810,7 @@ HTML;
                 <rect x="11" y="49" width="42" height="3.5" rx="1.75" fill="#d4af37"/>
             </svg>
             <div>
-                <div class="license-badge">Offline Activation</div>
+                <div class="license-badge">Activation</div>
                 <h1 class="license-title">Activate Application</h1>
             </div>
         </div>
@@ -824,7 +831,7 @@ HTML;
                 <span>Activate Now</span>
             </button>
         </form>
-        <p class="license-foot">Built-in offline verification for this device.</p>
+        <p class="license-foot">Enter your key to unlock this device.</p>
     </div>
     <script>
         function showActivationToast(type, message) {
@@ -892,8 +899,10 @@ HTML;
                 logo TEXT NOT NULL DEFAULT 'default.png',
                 tittle TEXT NOT NULL DEFAULT '',
                 name TEXT NOT NULL DEFAULT '',
-                background TEXT NOT NULL DEFAULT 'bg1.png',
+                background TEXT NOT NULL DEFAULT 'emerald-gold.svg',
+                display_mode TEXT NOT NULL DEFAULT 'portrait',
                 audio TEXT NOT NULL DEFAULT 'uploads/audio/audio.mp3',
+                audio_enabled INTEGER NOT NULL DEFAULT 0,
                 marquee TEXT NOT NULL DEFAULT '',
                 activate_key TEXT NOT NULL DEFAULT ''
             )",
@@ -988,14 +997,36 @@ HTML;
 
         $identityCols = $pdo->query('PRAGMA table_info(identity)')->fetchAll();
         $hasActivateKeyCol = false;
+        $hasDisplayModeCol = false;
+        $hasAudioEnabledCol = false;
         foreach ($identityCols as $col) {
-            if (($col['name'] ?? '') === 'activate_key') {
+            $colName = (string) ($col['name'] ?? '');
+            if ($colName === 'activate_key') {
                 $hasActivateKeyCol = true;
-                break;
+            } elseif ($colName === 'display_mode') {
+                $hasDisplayModeCol = true;
+            } elseif ($colName === 'audio_enabled') {
+                $hasAudioEnabledCol = true;
             }
         }
         if (!$hasActivateKeyCol) {
             $pdo->exec("ALTER TABLE identity ADD COLUMN activate_key TEXT NOT NULL DEFAULT ''");
+        }
+        if (!$hasDisplayModeCol) {
+            $pdo->exec("ALTER TABLE identity ADD COLUMN display_mode TEXT NOT NULL DEFAULT 'portrait'");
+        }
+        if (!$hasAudioEnabledCol) {
+            $pdo->exec("ALTER TABLE identity ADD COLUMN audio_enabled INTEGER NOT NULL DEFAULT 0");
+        }
+
+        $identityBg = $pdo->query('SELECT background FROM identity WHERE id = 1 LIMIT 1')->fetchColumn();
+        if ($identityBg !== false) {
+            $currentBg = (string) $identityBg;
+            if (!DisplayThemeCatalog::isValidFile($currentBg)) {
+                $normalizedBg = DisplayThemeCatalog::normalize($currentBg);
+                $bgStmt = $pdo->prepare('UPDATE identity SET background = ? WHERE id = 1');
+                $bgStmt->execute([$normalizedBg]);
+            }
         }
 
         $hasLegacyMeta = (int) $pdo->query(

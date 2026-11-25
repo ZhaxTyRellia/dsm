@@ -22,9 +22,12 @@ return static function (App $app): void {
     $authMiddleware = $container->get(AuthMiddleware::class);
 
     // Public Signage Display & Live Polling APIs (accessible without license activation)
-    $app->get('/potrait', [DisplayController::class, 'portrait']);
-    $app->get('/portrait', [DisplayController::class, 'portrait']);
-    $app->get('/potrait.php', [DisplayController::class, 'portrait']);
+    $app->get('/display', [DisplayController::class, 'index']);
+    $app->get('/display/', [DisplayController::class, 'index']);
+    $app->get('/display/index.php', [DisplayController::class, 'index']);
+    $app->get('/potrait', [DisplayController::class, 'index']);
+    $app->get('/portrait', [DisplayController::class, 'index']);
+    $app->get('/potrait.php', [DisplayController::class, 'index']);
 
     $app->get('/api/money', [DisplayController::class, 'moneyRows']);
     $app->get('/money_update', [DisplayController::class, 'moneyRows']);
@@ -43,6 +46,7 @@ return static function (App $app): void {
     $app->get('/scene_plus_update.php', [DisplayController::class, 'scenePlusJson']);
 
     $app->get('/api/time', [DisplayController::class, 'currentTime']);
+    $app->get('/api/audio', [DisplayController::class, 'audioJson']);
     $app->get('/app/control/get_time', [DisplayController::class, 'currentTime']);
     $app->get('/app/control/get_time.php', [DisplayController::class, 'currentTime']);
 
@@ -124,6 +128,7 @@ return static function (App $app): void {
 
         $group->get('/control/audio', [ControlController::class, 'showAudio']);
         $group->post('/control/audio', [ControlController::class, 'updateAudio']);
+        $group->post('/control/audio/toggle', [ControlController::class, 'toggleAudio']);
         $group->get('/app/control/audio', [ControlController::class, 'showAudio']);
         $group->get('/app/control/audio.php', [ControlController::class, 'showAudio']);
         $group->post('/app/action/audio.php', [ControlController::class, 'updateAudio']);

@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Core\Kernel;
 use App\Service\DateTimeService;
 use App\Service\FileUploadService;
+use App\Support\DisplayThemeCatalog;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -102,15 +103,23 @@ final class ControlController extends AbstractController
 
     public function showBackground(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $row = $this->pdo()->query('SELECT background FROM identity WHERE id = 1 LIMIT 1')->fetch();
-        $currentBackground = $row !== false ? (string) ($row['background'] ?? '') : '';
+        $row = $this->pdo()->query('SELECT background, display_mode FROM identity WHERE id = 1 LIMIT 1')->fetch();
+        $currentBackground = DisplayThemeCatalog::normalize($row !== false ? ($row['background'] ?? null) : null);
+        $currentDisplayMode = strtolower(trim((string) ($row !== false ? ($row['display_mode'] ?? 'portrait') : 'portrait')));
+        if (!in_array($currentDisplayMode, ['portrait', 'landscape'], true)) {
+            $currentDisplayMode = 'portrait';
+        }
 
         return $this->renderAdmin(
             $request,
             $response,
             'control/background.php',
-            ['currentBackground' => $currentBackground],
-            'Display Background',
+            [
+                'themes' => DisplayThemeCatalog::all(),
+                'currentBackground' => $currentBackground,
+                'currentDisplayMode' => $currentDisplayMode,
+            ],
+            'Display Theme',
             'control-background'
         );
     }
@@ -120,21 +129,28 @@ final class ControlController extends AbstractController
         $this->assertActivated($request);
         $body = $this->body($request);
         $bg = trim((string) ($body['background'] ?? ''));
-        $allowedBackgrounds = ['bg1.png', 'bg2.jpg', 'bg3.jpeg', 'bg4.jpg', 'bg5.jpg', 'bg6.jpg'];
+        $mode = strtolower(trim((string) ($body['display_mode'] ?? 'portrait')));
+        $allowedModes = ['portrait', 'landscape'];
 
-        if (!in_array($bg, $allowedBackgrounds, true)) {
-            $this->flash('error', 'Please choose a valid display background.');
+        if (!DisplayThemeCatalog::isValidFile($bg)) {
+            $this->flash('error', 'Please choose a valid display theme.');
+
+            return $this->redirect($response, '/');
+        }
+
+        if (!in_array($mode, $allowedModes, true)) {
+            $this->flash('error', 'Please choose a valid display orientation.');
 
             return $this->redirect($response, '/');
         }
 
         try {
-            $stmt = $this->pdo()->prepare('UPDATE identity SET background = ? WHERE id = 1');
-            $stmt->execute([$bg]);
+            $stmt = $this->pdo()->prepare('UPDATE identity SET background = ?, display_mode = ? WHERE id = 1');
+            $stmt->execute([$bg, $mode]);
 
-            $this->flash('success', 'Display background updated successfully.');
+            $this->flash('success', 'Display theme and orientation updated successfully.');
         } catch (Throwable) {
-            $this->flash('error', 'Unable to save display background.');
+            $this->flash('error', 'Unable to save display theme.');
         }
 
         return $this->redirect($response, '/');
@@ -142,22 +158,80 @@ final class ControlController extends AbstractController
 
     public function showAudio(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+        $row = $this->pdo()->query('SELECT audio, audio_enabled FROM identity WHERE id = 1 LIMIT 1')->fetch();
+        $audioEnabled = (int) ($row !== false ? ($row['audio_enabled'] ?? 0) : 0) === 1;
+        $currentAudioPath = ltrim((string) ($row !== false ? ($row['audio'] ?? 'uploads/audio/audio.mp3') : 'uploads/audio/audio.mp3'), '/');
+
         return $this->renderAdmin(
             $request,
             $response,
             'control/audio.php',
-            [],
+            [
+                'audioEnabled' => $audioEnabled,
+                'currentAudioPath' => $currentAudioPath,
+            ],
             'Background Music',
             'control-audio'
         );
     }
 
+    public function toggleAudio(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $this->assertActivated($request);
+        $body = $this->body($request);
+        $enabled = ((string) ($body['audio_enabled'] ?? '0')) === '1' ? 1 : 0;
+
+        try {
+            $stmt = $this->pdo()->prepare('UPDATE identity SET audio_enabled = ? WHERE id = 1');
+            $stmt->execute([$enabled]);
+
+            return $this->json($response, [
+                'success' => true,
+                'audio_enabled' => $enabled === 1,
+                'message' => $enabled === 1 ? 'Background music turned on.' : 'Background music turned off.',
+            ]);
+        } catch (Throwable) {
+            return $this->json($response, [
+                'success' => false,
+                'message' => 'Unable to update background music status.',
+            ], 500);
+        }
+    }
+
     public function updateAudio(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $this->assertActivated($request);
+        $body = $this->body($request);
         $files = $this->files($request);
-        if (!isset($files['audio_file']) || $files['audio_file']->getError() !== UPLOAD_ERR_OK) {
+        $hasEnabledParam = array_key_exists('audio_enabled', $body);
+        $enabledValue = $hasEnabledParam ? (((string) ($body['audio_enabled'] ?? '0')) === '1' ? 1 : 0) : null;
+
+        $uploadedFile = $files['audio_file'] ?? null;
+        $hasUploadedFile = $uploadedFile !== null && $uploadedFile->getError() !== UPLOAD_ERR_NO_FILE;
+
+        if (!$hasUploadedFile) {
+            if ($enabledValue !== null) {
+                try {
+                    $stmt = $this->pdo()->prepare('UPDATE identity SET audio_enabled = ? WHERE id = 1');
+                    $stmt->execute([$enabledValue]);
+                    $this->flash(
+                        'success',
+                        $enabledValue === 1 ? 'Background music turned on.' : 'Background music turned off.'
+                    );
+                } catch (Throwable) {
+                    $this->flash('error', 'Unable to save background music settings.');
+                }
+
+                return $this->redirect($response, '/');
+            }
+
             $this->flash('error', 'Please choose an audio file first.');
+
+            return $this->redirect($response, '/');
+        }
+
+        if ($uploadedFile->getError() !== UPLOAD_ERR_OK) {
+            $this->flash('error', 'Unable to upload the audio file.');
 
             return $this->redirect($response, '/');
         }
@@ -171,7 +245,7 @@ final class ControlController extends AbstractController
         $oldAudio = $row !== false ? ($row['audio'] ?? null) : null;
 
         try {
-            $filename = $this->fileUploadService->moveUploadedAudio($files['audio_file']);
+            $filename = $this->fileUploadService->moveUploadedAudio($uploadedFile);
         } catch (RuntimeException $e) {
             $this->flash('error', $e->getMessage());
 
@@ -181,14 +255,19 @@ final class ControlController extends AbstractController
         $relativeDbPath = 'uploads/audio/' . $filename;
 
         try {
-            $updateStmt = $pdo->prepare('UPDATE identity SET audio = ? WHERE id = ?');
-            $updateStmt->execute([$relativeDbPath, $targetId]);
+            if ($enabledValue !== null) {
+                $updateStmt = $pdo->prepare('UPDATE identity SET audio = ?, audio_enabled = ? WHERE id = ?');
+                $updateStmt->execute([$relativeDbPath, $enabledValue, $targetId]);
+            } else {
+                $updateStmt = $pdo->prepare('UPDATE identity SET audio = ? WHERE id = ?');
+                $updateStmt->execute([$relativeDbPath, $targetId]);
+            }
 
             if ($oldAudio !== null && $oldAudio !== '') {
                 $this->fileUploadService->deleteAudio((string) $oldAudio);
             }
 
-            $this->flash('success', 'Background audio updated successfully.');
+            $this->flash('success', 'Background music updated successfully.');
         } catch (Throwable) {
             $this->fileUploadService->deleteAudio($relativeDbPath);
             $this->flash('error', 'Unable to save background audio.');

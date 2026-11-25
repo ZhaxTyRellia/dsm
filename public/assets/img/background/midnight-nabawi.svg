@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="mn-bg" cx="50%" cy="20%" r="85%">
+      <stop offset="0%" stop-color="#193c7a"/>
+      <stop offset="52%" stop-color="#0b1d42"/>
+      <stop offset="100%" stop-color="#050d21"/>
+    </radialGradient>
+    <linearGradient id="mn-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f7e7a9"/>
+      <stop offset="50%" stop-color="#d4af37"/>
+      <stop offset="100%" stop-color="#9e7a1e"/>
+    </linearGradient>
+    <pattern id="mn-stars" width="140" height="140" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="#8ab4f8" stroke-opacity="0.14" stroke-width="1.2">
+        <polygon points="70,12 85,55 128,70 85,85 70,128 55,85 12,70 55,55"/>
+        <polygon points="70,28 84,56 112,70 84,84 70,112 56,84 28,70 56,56" stroke="#d4af37" stroke-opacity="0.16"/>
+        <circle cx="70" cy="70" r="10" stroke="#d4af37" stroke-opacity="0.22"/>
+      </g>
+    </pattern>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#mn-bg)"/>
+  <rect width="1080" height="1920" fill="url(#mn-stars)"/>
+  <circle cx="540" cy="280" r="320" fill="#d4af37" fill-opacity="0.06"/>
+  <path d="M130 1920 L130 610 Q130 270 540 135 Q950 270 950 610 L950 1920" fill="none" stroke="url(#mn-gold)" stroke-opacity="0.25" stroke-width="4"/>
+  <rect x="28" y="28" width="1024" height="1864" rx="28" fill="none" stroke="url(#mn-gold)" stroke-opacity="0.48" stroke-width="3"/>
+  <rect x="42" y="42" width="996" height="1836" rx="20" fill="none" stroke="#93c5fd" stroke-opacity="0.2" stroke-width="1.5"/>
+  <g stroke="url(#mn-gold)" stroke-width="2.5" fill="none" opacity="0.65">
+    <path d="M28 118 Q118 118 118 28 M1052 118 Q962 118 962 28"/>
+    <path d="M28 1802 Q118 1802 118 1892 M1052 1802 Q962 1802 962 1892"/>
+  </g>
+</svg>

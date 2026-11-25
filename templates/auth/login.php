@@ -313,7 +313,7 @@
         </form>
 
         <div class="login-foot">
-            <a href="potrait">
+            <a href="display">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                 <span>Open Live Display</span>
             </a>

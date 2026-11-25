@@ -74,10 +74,17 @@ final class FileUploadService
         return $filename;
     }
 
+    private function isDefaultPlaceholder(?string $filename): bool
+    {
+        $safeName = strtolower(basename(trim((string) $filename)));
+
+        return $safeName === '' || $safeName === 'default.png' || $safeName === 'default.svg';
+    }
+
     public function deleteImage(string $category, ?string $filename): void
     {
         $safeName = basename(trim((string) $filename));
-        if ($safeName === '' || strtolower($safeName) === 'default.png') {
+        if ($this->isDefaultPlaceholder($safeName)) {
             return;
         }
 
@@ -90,7 +97,7 @@ final class FileUploadService
     public function imageExists(string $category, string $filename): bool
     {
         $safeName = basename(trim($filename));
-        if ($safeName === '' || strtolower($safeName) === 'default.png') {
+        if ($this->isDefaultPlaceholder($safeName)) {
             return false;
         }
 
@@ -102,8 +109,8 @@ final class FileUploadService
         $this->categoryDir($category);
         $safeName = basename(trim((string) $filename));
 
-        if ($safeName === '' || strtolower($safeName) === 'default.png') {
-            return 'assets/img/default.png';
+        if ($this->isDefaultPlaceholder($safeName)) {
+            return 'assets/img/default.svg';
         }
 
         return 'uploads/' . $category . '/' . $safeName;
